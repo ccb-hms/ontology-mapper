@@ -1,0 +1,4 @@
+pandas
+sparse-dot-topn
+sklearn
+owlready2

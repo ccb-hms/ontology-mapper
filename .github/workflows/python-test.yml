@@ -1,0 +1,44 @@
+# This workflow will install Python dependencies, run tests and lint with a single version of Python
+# For more information see: https://help.github.com/actions/language-and-framework-guides/using-python-with-github-actions
+
+name: Python application
+
+on:
+    push:
+        branches: [task5-workflow]
+    pull_request:
+        branches: [task5-workflow]
+
+jobs:
+    build:
+        runs-on: ubuntu-latest
+
+        steps:
+            - uses: actions/checkout@v2
+            - name: Set up Python 3.9
+              uses: actions/setup-python@v2
+              with:
+                  python-version: 3.9
+            - name: Install dependencies
+              run: |
+                  python -m pip install --upgrade pip
+                  pip install flake8 pytest
+                  if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+            - name: Run mapper on Biobank source terms
+              run: |
+                  python3 t2t.py -s ./.github/inputs/terms.txt
+                  -t https://github.com/EBISPOT/efo/releases/download/current/efo.owl
+            - name: Archive mapping output
+              uses: actions/upload-artifact@v2
+              with:
+                  name: mapping-output
+                  path: t2t-out-*.csv
+            # - name: Lint with flake8
+            #   run: |
+            #       # stop the build if there are Python syntax errors or undefined names
+            #       flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+            #       # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
+            #       flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+            # - name: Test with pytest
+            #   run: |
+            #       pytest
