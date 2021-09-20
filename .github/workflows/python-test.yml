@@ -26,8 +26,7 @@ jobs:
                   if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
             - name: Run mapper on Biobank source terms
               run: |
-                  python3 t2t.py -s ./.github/inputs/terms.txt
-                  -t https://github.com/EBISPOT/efo/releases/download/current/efo.owl
+                  python3 t2t.py -s ./.github/inputs/terms.txt -t https://github.com/EBISPOT/efo/releases/download/current/efo.owl
             - name: Archive mapping output
               uses: actions/upload-artifact@v2
               with:
