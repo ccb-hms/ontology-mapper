@@ -14,9 +14,10 @@ class OntologyTermCollector:
         self.logger = ontoutils.get_logger(__name__, logging.INFO)
         self.ontology_iri = ontology_iri
 
-    def get_ontology_terms(self, use_reasoning=False, ignore_deprecated=True, include_individuals=False):
+    def get_ontology_terms(self, base_iri=None, use_reasoning=False, ignore_deprecated=True, include_individuals=False):
         """
         Collect the terms described in the ontology at the specified IRI
+        :param base_iri: When provided, ontology term collection is restricted to terms whose IRIs start with this.
         :param use_reasoning: Use a reasoner to compute inferred parents of classes (and individuals) in the ontology
         :param ignore_deprecated: Ignore ontology terms stated as deprecated using owl:deprecated 'true'
         :param include_individuals: True if OWL individuals should also be included, False otherwise and by default
@@ -27,9 +28,15 @@ class OntologyTermCollector:
             self._classify_ontology(ontology)
         self.logger.info("Collecting ontology term details...")
         start = time.time()
-        ontology_terms = self._get_ontology_terms(ontology.classes(), ontology.base_iri, ignore_deprecated)
-        if include_individuals:
-            ontology_terms.extend(self._get_ontology_terms(ontology.individuals(), ontology.base_iri, ignore_deprecated))
+        if base_iri is not None:
+            # Collect only the ontology terms with IRIs that start with the given 'base_iri'
+            query = base_iri + "*"
+            iris = list(default_world.search(iri=query))
+            ontology_terms = self._get_ontology_terms(iris, ontology.base_iri, ignore_deprecated)
+        else:
+            ontology_terms = self._get_ontology_terms(ontology.classes(), ontology.base_iri, ignore_deprecated)
+            if include_individuals:
+                ontology_terms.extend(self._get_ontology_terms(ontology.individuals(), ontology.base_iri, ignore_deprecated))
         end = time.time()
         self.logger.info("done: collected %i ontology terms (collection time: %.2fs)", len(ontology_terms), end-start)
         return ontology_terms
