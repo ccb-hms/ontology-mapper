@@ -1,6 +1,9 @@
 import logging
 import sys
 
+STOP_WORDS = {'in', 'the', 'any', 'all', 'for', 'and', 'or', 'dx', 'on', 'fh', 'tx', 'only', 'qnorm', 'w', 'iqb',
+              'ds', 'rd', 'rdgwas'}
+
 
 def get_logger(name, level):
     formatter = logging.Formatter("%(asctime)s %(levelname)s [%(name)s]: %(message)s", "%Y-%m-%d %H:%M:%S")

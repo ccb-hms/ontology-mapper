@@ -3,6 +3,7 @@ import datetime
 import os
 import sys
 import ontoutils
+from ontotermcollector import OntologyTermCollector
 from tfidfmapper import TFIDFMapper
 
 
@@ -38,6 +39,8 @@ def get_arguments():
 
 if __name__ == "__main__":
     source_terms_file, target_ontology, output_file, max_mappings, min_score, incl_individuals = get_arguments()
-    mapper = TFIDFMapper(ontoutils.parse_list_file(source_terms_file), target_ontology)
-    mappings_df = mapper.map(max_mappings=max_mappings, min_score=min_score, incl_individuals=incl_individuals)
+    source_terms = ontoutils.parse_list_file(source_terms_file)
+    onto_terms = OntologyTermCollector(target_ontology).get_ontology_terms(include_individuals=incl_individuals)
+    mapper = TFIDFMapper(onto_terms)
+    mappings_df = mapper.map(source_terms, max_mappings=max_mappings, min_score=min_score)
     mappings_df.to_csv(output_file, index=False)
