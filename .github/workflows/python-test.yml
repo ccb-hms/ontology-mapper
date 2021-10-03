@@ -32,12 +32,24 @@ jobs:
               with:
                   name: mapping-output
                   path: t2t-out-*.csv
-            # - name: Lint with flake8
-            #   run: |
-            #       # stop the build if there are Python syntax errors or undefined names
-            #       flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
-            #       # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
-            #       flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
-            # - name: Test with pytest
-            #   run: |
-            #       pytest
+    test:
+        steps:
+            - uses: actions/checkout@v2
+              name: Checkout test repository
+              with:
+                  repository: "ccb-hms/ontology-mapper-tests"
+                  persist-credentials: false # otherwise, the token used is the GITHUB_TOKEN, instead of your personal access token.
+                  fetch-depth: 0 # otherwise, there would be errors pushing refs to the destination repository.
+            - name: Download a single artifact
+              uses: actions/download-artifact@v2
+              with:
+                  name: mapping-output
+            - name: Commit files
+              run: |
+                  git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
+                  git config --local user.name "github-actions[bot]"
+                  git commit -m "Add file" -a
+            - name: Push changes
+              uses: ad-m/github-push-action@master
+              with:
+                  repository: "ccb-hms/ontology-mapper-tests"
