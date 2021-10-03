@@ -10,9 +10,9 @@ on:
         branches: [task5-workflow]
 
 jobs:
-    build:
+    run_mapper:
         runs-on: ubuntu-latest
-
+        name: Run Mapper
         steps:
             - uses: actions/checkout@v2
             - name: Set up Python 3.9
@@ -32,14 +32,16 @@ jobs:
               with:
                   name: mapping-output
                   path: t2t-out-*.csv
-    test:
+    save_to_test:
         runs-on: ubuntu-latest
-
+        name: Save Output to Test Repo
+        needs: run_mapper
         steps:
             - uses: actions/checkout@v2
               name: Checkout test repository
               with:
                   repository: "ccb-hms/ontology-mapper-tests"
+                  persist-credentials: false # otherwise, the token used is the GITHUB_TOKEN, instead of your personal access token.
                   fetch-depth: 0 # otherwise, there would be errors pushing refs to the destination repository.
             - name: Download a single artifact
               uses: actions/download-artifact@v2
@@ -54,3 +56,4 @@ jobs:
               uses: ad-m/github-push-action@master
               with:
                   repository: "ccb-hms/ontology-mapper-tests"
+                  github_token: ${{ secrets.GITHUB_TOKEN }}
