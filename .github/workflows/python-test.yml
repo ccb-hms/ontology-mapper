@@ -41,7 +41,6 @@ jobs:
               name: Checkout test repository
               with:
                   repository: "ccb-hms/ontology-mapper-tests"
-                  persist-credentials: false # otherwise, the token used is the GITHUB_TOKEN, instead of your personal access token.
                   fetch-depth: 0 # otherwise, there would be errors pushing refs to the destination repository.
             - name: Download a single artifact
               uses: actions/download-artifact@v2
@@ -51,7 +50,8 @@ jobs:
               run: |
                   git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
                   git config --local user.name "github-actions[bot]"
-                  git commit -m "Add file" -a
+                  git add t2t-out-*.csv
+                  git commit -m "Add file"
             - name: Push changes
               uses: ad-m/github-push-action@master
               with:
