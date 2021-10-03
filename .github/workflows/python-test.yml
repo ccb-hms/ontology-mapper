@@ -33,12 +33,13 @@ jobs:
                   name: mapping-output
                   path: t2t-out-*.csv
     test:
+        runs-on: ubuntu-latest
+
         steps:
             - uses: actions/checkout@v2
               name: Checkout test repository
               with:
                   repository: "ccb-hms/ontology-mapper-tests"
-                  persist-credentials: false # otherwise, the token used is the GITHUB_TOKEN, instead of your personal access token.
                   fetch-depth: 0 # otherwise, there would be errors pushing refs to the destination repository.
             - name: Download a single artifact
               uses: actions/download-artifact@v2
