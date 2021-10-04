@@ -35,7 +35,7 @@ jobs:
     save_to_test:
         runs-on: ubuntu-latest
         name: Save Output to Test Repo
-        needs: run_mapper
+        # needs: run_mapper
         steps:
             - uses: actions/checkout@v2
               name: Checkout test repository
