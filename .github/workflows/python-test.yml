@@ -41,6 +41,7 @@ jobs:
               name: Checkout test repository
               with:
                   repository: "ccb-hms/ontology-mapper-tests"
+                  token: ${{ secrets.MAPPER_TESTING }}
                   fetch-depth: 0 # otherwise, there would be errors pushing refs to the destination repository.
             - name: Download a single artifact
               uses: actions/download-artifact@v2
@@ -56,4 +57,4 @@ jobs:
               uses: ad-m/github-push-action@master
               with:
                   repository: "ccb-hms/ontology-mapper-tests"
-                  github_token: ${{ secrets.GITHUB_TOKEN }}
+                  github_token: ${{ secrets.MAPPER_TESTING }}
