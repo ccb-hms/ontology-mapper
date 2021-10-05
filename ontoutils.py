@@ -19,3 +19,26 @@ def parse_list_file(file_path):
     file = open(file_path)
     lines = file.read().splitlines()
     return lines
+
+
+OBO_BASE_IRI = "http://purl.obolibrary.org/obo/"
+BIOPORTAL_BASE_IRI = "http://purl.bioontology.org/ontology/"
+ORPHANET_IRI = "http://www.orpha.net/ORDO/"
+ONTOLOGY_IRIS = {"EFO": "http://www.ebi.ac.uk/efo/",
+                 "Orphanet": ORPHANET_IRI,
+                 "ORPHA": ORPHANET_IRI,
+                 "MONDO": OBO_BASE_IRI,
+                 "HP": OBO_BASE_IRI,
+                 "UBERON": OBO_BASE_IRI,
+                 "GO": OBO_BASE_IRI,
+                 "DOID": OBO_BASE_IRI,
+                 "CHEBI": OBO_BASE_IRI,
+                 "OMIT": OBO_BASE_IRI,
+                 "NCIT": OBO_BASE_IRI,
+                 "MAXO": OBO_BASE_IRI,
+                 "DRON": OBO_BASE_IRI,
+                 "OAE": OBO_BASE_IRI,
+                 "CIDO": OBO_BASE_IRI,
+                 "OMIM": BIOPORTAL_BASE_IRI + "OMIM/",
+                 "PATO": OBO_BASE_IRI,
+                 "SNOMED": "http://snomed.info/id/"}
