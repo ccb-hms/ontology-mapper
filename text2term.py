@@ -21,8 +21,12 @@ def get_arguments():
                         help="Maximum number of top-ranked mappings returned per source term (default=3)")
     parser.add_argument("-min", "--min_score", required=False, type=float, default=0.5,
                         help="Minimum score [0,1] for the mappings (0=dissimilar, 1=exact match; default=0.5)")
-    parser.add_argument("-i", "--incl_individuals", required=False, type=bool, default=False,
-                        help="Include ontology individuals in addition to classes (default=False)")
+    parser.add_argument("-iri", "--base_iri", required=False, type=str,
+                        help="Restricts ontology term mapping to those terms whose IRIs start with the given base IRI")
+    parser.add_argument("-d", "--excl_deprecated", required=False, default=False, action="store_true",
+                        help="Exclude terms stated as deprecated via owl:deprecated")
+    parser.add_argument("-i", "--incl_individuals", required=False, default=False, action="store_true",
+                        help="Include ontology individuals in addition to classes")
     arguments = parser.parse_args()
 
     source_file, target_file, out_file = arguments.source, arguments.target, arguments.output
@@ -34,13 +38,17 @@ def get_arguments():
     if os.path.dirname(out_file):
         os.makedirs(os.path.dirname(out_file), exist_ok=True)
 
-    return source_file, target_file, out_file, arguments.top_mappings, arguments.min_score, arguments.incl_individuals
+    return source_file, target_file, out_file, arguments.top_mappings, arguments.min_score, arguments.base_iri, \
+        arguments.excl_deprecated, arguments.incl_individuals
 
 
 if __name__ == "__main__":
-    source_terms_file, target_ontology, output_file, max_mappings, min_score, incl_individuals = get_arguments()
-    source_terms = ontoutils.parse_list_file(source_terms_file)
-    onto_terms = OntologyTermCollector(target_ontology).get_ontology_terms(include_individuals=incl_individuals)
+    input_file, target_ontology, output_file, max_mappings, min_score, base_iri, excl_deprecated, incl_individuals = get_arguments()
+    source_terms = ontoutils.parse_list_file(input_file)
+    term_collector = OntologyTermCollector(target_ontology)
+    onto_terms = term_collector.get_ontology_terms(base_iri=base_iri,
+                                                   exclude_deprecated=excl_deprecated,
+                                                   include_individuals=incl_individuals)
     mapper = TFIDFMapper(onto_terms)
     mappings_df = mapper.map(source_terms, max_mappings=max_mappings, min_score=min_score)
     mappings_df.to_csv(output_file, index=False)

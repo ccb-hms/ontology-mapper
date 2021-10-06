@@ -14,13 +14,13 @@ class OntologyTermCollector:
         self.logger = ontoutils.get_logger(__name__, logging.INFO)
         self.ontology_iri = ontology_iri
 
-    def get_ontology_terms(self, base_iri=None, use_reasoning=False, ignore_deprecated=True, include_individuals=False):
+    def get_ontology_terms(self, base_iri=None, use_reasoning=False, exclude_deprecated=True, include_individuals=False):
         """
         Collect the terms described in the ontology at the specified IRI
         :param base_iri: When provided, ontology term collection is restricted to terms whose IRIs start with this.
         :param use_reasoning: Use a reasoner to compute inferred parents of classes (and individuals) in the ontology
-        :param ignore_deprecated: Ignore ontology terms stated as deprecated using owl:deprecated 'true'
-        :param include_individuals: True if OWL individuals should also be included, False otherwise and by default
+        :param exclude_deprecated: Exclude ontology terms stated as deprecated using owl:deprecated 'true'
+        :param include_individuals: Include OWL ontology individuals in addition to ontology classes
         :return: Collection of ontology terms in the specified ontology
         """
         ontology = self._load_ontology(self.ontology_iri)
@@ -32,29 +32,29 @@ class OntologyTermCollector:
             # Collect only the ontology terms with IRIs that start with the given 'base_iri'
             query = base_iri + "*"
             iris = list(default_world.search(iri=query))
-            ontology_terms = self._get_ontology_terms(iris, ontology.base_iri, ignore_deprecated)
+            ontology_terms = self._get_ontology_terms(iris, ontology.base_iri, exclude_deprecated)
         else:
-            ontology_terms = self._get_ontology_terms(ontology.classes(), ontology.base_iri, ignore_deprecated)
+            ontology_terms = self._get_ontology_terms(ontology.classes(), ontology.base_iri, exclude_deprecated)
             if include_individuals:
-                ontology_terms.extend(self._get_ontology_terms(ontology.individuals(), ontology.base_iri, ignore_deprecated))
+                ontology_terms.extend(self._get_ontology_terms(ontology.individuals(), ontology.base_iri, exclude_deprecated))
         end = time.time()
         self.logger.info("done: collected %i ontology terms (collection time: %.2fs)", len(ontology_terms), end-start)
         return ontology_terms
 
-    def _get_ontology_terms(self, entities, onto_base_iri, ignore_deprecated):
+    def _get_ontology_terms(self, entities, onto_base_iri, exclude_deprecated):
         ontology_terms = []
         for owl_entity in entities:
-            if (ignore_deprecated and not deprecated[owl_entity]) or (not ignore_deprecated):
+            if (exclude_deprecated and not deprecated[owl_entity]) or (not exclude_deprecated):
                 labels = self._get_labels_and_synonyms(owl_entity)
                 if len(labels) > 0:
                     all_parents = self._get_parents(owl_entity)
                     named_parents = []  # collection of named/atomic superclasses except owl:Thing
                     for parent in all_parents:
-                        if parent.__class__ is ThingClass and parent is not Thing:  # Ignore OWL restrictions and owl:Thing
+                        if parent.__class__ is ThingClass and parent is not Thing:  # exclude OWL restrictions and owl:Thing
                             named_parents.append(parent)
                     ontology_terms.append(OntologyTerm(owl_entity.iri, labels, onto_base_iri, parents=named_parents))
             else:
-                self.logger.debug("Ignoring deprecated ontology term: %s", owl_entity.iri)
+                self.logger.debug("Excluding deprecated ontology term: %s", owl_entity.iri)
         return ontology_terms
 
     def _get_parents(self, ontology_term):
