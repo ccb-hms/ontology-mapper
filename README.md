@@ -30,9 +30,13 @@ A tool to map unstructured terms to ontology terms.
 The basic use of the tool requires a `source` file containing a list of terms to map to the given `target` ontology:  
 `python text2term.py -s unstruct_terms.txt -t http://www.ebi.ac.uk/efo/efo.owl`
 
-Exclude deprecated ontology terms (declared as such via *owl:deprecated true*) using `-d`:
+Set the minimum acceptable similarity score for mapping each given term to an ontology term using `-min`:  
+`python text2term.py -s unstruct_terms.txt -t efo.owl -min 0.8`  
+The mapped terms returned will have been determined to be 0.8 similar to their source terms in a 0-1 scale.  
+
+Exclude deprecated ontology terms (declared as such via *owl:deprecated true*) using `-d`:  
 `python text2term.py -s unstruct_terms.txt -t efo.owl -d`
 
-Constrain the mapping to only ontology terms whose IRIs (identifiers) start with a given string, specified using `-iri`:  
-`python text2term.py -s unstruct_terms.txt -t efo.owl -iri http://www.ebi.ac.uk/efo/EFO`
+Constrain the mapping to ontology terms whose IRIs (identifiers) start with a given string, specified using `-iri`:  
+`python text2term.py -s unstruct_terms.txt -t efo.owl -iri http://www.ebi.ac.uk/efo/EFO`  
 Here, because the EFO ontology reuses terms from other ontologies such as ChEBI and GO, the non-EFO terms would be excluded.
