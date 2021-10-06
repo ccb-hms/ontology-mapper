@@ -1,5 +1,4 @@
 # text2term Ontology Term Mapper
-___
 
 A tool to map unstructured terms to ontology terms. 
 
@@ -28,11 +27,12 @@ A tool to map unstructured terms to ontology terms.
 
 ### Examples
 
-The basic use of the tool requires a `source` file containing a list of terms to map to the given `target` ontology, as follows:  
+The basic use of the tool requires a `source` file containing a list of terms to map to the given `target` ontology:  
 `python text2term.py -s unstruct_terms.txt -t http://www.ebi.ac.uk/efo/efo.owl`
 
-To exclude deprecated ontology terms (declared as such via *owl:deprecated true*) use `-d`, as follows:
-`python text2term.py -s unstruct_terms.txt -t http://www.ebi.ac.uk/efo/efo.owl -d`
+Exclude deprecated ontology terms (declared as such via *owl:deprecated true*) using `-d`:
+`python text2term.py -s unstruct_terms.txt -t efo.owl -d`
 
-It is possible to constrain the mapping to only ontology terms with IRIs (identifiers) starting with the given base `iri` string, for example "http://www.ebi.ac.uk/efo/EFO", as follows:  
-`python text2term.py -s unstruct_terms.txt -t http://www.ebi.ac.uk/efo/efo.owl -iri http://www.ebi.ac.uk/efo/EFO`
+Constrain the mapping to only ontology terms whose IRIs (identifiers) start with a given string, specified using `-iri`:  
+`python text2term.py -s unstruct_terms.txt -t efo.owl -iri http://www.ebi.ac.uk/efo/EFO`
+Here, because the EFO ontology reuses terms from other ontologies such as ChEBI and GO, the non-EFO terms would be excluded.
