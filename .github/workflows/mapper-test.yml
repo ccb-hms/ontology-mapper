@@ -43,17 +43,18 @@ jobs:
               run: |
                   cd tests
                   ls
+                  ls mapper-outputs/ukb-efo
             - name: Setup summary spreadsheet row
               run: |
                   echo "\n${GITHUB_REF},${GITHUB_SHA},ukb-efo/${GITHUB_SHA}.csv," >> summary_path
               env:
-                  sumamry_path: "./summary.csv"
+                  sumamry_path: ./summary.csv
             - name: Commit changes to tests repo
               run: |
                   git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
                   git config --local user.name "github-actions[bot]"
-                  git add ./mapper-outputs/*
-                  git add ./summary.csv
+                  git add mapper-outputs/*
+                  git add summary.csv
                   git commit -m "Add files"
             - name: Push changes
               uses: ad-m/github-push-action@master
