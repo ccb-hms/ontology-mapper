@@ -38,23 +38,23 @@ jobs:
               env:
                   source_path: ./tests/data/ukb-efo/terms.txt
                   target_path: https://github.com/EBISPOT/efo/releases/download/current/efo.owl
-            - name: Move to tests repo
-              run: |
-                  cd tests
             - name: Setup summary spreadsheet row
               run: |
-                  ls
                   echo "\n${GITHUB_REF},${GITHUB_SHA},ukb-efo/${GITHUB_SHA}.csv," >> $summary_path
+              working-directory: tests
               env:
                   sumamry_path: ./summary.csv
             - name: Commit changes to tests repo
               run: |
                   git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
                   git config --local user.name "github-actions[bot]"
-                  git add .
+                  git add mapper-outputs/*
+                  git add summary.csv
                   git commit -m "Add files"
+              working-directory: tests
             - name: Push changes
               uses: ad-m/github-push-action@master
               with:
                   repository: "ccb-hms/ontology-mapper-tests"
                   github_token: ${{ secrets.MAPPER_TESTING }}
+                  directory: "tests"
