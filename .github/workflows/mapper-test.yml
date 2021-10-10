@@ -43,7 +43,7 @@ jobs:
                   echo "\n${GITHUB_REF},${GITHUB_SHA},ukb-efo/${GITHUB_SHA}.csv," >> $summary_path
               working-directory: tests
               env:
-                  sumamry_path: ./summary.csv
+                  summary_path: summary.csv
             - name: Commit changes to tests repo
               run: |
                   git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
