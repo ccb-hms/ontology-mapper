@@ -40,7 +40,7 @@ jobs:
                   target_path: https://github.com/EBISPOT/efo/releases/download/current/efo.owl
                   output_path: ./tests/mapper-outputs/ukb-efo/${GITHUB_SHA}.csv
             - name: Move to tests repo
-            - run: |
+              run: |
                   cd tests
                   ls
             - name: Setup summary spreadsheet row
