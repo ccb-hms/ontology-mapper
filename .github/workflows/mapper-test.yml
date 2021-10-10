@@ -16,8 +16,6 @@ jobs:
         steps:
             - uses: actions/checkout@v2
               name: Checkout out mapper repository
-              with:
-                  path: mapper
             - uses: actions/checkout@v2
               name: Checkout test repository
               with:
@@ -25,9 +23,6 @@ jobs:
                   repository: "ccb-hms/ontology-mapper-tests"
                   token: ${{ secrets.MAPPER_TESTING }}
                   fetch-depth: 0 # otherwise, there would be errors pushing refs to the destination repository.
-            - name: Go into mapper repository and set up local variables
-              run: |
-                  cd mapper
             - name: Set up Python 3.9
               uses: actions/setup-python@v2
               with:
@@ -41,17 +36,17 @@ jobs:
               run: |
                   python3 t2t.py -s $source_path -t $target_path -o $output_path
               env:
-                  source_path: ../tests/data/ukb-efo/terms.txt
+                  source_path: ./tests/data/ukb-efo/terms.txt
                   target_path: https://github.com/EBISPOT/efo/releases/download/current/efo.owl
-                  output_path: ../tests/mapper-outputs/ukb-efo/${GITHUB_SHA}.csv
+                  output_path: ./tests/mapper-outputs/ukb-efo/${GITHUB_SHA}.csv
             - name: Setup summary spreadsheet row
               run: |
                   echo "\n${GITHUB_REF},${GITHUB_SHA},ukb-efo/${GITHUB_SHA}.csv," >> summary_path
               env:
-                  sumamry_path: "../tests/summary.csv"
+                  sumamry_path: "./tests/summary.csv"
             - name: Commit changes to tests repo
               run: |
-                  cd ../tests
+                  cd ./tests
                   git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
                   git config --local user.name "github-actions[bot]"
                   git add ./mapper-outputs/*
