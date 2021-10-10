@@ -39,14 +39,17 @@ jobs:
                   source_path: ./tests/data/ukb-efo/terms.txt
                   target_path: https://github.com/EBISPOT/efo/releases/download/current/efo.owl
                   output_path: ./tests/mapper-outputs/ukb-efo/${GITHUB_SHA}.csv
+            - name: Move to tests repo
+            - run: |
+                  cd tests
+                  ls
             - name: Setup summary spreadsheet row
               run: |
                   echo "\n${GITHUB_REF},${GITHUB_SHA},ukb-efo/${GITHUB_SHA}.csv," >> summary_path
               env:
-                  sumamry_path: "./tests/summary.csv"
+                  sumamry_path: "./summary.csv"
             - name: Commit changes to tests repo
               run: |
-                  cd tests
                   git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
                   git config --local user.name "github-actions[bot]"
                   git add ./mapper-outputs/*
