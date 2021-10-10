@@ -40,7 +40,7 @@ jobs:
                   target_path: https://github.com/EBISPOT/efo/releases/download/current/efo.owl
             - name: Setup summary spreadsheet row
               run: |
-                  echo "\n${GITHUB_REF},${GITHUB_SHA},ukb-efo/${GITHUB_SHA}.csv," >> $summary_path
+                  echo -n "${GITHUB_REF},${GITHUB_SHA},ukb-efo/${GITHUB_SHA}.csv," >> $summary_path
               working-directory: tests
               env:
                   summary_path: summary.csv
