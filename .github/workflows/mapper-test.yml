@@ -41,10 +41,10 @@ jobs:
             - name: Move to tests repo
               run: |
                   cd tests
-                  ls mapper-outputs/ukb-efo
             - name: Setup summary spreadsheet row
               run: |
-                  echo "\n${GITHUB_REF},${GITHUB_SHA},ukb-efo/${GITHUB_SHA}.csv," >> summary_path
+                  ls
+                  echo "\n${GITHUB_REF},${GITHUB_SHA},ukb-efo/${GITHUB_SHA}.csv," >> $summary_path
               env:
                   sumamry_path: ./summary.csv
             - name: Commit changes to tests repo
