@@ -46,7 +46,7 @@ jobs:
                   sumamry_path: "./tests/summary.csv"
             - name: Commit changes to tests repo
               run: |
-                  cd ./tests
+                  cd tests
                   git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
                   git config --local user.name "github-actions[bot]"
                   git add ./mapper-outputs/*
