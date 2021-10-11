@@ -5,8 +5,8 @@ import time
 import ontoutils
 import numpy as np
 import pandas as pd
-import sparse_dot_topn.sparse_dot_topn as ct
-from gensim.parsing.preprocessing import strip_multiple_whitespaces, strip_non_alphanum
+# import sparse_dot_topn.sparse_dot_topn as ct
+# from gensim.parsing.preprocessing import strip_multiple_whitespaces, strip_non_alphanum
 from scipy.sparse import csr_matrix
 from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
 
