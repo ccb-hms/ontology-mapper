@@ -34,7 +34,7 @@ jobs:
                   if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
             - name: Run mapper on UK Biobank source terms
               run: |
-                  python3 t2t.py -s $source_path -t $target_path -o "tests/mapper-outputs/ukb-efo/${GITHUB_SHA}.csv"
+                  python3 t2t.py -s $source_path -t $target_path -min 0 -o "tests/mapper-outputs/ukb-efo/${GITHUB_SHA}.csv"
               env:
                   source_path: ./tests/data/ukb-efo/terms.txt
                   target_path: https://github.com/EBISPOT/efo/releases/download/current/efo.owl
