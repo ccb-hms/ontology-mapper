@@ -42,10 +42,11 @@ def get_arguments():
         arguments.excl_deprecated, arguments.incl_individuals
 
 
-if __name__ == "__main__":
-    input_file, target_ontology, output_file, max_mappings, min_score, base_iri, excl_deprecated, incl_individuals = get_arguments()
-    source_terms = ontoutils.parse_list_file(input_file)
-    biobert_mapper(source_terms)
+# if __name__ == "__main__":
+
+    # input_file, target_ontology, output_file, max_mappings, min_score, base_iri, excl_deprecated, incl_individuals = get_arguments()
+    # source_terms = ontoutils.parse_list_file(input_file)
+    # biobert_mapper(source_terms)
     # term_collector = OntologyTermCollector(target_ontology)
     # onto_terms = term_collector.get_ontology_terms(base_iri=base_iri,
     #                                                exclude_deprecated=excl_deprecated,
@@ -53,3 +54,13 @@ if __name__ == "__main__":
     # mapper = TFIDFMapper(onto_terms)
     # mappings_df = mapper.map(source_terms, max_mappings=max_mappings, min_score=min_score)
     # mappings_df.to_csv(output_file, index=False)
+if __name__ == "__main__":
+    input_file, target_ontology, output_file, max_mappings, min_score, base_iri, excl_deprecated, incl_individuals = get_arguments()
+    source_terms = ontoutils.parse_list_file(input_file)
+    term_collector = OntologyTermCollector(target_ontology)
+    onto_terms = term_collector.get_ontology_terms(base_iri=base_iri,
+                                                   exclude_deprecated=excl_deprecated,
+                                                   include_individuals=incl_individuals)
+    mapper = TFIDFMapper(onto_terms)
+    mappings_df = mapper.map(source_terms, max_mappings=max_mappings, min_score=min_score)
+    mappings_df.to_csv(output_file, index=False)

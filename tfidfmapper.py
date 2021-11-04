@@ -5,6 +5,8 @@ import time
 import ontoutils
 import numpy as np
 import pandas as pd
+from biobert import biobert_mapper
+
 # import sparse_dot_topn.sparse_dot_topn as ct
 # from gensim.parsing.preprocessing import strip_multiple_whitespaces, strip_non_alphanum
 from scipy.sparse import csr_matrix
@@ -63,8 +65,8 @@ class TFIDFMapper:
         count_vectorizer = CountVectorizer(preprocessor=self._preprocess, analyzer=analyzer, ngram_range=(n, n))
         vocabulary = count_vectorizer.fit(source_terms + target_labels).vocabulary_
         # Create tf-idf vectorizer
-        return TfidfVectorizer(preprocessor=self._preprocess, vocabulary=vocabulary, analyzer=analyzer, ngram_range=(n, n))
-
+        # return TfidfVectorizer(preprocessor=self._preprocess, vocabulary=vocabulary, analyzer=analyzer, ngram_range=(n, n))
+        return biobert_mapper(source_terms)
     def _sparse_dot_top(self, vectorizer, source_terms, target_labels, max_labels, min_score):
         """ https://gist.github.com/ymwdalex/5c363ddc1af447a9ff0b58ba14828fd6#file-awesome_sparse_dot_top-py """
         src_mtx = vectorizer.fit_transform(source_terms).tocsr()
