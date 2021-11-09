@@ -7,8 +7,9 @@ import numpy as np
 import pandas as pd
 from biobert import biobert_mapper
 
-# import sparse_dot_topn.sparse_dot_topn as ct
-# from gensim.parsing.preprocessing import strip_multiple_whitespaces, strip_non_alphanum
+
+import sparse_dot_topn.sparse_dot_topn as ct
+from gensim.parsing.preprocessing import strip_multiple_whitespaces, strip_non_alphanum
 from scipy.sparse import csr_matrix
 from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
 
@@ -62,15 +63,17 @@ class TFIDFMapper:
         :return TF-IDF Vectorizer
         """
         # Create count vectorizer and fit it on both lists to get vocabulary
-        count_vectorizer = CountVectorizer(preprocessor=self._preprocess, analyzer=analyzer, ngram_range=(n, n))
-        vocabulary = count_vectorizer.fit(source_terms + target_labels).vocabulary_
+        # count_vectorizer = CountVectorizer(preprocessor=self._preprocess, analyzer=analyzer, ngram_range=(n, n))
+        # vocabulary = count_vectorizer.fit(source_terms + target_labels).vocabulary_
         # Create tf-idf vectorizer
         # return TfidfVectorizer(preprocessor=self._preprocess, vocabulary=vocabulary, analyzer=analyzer, ngram_range=(n, n))
         return biobert_mapper(source_terms)
     def _sparse_dot_top(self, vectorizer, source_terms, target_labels, max_labels, min_score):
         """ https://gist.github.com/ymwdalex/5c363ddc1af447a9ff0b58ba14828fd6#file-awesome_sparse_dot_top-py """
-        src_mtx = vectorizer.fit_transform(source_terms).tocsr()
-        tgt_mtx = vectorizer.fit_transform(target_labels).transpose().tocsr()
+        # src_mtx = vectorizer.fit_transform(source_terms).tocsr()
+        # tgt_mtx = vectorizer.fit_transform(target_labels).transpose().tocsr()
+        src_mtx = csr_matrix(biobert_mapper(source_terms).values)
+        tgt_mtx = csr_matrix(biobert_mapper(target_labels).values)
         x, _ = src_mtx.shape
         _, y = tgt_mtx.shape
         idx_dtype = np.int32

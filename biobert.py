@@ -1,15 +1,16 @@
 import nlu 
+import pandas as pd
 # import Math
 
 def biobert_mapper(input):
-    list_of_lines = []
+    embeddings = []
+    # embeddings_types = []
     for line in input:
-        list_of_lines.append(nlu.load('biobert').predict(line, output_level='sentence'))
-    textfile = open('output.txt', "w")
-    for element in list_of_lines:
-        textfile.write(element + "\n")
-    textfile.close()
-    return list_of_lines
+        embedding = nlu.load('biobert').predict(line, output_level='sentence')
+        # embeddings_types.append(type(embedding))
+        embeddings.append(embedding)
+    complete_embeddings = pd.concat(embeddings)
+    return complete_embeddings
 
 
 # def cal_cosine(vec1, vec2):
