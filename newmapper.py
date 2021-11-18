@@ -6,7 +6,7 @@ import ontoutils
 import numpy as np
 import pandas as pd
 from biobert import biobert_mapper
-
+from sklearn.metrics.pairwise import cosine_similarity
 
 import sparse_dot_topn.sparse_dot_topn as ct
 from gensim.parsing.preprocessing import strip_multiple_whitespaces, strip_non_alphanum
@@ -34,8 +34,8 @@ class TFIDFMapper:
         """
         self.logger.info("Mapping %i source terms...", len(source_terms))
         start = time.time()
-        vectorizer = self._tokenize(source_terms, self.target_labels)
-        results_mtx = self._sparse_dot_top(vectorizer, source_terms, self.target_labels, max_labels, min_score)
+        # vectorizer = self._tokenize(source_terms, self.target_labels)
+        results_mtx = self._sparse_dot_top(source_terms, self.target_labels, max_labels, min_score)
         results_df = self._get_matches_df(results_mtx, max_mappings, source_terms, self.target_terms)
         end = time.time()
         self.logger.info('done (mapping time: %.2fs seconds)', end-start)
@@ -53,27 +53,43 @@ class TFIDFMapper:
         text = strip_multiple_whitespaces(text)
         return text
 
-    def _tokenize(self, source_terms, target_labels, analyzer='char_wb', n=3):
-        """
-        Tokenizes the (source) input strings and the target labels based on the selected analyzer
-        :param source_terms: List of source terms to be matched
-        :param target_labels: List of labels from ontology terms to be matched against
-        :param analyzer: Type of analyzer ('char_wb', 'word')
-        :param n: The gram length n (when using n-gram analyzer)
-        :return TF-IDF Vectorizer
-        """
-        # Create count vectorizer and fit it on both lists to get vocabulary
-        # count_vectorizer = CountVectorizer(preprocessor=self._preprocess, analyzer=analyzer, ngram_range=(n, n))
-        # vocabulary = count_vectorizer.fit(source_terms + target_labels).vocabulary_
-        # Create tf-idf vectorizer
-        # return TfidfVectorizer(preprocessor=self._preprocess, vocabulary=vocabulary, analyzer=analyzer, ngram_range=(n, n))
-        return biobert_mapper(source_terms)
-    def _sparse_dot_top(self, vectorizer, source_terms, target_labels, max_labels, min_score):
+    # def _tokenize(self, source_terms, target_labels, analyzer='char_wb', n=3):
+    #     """
+    #     Tokenizes the (source) input strings and the target labels based on the selected analyzer
+    #     :param source_terms: List of source terms to be matched
+    #     :param target_labels: List of labels from ontology terms to be matched against
+    #     :param analyzer: Type of analyzer ('char_wb', 'word')
+    #     :param n: The gram length n (when using n-gram analyzer)
+    #     :return TF-IDF Vectorizer
+    #     """
+    #     # Create count vectorizer and fit it on both lists to get vocabulary
+    #     # count_vectorizer = CountVectorizer(preprocessor=self._preprocess, analyzer=analyzer, ngram_range=(n, n))
+    #     # vocabulary = count_vectorizer.fit(source_terms + target_labels).vocabulary_
+    #     # Create tf-idf vectorizer
+    #     # return TfidfVectorizer(preprocessor=self._preprocess, vocabulary=vocabulary, analyzer=analyzer, ngram_range=(n, n))
+    #     return biobert_mapper(source_terms)
+    def _sparse_dot_top(self, source_terms, target_labels, max_labels, min_score):
         """ https://gist.github.com/ymwdalex/5c363ddc1af447a9ff0b58ba14828fd6#file-awesome_sparse_dot_top-py """
         # src_mtx = vectorizer.fit_transform(source_terms).tocsr()
         # tgt_mtx = vectorizer.fit_transform(target_labels).transpose().tocsr()
-        src_mtx = csr_matrix(biobert_mapper(source_terms).values)
-        tgt_mtx = csr_matrix(biobert_mapper(target_labels).values)
+
+        bert = biobert_mapper(source_terms)
+        # print('source terms', type(source_terms))
+        # values = bert.values
+        # print('values: ', values)
+        # print('dataframe: ', bert)
+
+        src_mtx = csr_matrix(bert)
+        # print('target_labels', target_labels[-10:])
+        print('length of target', len(target_labels))
+        # print('target_labels', target_labels[0:10])
+        # print(type(target_labels))
+        print('before biobert function')
+        #target_biobert = biobert_mapper(target_labels[0:25])
+        print('after the biobert function')
+        #tgt_mtx = csr_matrix(target_biobert)
+        print('after biobert newmapper')
+        tgt_mtx = csr_matrix(biobert_mapper(['rhombomere', 'hindbrain neuromere'])).transpose()
         x, _ = src_mtx.shape
         _, y = tgt_mtx.shape
         idx_dtype = np.int32
@@ -121,4 +137,6 @@ class TFIDFMapper:
             for label in term.labels:
                 target_labels.append(label)
                 target_terms.append(term)
+        #print('target_labels: ', target_labels)
+        #print('target_terms: ', target_terms)
         return target_labels, target_terms
