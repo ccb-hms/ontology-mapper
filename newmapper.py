@@ -89,25 +89,26 @@ class TFIDFMapper:
         print('after the biobert function')
         #tgt_mtx = csr_matrix(target_biobert)
         print('after biobert newmapper')
-        tgt_mtx = csr_matrix(biobert_mapper(['rhombomere', 'hindbrain neuromere'])).transpose()
-        x, _ = src_mtx.shape
-        _, y = tgt_mtx.shape
-        idx_dtype = np.int32
-        nnz_max = x * max_labels
-        indptr = np.zeros(x + 1, dtype=idx_dtype)
-        indices = np.zeros(nnz_max, dtype=idx_dtype)
-        data = np.zeros(nnz_max, dtype=src_mtx.dtype)
-        ct.sparse_dot_topn(
-            x, y, np.asarray(src_mtx.indptr, dtype=idx_dtype),
-            np.asarray(src_mtx.indices, dtype=idx_dtype),
-            src_mtx.data,
-            np.asarray(tgt_mtx.indptr, dtype=idx_dtype),
-            np.asarray(tgt_mtx.indices, dtype=idx_dtype),
-            tgt_mtx.data,
-            max_labels,
-            min_score,
-            indptr, indices, data)
-        return csr_matrix((data, indices, indptr), shape=(x, y))
+        tgt_mtx = csr_matrix(biobert_mapper(['rhombomere', 'hindbrain neuromere']))
+        return cosine_similarity(tgt_mtx, src_mtx)
+        # x, _ = src_mtx.shape
+        # _, y = tgt_mtx.shape
+        # idx_dtype = np.int32
+        # nnz_max = x * max_labels
+        # indptr = np.zeros(x + 1, dtype=idx_dtype)
+        # indices = np.zeros(nnz_max, dtype=idx_dtype)
+        # data = np.zeros(nnz_max, dtype=src_mtx.dtype)
+        # ct.sparse_dot_topn(
+        #     x, y, np.asarray(src_mtx.indptr, dtype=idx_dtype),
+        #     np.asarray(src_mtx.indices, dtype=idx_dtype),
+        #     src_mtx.data,
+        #     np.asarray(tgt_mtx.indptr, dtype=idx_dtype),
+        #     np.asarray(tgt_mtx.indices, dtype=idx_dtype),
+        #     tgt_mtx.data,
+        #     max_labels,
+        #     min_score,
+        #     indptr, indices, data)
+        # return csr_matrix((data, indices, indptr), shape=(x, y))
 
     def _get_matches_df(self, results_mtx, max_matches, source_terms, target_terms):
         """ Build dataframe for results """
