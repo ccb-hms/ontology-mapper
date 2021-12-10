@@ -5,7 +5,7 @@ import time
 import ontoutils
 import numpy as np
 import pandas as pd
-#import sparse_dot_topn.sparse_dot_topn as ct
+import sparse_dot_topn.sparse_dot_topn as ct
 from gensim.parsing.preprocessing import strip_multiple_whitespaces, strip_non_alphanum
 from scipy.sparse import csr_matrix
 from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
@@ -86,6 +86,7 @@ class TFIDFMapper:
             max_labels,
             min_score,
             indptr, indices, data)
+        print("type of return", type(csr_matrix((data, indices, indptr), shape=(x, y))))
         return csr_matrix((data, indices, indptr), shape=(x, y))
 
     def _get_matches_df(self, results_mtx, max_matches, source_terms, target_terms):

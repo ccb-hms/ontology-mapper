@@ -8,7 +8,7 @@ import pandas as pd
 from biobert import biobert_mapper
 from sklearn.metrics.pairwise import cosine_similarity
 
-import sparse_dot_topn.sparse_dot_topn as ct
+# import sparse_dot_topn.sparse_dot_topn as ct
 from gensim.parsing.preprocessing import strip_multiple_whitespaces, strip_non_alphanum
 from scipy.sparse import csr_matrix
 from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
@@ -89,8 +89,8 @@ class TFIDFMapper:
         print('after the biobert function')
         #tgt_mtx = csr_matrix(target_biobert)
         print('after biobert newmapper')
-        tgt_mtx = csr_matrix(biobert_mapper(['rhombomere', 'hindbrain neuromere']))
-        return cosine_similarity(tgt_mtx, src_mtx)
+        tgt_mtx = csr_matrix(biobert_mapper(target_labels[4000:5000]))
+        return csr_matrix(cosine_similarity(tgt_mtx, src_mtx))
         # x, _ = src_mtx.shape
         # _, y = tgt_mtx.shape
         # idx_dtype = np.int32
@@ -117,8 +117,8 @@ class TFIDFMapper:
         last_source_string = ""
         candidate_target_terms = set()
         for row, col, score in zip(coo_mtx.row, coo_mtx.col, coo_mtx.data):
-            source_term = source_terms[row]
-            onto_term = target_terms[col]
+            source_term = source_terms[col]
+            onto_term = target_terms[row]
             if source_term == last_source_string:
                 if len(candidate_target_terms) == max_matches:
                     continue
