@@ -2,7 +2,7 @@ import logging
 import sys
 
 STOP_WORDS = {'in', 'the', 'any', 'all', 'for', 'and', 'or', 'dx', 'on', 'fh', 'tx', 'only', 'qnorm', 'w', 'iqb',
-              'ds', 'rd', 'rdgwas'}
+              'ds', 'rd', 'rdgwas', 'average', 'weekly', 'monthly', 'daily'}
 
 
 def get_logger(name, level):
