@@ -21,8 +21,8 @@ def get_arguments():
                         help="Maximum number of top-ranked mappings returned per source term (default=3)")
     parser.add_argument("-min", "--min_score", required=False, type=float, default=0.5,
                         help="Minimum score [0,1] for the mappings (0=dissimilar, 1=exact match; default=0.5)")
-    parser.add_argument("-iri", "--base_iri", required=False, type=str,
-                        help="Restricts ontology term mapping to those terms whose IRIs start with the given base IRI")
+    parser.add_argument("-iris", "--base_iris", required=False, type=str,
+                        help="Map only to terms whose IRIs start with any IRI given in this comma-separated list")
     parser.add_argument("-d", "--excl_deprecated", required=False, default=False, action="store_true",
                         help="Exclude terms stated as deprecated via owl:deprecated")
     parser.add_argument("-i", "--incl_individuals", required=False, default=False, action="store_true",
@@ -38,15 +38,16 @@ def get_arguments():
     if os.path.dirname(out_file):
         os.makedirs(os.path.dirname(out_file), exist_ok=True)
 
-    return source_file, target_file, out_file, arguments.top_mappings, arguments.min_score, arguments.base_iri, \
+    iris = tuple(arguments.base_iris.split(','))
+    return source_file, target_file, out_file, arguments.top_mappings, arguments.min_score, iris, \
         arguments.excl_deprecated, arguments.incl_individuals
 
 
 if __name__ == "__main__":
-    input_file, target_ontology, output_file, max_mappings, min_score, base_iri, excl_deprecated, incl_individuals = get_arguments()
+    input_file, target_ontology, output_file, max_mappings, min_score, base_iris, excl_deprecated, incl_individuals = get_arguments()
     source_terms = ontoutils.parse_list_file(input_file)
     term_collector = OntologyTermCollector(target_ontology)
-    onto_terms = term_collector.get_ontology_terms(base_iri=base_iri,
+    onto_terms = term_collector.get_ontology_terms(base_iris=base_iris,
                                                    exclude_deprecated=excl_deprecated,
                                                    include_individuals=incl_individuals)
     mapper = TFIDFMapper(onto_terms)
