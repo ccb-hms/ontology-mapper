@@ -40,6 +40,6 @@ The mapped terms returned will have been determined to be 0.8 similar to their s
 Exclude deprecated ontology terms (declared as such via *owl:deprecated true*) using `-d`:  
 `python text2term.py -s unstruct_terms.txt -t efo.owl -d`
 
-Constrain the mapping to ontology terms whose IRIs (identifiers) start with a given list of strings, specified using `-iris`:  
+Limit search to only terms whose IRIs start with any IRI given in a list specified using `-iris`:  
 `python text2term.py -s unstruct_terms.txt -t efo.owl -iris http://www.ebi.ac.uk/efo/EFO,http://purl.obolibrary.org/obo/HP`  
 Here, because EFO reuses terms from other ontologies such as HP and GO, the HP terms would be included but the GO terms would be excluded.
