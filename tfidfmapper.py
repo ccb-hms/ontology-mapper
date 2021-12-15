@@ -33,10 +33,10 @@ class TFIDFMapper:
         start = time.time()
         vectorizer = self._tokenize(source_terms, self.target_labels)
         results_mtx = self._sparse_dot_top(vectorizer, source_terms, self.target_labels, max_labels, min_score)
-        results_df = self._get_matches_df(results_mtx, max_mappings, source_terms, self.target_terms)
+        results_df, term_graphs = self._get_mappings(results_mtx, max_mappings, source_terms, self.target_terms)
         end = time.time()
         self.logger.info('done (mapping time: %.2fs seconds)', end-start)
-        return results_df
+        return results_df, term_graphs
 
     def _preprocess(self, text):
         """
@@ -88,10 +88,11 @@ class TFIDFMapper:
             indptr, indices, data)
         return csr_matrix((data, indices, indptr), shape=(x, y))
 
-    def _get_matches_df(self, results_mtx, max_matches, source_terms, target_terms):
-        """ Build dataframe for results """
+    def _get_mappings(self, results_mtx, max_matches, source_terms, target_terms):
+        """ Build and return dataframe for mapping results along with term graphs for the obtained mappings """
         coo_mtx = results_mtx.tocoo()
-        mappings_list = []
+        mapping_list = []
+        mapping_graph_list = []
         last_source_string = ""
         candidate_target_terms = set()
         for row, col, score in zip(coo_mtx.row, coo_mtx.col, coo_mtx.data):
@@ -104,10 +105,11 @@ class TFIDFMapper:
                 last_source_string = source_term
                 candidate_target_terms.clear()
             if onto_term.iri not in candidate_target_terms:
-                mappings_list.append((source_term, onto_term.label(), onto_term.iri, onto_term.ontology_iri, score))
+                mapping_list.append((source_term, onto_term.label, onto_term.iri, onto_term.ontology_iri, score))
+                mapping_graph_list.append(onto_term.graph().graph_dict())
             candidate_target_terms.add(onto_term.iri)
         col_names = ['Source Term', 'Mapped Term Label', 'Mapped Term Identifier', 'Ontology', 'Score']
-        return pd.DataFrame(mappings_list, columns=col_names)
+        return pd.DataFrame(mapping_list, columns=col_names), mapping_graph_list
 
     def _get_target_labels_terms(self, ontology_terms):
         """Convenience method to obtain lists of labels and terms to enable retrieving terms from their labels"""
