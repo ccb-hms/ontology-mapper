@@ -21,7 +21,7 @@ def get_arguments():
                         help="Maximum number of top-ranked mappings returned per source term (default=3)")
     parser.add_argument("-min", "--min_score", required=False, type=float, default=0.5,
                         help="Minimum score [0,1] for the mappings (0=dissimilar, 1=exact match; default=0.5)")
-    parser.add_argument("-iris", "--base_iris", required=False, type=str,
+    parser.add_argument("-iris", "--base_iris", required=False, type=str, default=(),
                         help="Map only to terms whose IRIs start with any IRI given in this comma-separated list")
     parser.add_argument("-d", "--excl_deprecated", required=False, default=False, action="store_true",
                         help="Exclude terms stated as deprecated via owl:deprecated")
@@ -38,7 +38,9 @@ def get_arguments():
     if os.path.dirname(out_file):
         os.makedirs(os.path.dirname(out_file), exist_ok=True)
 
-    iris = tuple(arguments.base_iris.split(','))
+    iris = arguments.base_iris
+    if len(iris) > 0:
+        iris = tuple(iris.split(','))
     return source_file, target_file, out_file, arguments.top_mappings, arguments.min_score, iris, \
         arguments.excl_deprecated, arguments.incl_individuals
 

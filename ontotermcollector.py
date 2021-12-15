@@ -67,7 +67,7 @@ class OntologyTermCollector:
             all_parents = ontology_term.is_a  # obtain all (direct and indirect) parents of this entity
             for parent in all_parents:
                 # exclude OWL restrictions and owl:Thing and Self
-                if parent.__class__ is ThingClass and parent is not Thing and parent is not ontology_term:
+                if isinstance(parent, ThingClass) and parent is not Thing and parent is not ontology_term:
                     parents.append(parent)
         except AttributeError as err:
             self.logger.debug(err)
