@@ -5,6 +5,13 @@ STOP_WORDS = {'in', 'the', 'any', 'all', 'for', 'and', 'or', 'dx', 'on', 'fh', '
               'ds', 'rd', 'rdgwas', 'average', 'weekly', 'monthly', 'daily'}
 
 
+def label_from_iri(iri):
+    if "#" in iri:
+        return iri.split("#")[1]
+    else:
+        return iri.rsplit('/', 1)[1]
+
+
 def get_logger(name, level):
     formatter = logging.Formatter("%(asctime)s %(levelname)s [%(name)s]: %(message)s", "%Y-%m-%d %H:%M:%S")
     logger = logging.getLogger(name)

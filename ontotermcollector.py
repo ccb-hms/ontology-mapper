@@ -45,9 +45,9 @@ class OntologyTermCollector:
     def _get_ontology_terms(self, term_list, ontology, exclude_deprecated):
         ontology_terms = []
         for ontology_term in term_list:
-            if (exclude_deprecated and not deprecated[ontology_term]) or (not exclude_deprecated):
-                labels = self._get_labels(ontology_term)
-                if len(labels) > 0:
+            if ontology_term is not Thing and ontology_term is not Nothing:
+                if (exclude_deprecated and not deprecated[ontology_term]) or (not exclude_deprecated):
+                    labels = self._get_labels(ontology_term)
                     synonyms = self._get_synonyms(ontology_term)
                     parents = self._get_parents(ontology_term)
                     children = self._get_children(ontology_term, ontology)
@@ -55,36 +55,35 @@ class OntologyTermCollector:
                     definition = self._get_definition(ontology_term)
                     term_details = OntologyTerm(ontology_term.iri, labels, synonyms, definition, ontology.base_iri,
                                                 parents=parents, children=children, instances=instances)
-                    self.logger.debug(term_details)
                     ontology_terms.append(term_details)
-            else:
-                self.logger.debug("Excluding deprecated ontology term: %s", ontology_term.iri)
+                else:
+                    self.logger.debug("Excluding deprecated ontology term: %s", ontology_term.iri)
         return ontology_terms
 
     def _get_parents(self, ontology_term):
-        parents = []  # named/atomic superclasses except owl:Thing
+        parents = set()  # named/atomic superclasses except owl:Thing
         try:
             all_parents = ontology_term.is_a  # obtain all (direct and indirect) parents of this entity
             for parent in all_parents:
                 # exclude OWL restrictions and owl:Thing and Self
                 if isinstance(parent, ThingClass) and parent is not Thing and parent is not ontology_term:
-                    parents.append(parent)
+                    parents.add(parent)
         except AttributeError as err:
             self.logger.debug(err)
         return parents
 
     def _get_children(self, ontology_term, ontology):
-        children = []
+        children = set()
         try:
-            children = ontology.get_children_of(ontology_term)
+            children = set(ontology.get_children_of(ontology_term))
         except AttributeError as err:
             self.logger.debug(err)
         return children
 
     def _get_instances(self, ontology_term, ontology):
-        instances = []
+        instances = set()
         try:
-            instances = ontology.get_instances_of(ontology_term)
+            instances = set(ontology.get_instances_of(ontology_term))
         except AttributeError as err:
             self.logger.debug(err)
         return instances
@@ -95,11 +94,16 @@ class OntologyTermCollector:
         :param ontology_term: Ontology term
         :return: Collection of labels of the ontology term
         """
-        labels = []
+        labels = set()
         for rdfs_label in self._get_rdfs_labels(ontology_term):
-            labels.append(rdfs_label) if rdfs_label not in labels else labels
+            labels.add(rdfs_label)
         for skos_label in self._get_skos_pref_labels(ontology_term):
-            labels.append(skos_label) if skos_label not in labels else labels
+            labels.add(skos_label)
+        if len(labels) == 0:
+            label_from_iri = ontoutils.label_from_iri(ontology_term.iri)
+            self.logger.info("Ontology term %s has no labels (rdfs:label or skos:prefLabel). "
+                             "Using a label based on the term IRI: %s", ontology_term.iri, label_from_iri)
+            labels.add(label_from_iri)
         self.logger.debug("Collected %i labels and synonyms for %s", len(labels), ontology_term)
         return labels
 
@@ -109,11 +113,11 @@ class OntologyTermCollector:
         :param ontology_term: Ontology term
         :return: Collection of synonyms of the ontology term
         """
-        synonyms = []
+        synonyms = set()
         for synonym in self._get_obo_exact_synonyms(ontology_term):
-            synonyms.append(synonym) if synonym not in synonyms else synonyms
+            synonyms.add(synonym)
         for nci_synonym in self._get_nci_synonyms(ontology_term):
-            synonyms.append(nci_synonym) if nci_synonym not in synonyms else synonyms
+            synonyms.add(nci_synonym)
         self.logger.debug("Collected %i synonyms for %s", len(synonyms), ontology_term)
         return synonyms
 
