@@ -1,6 +1,6 @@
-# text2term Ontology Term Mapper
+# text2term Ontology Mapper
 
-A tool to map unstructured terms to ontology terms. 
+A tool for mapping (uncontrolled) terms to ontology terms to facilitate semantic integration. 
 
 ## Usage
 
