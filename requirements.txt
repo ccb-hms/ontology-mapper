@@ -6,3 +6,5 @@ gensim~=4.0.1
 scipy~=1.6.3
 sklearn~=0.0
 scikit-learn~=0.24.2
+setuptools~=47.1.0
+jellyfish~=0.8.9
