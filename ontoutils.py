@@ -1,8 +1,30 @@
 import logging
 import sys
 
+from gensim.parsing import strip_non_alphanum, strip_multiple_whitespaces
+
 STOP_WORDS = {'in', 'the', 'any', 'all', 'for', 'and', 'or', 'dx', 'on', 'fh', 'tx', 'only', 'qnorm', 'w', 'iqb',
               'ds', 'rd', 'rdgwas'}
+
+
+def normalize_list(token_list):
+    normalized_token_list = []
+    for token in token_list:
+        normalized_token_list.append(normalize(token))
+    return normalized_token_list
+
+
+def normalize(token):
+    """
+    Normalizes a given string by converting to lower case, removing non-word characters, stop words, white space
+    :param token: Text to be normalized
+    :return: Normalized string
+    """
+    token = strip_non_alphanum(token).lower()
+    token = token.replace("_", " ")
+    token = " ".join(w for w in token.split() if w not in STOP_WORDS)
+    token = strip_multiple_whitespaces(token)
+    return token
 
 
 def get_logger(name, level):

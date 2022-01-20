@@ -39,6 +39,7 @@ class OntologyTerm:
     def siblings(self):
         return self._siblings
 
+    @property
     def label(self):
         """Return a single label for this term if one exists, otherwise return empty string"""
         if len(self.labels) > 0:
@@ -50,3 +51,6 @@ class OntologyTerm:
         if isinstance(other, OntologyTerm):
             return self._iri == other._iri
         return False
+
+    def __hash__(self):
+        return hash(str(self._iri))
