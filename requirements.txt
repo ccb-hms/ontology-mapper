@@ -8,3 +8,7 @@ sklearn~=0.0
 scikit-learn~=0.24.2
 setuptools~=47.1.0
 jellyfish~=0.8.9
+requests~=2.27.1
+thefuzz~=0.19.0
+tqdm~=4.62.3
+sparse_dot_topn~=0.3.1
