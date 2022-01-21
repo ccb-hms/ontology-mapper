@@ -1,3 +1,5 @@
+"""Provides OntologyTerm class"""
+
 import ontoutils
 from owlready2 import Thing, ThingClass
 from ontotermgraph import OntologyTermGraph, Node, Edge
@@ -99,6 +101,9 @@ class OntologyTerm:
         if isinstance(other, OntologyTerm):
             return self._iri == other._iri
         return False
+
+    def __hash__(self):
+        return hash(str(self._iri))
 
     def __str__(self):
         return "Ontology Term IRI: " + self.iri + ", Labels: " + str(self.labels) + ", Synonyms: " + \
