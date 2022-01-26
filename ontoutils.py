@@ -1,6 +1,7 @@
 import logging
+import re
 import sys
-
+import bioregistry
 from gensim.parsing import strip_non_alphanum, strip_multiple_whitespaces
 
 STOP_WORDS = {'in', 'the', 'any', 'all', 'for', 'and', 'or', 'dx', 'on', 'fh', 'tx', 'only', 'qnorm', 'w', 'iqb',
@@ -20,11 +21,16 @@ def normalize(token):
     :param token: Text to be normalized
     :return: Normalized string
     """
+    token = re.sub(r"[\(\[].*?[\)\]]", "", token)  # remove text within parenthesis/brackets
     token = strip_non_alphanum(token).lower()
     token = token.replace("_", " ")
     token = " ".join(w for w in token.split() if w not in STOP_WORDS)
     token = strip_multiple_whitespaces(token)
     return token
+
+
+def curie_from_iri(iri):
+    return bioregistry.curie_from_iri(iri)
 
 
 def label_from_iri(iri):
@@ -47,6 +53,7 @@ def get_logger(name, level):
     console_handler = logging.StreamHandler(sys.stdout)
     console_handler.setFormatter(formatter)
     logger.addHandler(console_handler)
+    logger.propagate = False
     return logger
 
 

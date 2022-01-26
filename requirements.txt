@@ -12,3 +12,4 @@ requests~=2.27.1
 thefuzz~=0.19.0
 tqdm~=4.62.3
 sparse_dot_topn~=0.3.1
+bioregistry~=0.4.46
