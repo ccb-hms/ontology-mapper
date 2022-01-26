@@ -1,8 +1,8 @@
 """Provides OntologyTerm class"""
 
-import ontoutils
+import onto_utils
 from owlready2 import Thing, ThingClass
-from ontotermgraph import OntologyTermGraph, Node, Edge
+from term_graph import OntologyTermGraph, Node, Edge
 
 
 class OntologyTerm:
@@ -87,7 +87,7 @@ class OntologyTerm:
 
     def _add_node(self, term, term_set):
         if len(term.label) == 0:
-            label = ontoutils.label_from_iri(term.iri)
+            label = onto_utils.label_from_iri(term.iri)
         else:
             label = term.label[0]
         term_set.add(Node(term.iri, label))
@@ -106,7 +106,7 @@ class OntologyTerm:
         return hash(str(self._iri))
 
     def __str__(self):
-        return "Ontology Term IRI: " + self.iri + ", Labels: " + str(self.labels) + ", Synonyms: " + \
+        return "Ontology Term: " + self.iri + ", Labels: " + str(self.labels) + ", Synonyms: " + \
                str(self.synonyms) + ", Definition: " + str(self.definition) + ", Parents: " + str(self.parents) + \
                ", Children: " + str(self.children) + ", Instances: " + str(self.instances) + ", Term graph: " + \
                str(self.graph().graph_dict())

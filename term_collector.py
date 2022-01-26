@@ -1,7 +1,7 @@
 import logging
 import onto_utils
 from owlready2 import *
-from ontoterm import OntologyTerm
+from term import OntologyTerm
 
 
 class OntologyTermCollector:

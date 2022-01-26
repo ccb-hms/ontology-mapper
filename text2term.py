@@ -3,9 +3,9 @@ import datetime
 import json
 import os
 import sys
-import ontoutils
-from ontotermcollector import OntologyTermCollector
-from tfidfmapper import TFIDFMapper
+import onto_utils
+from term_collector import OntologyTermCollector
+from tfidf_mapper import TFIDFMapper
 
 
 def get_arguments():
@@ -48,13 +48,14 @@ def get_arguments():
 
 if __name__ == "__main__":
     input_file, target_ontology, output_file, max_mappings, min_score, base_iris, excl_deprecated, incl_individuals = get_arguments()
-    source_terms = ontoutils.parse_list_file(input_file)
+    source_terms = onto_utils.parse_list_file(input_file)
     term_collector = OntologyTermCollector(target_ontology)
     onto_terms = term_collector.get_ontology_terms(base_iris=base_iris,
                                                    exclude_deprecated=excl_deprecated,
                                                    include_individuals=incl_individuals)
-    mapper = TFIDFMapper(onto_terms)
-    mappings_df, term_graphs = mapper.map(source_terms, max_mappings=max_mappings, min_score=min_score)
-    mappings_df.to_csv(output_file, index=False)
-    with open(output_file + "-term-graphs.json", 'w') as json_file:
-        json.dump(term_graphs, json_file, indent=2)
+    if len(onto_terms) > 0:
+        mapper = TFIDFMapper(onto_terms)
+        mappings_df, term_graphs = mapper.map(source_terms, max_mappings=max_mappings, min_score=min_score)
+        mappings_df.to_csv(output_file, index=False)
+        with open(output_file + "-term-graphs.json", 'w') as json_file:
+            json.dump(term_graphs, json_file, indent=2)
