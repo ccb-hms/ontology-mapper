@@ -31,7 +31,7 @@ class OntologyTermCollector:
         if len(base_iris) > 0:
             for iri in base_iris:
                 query = iri + "*"
-                self.logger.info("collecting ontology terms with IRIs starting in: " + iri)
+                self.logger.info("...Collecting terms with IRIs starting in: " + iri)
                 iris = list(default_world.search(iri=query))
                 ontology_terms.extend(self._get_ontology_terms(iris, ontology, exclude_deprecated))
         else:
@@ -39,13 +39,13 @@ class OntologyTermCollector:
             if include_individuals:
                 ontology_terms.extend(self._get_ontology_terms(ontology.individuals(), ontology, exclude_deprecated))
         end = time.time()
-        self.logger.info("done: collected %i ontology terms (collection time: %.2fs)", len(ontology_terms), end-start)
+        self.logger.info("...done: collected %i ontology terms (collection time: %.2fs)", len(ontology_terms), end-start)
         return ontology_terms
 
     def _get_ontology_terms(self, term_list, ontology, exclude_deprecated):
         ontology_terms = []
         for ontology_term in term_list:
-            if ontology_term is not Thing and ontology_term is not Nothing:
+            if not isinstance(ontology_term, PropertyClass) and ontology_term is not Thing and ontology_term is not Nothing:
                 if (exclude_deprecated and not deprecated[ontology_term]) or (not exclude_deprecated):
                     labels = self._get_labels(ontology_term)
                     synonyms = self._get_synonyms(ontology_term)
