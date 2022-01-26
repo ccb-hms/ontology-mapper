@@ -4,14 +4,14 @@ import json
 import logging
 import time
 import requests
-import ontoutils
-from ontomapping import TermMapping, TermMappingCollection
+import onto_utils
+from term_mapping import TermMapping, TermMappingCollection
 
 
 class ZoomaMapper:
 
     def __init__(self):
-        self.logger = ontoutils.get_logger(__name__, logging.INFO)
+        self.logger = onto_utils.get_logger(__name__, logging.INFO)
         self.url = "http://www.ebi.ac.uk/spot/zooma/v2/api/services/annotate"
 
     def map(self, source_terms, ontologies, max_mappings=3):

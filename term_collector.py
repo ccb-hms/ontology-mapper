@@ -1,5 +1,5 @@
 import logging
-import ontoutils
+import onto_utils
 from owlready2 import *
 from ontoterm import OntologyTerm
 
@@ -10,7 +10,7 @@ class OntologyTermCollector:
         """"
         :param ontology_iri: IRI of the ontology (e.g., path of ontology document in the local file system, URL)
         """
-        self.logger = ontoutils.get_logger(__name__, logging.INFO)
+        self.logger = onto_utils.get_logger(__name__, logging.INFO)
         self.ontology_iri = ontology_iri
 
     def get_ontology_terms(self, base_iris=(), use_reasoning=False, exclude_deprecated=True, include_individuals=False):
@@ -100,7 +100,7 @@ class OntologyTermCollector:
         for skos_label in self._get_skos_pref_labels(ontology_term):
             labels.add(skos_label)
         if len(labels) == 0:
-            label_from_iri = ontoutils.label_from_iri(ontology_term.iri)
+            label_from_iri = onto_utils.label_from_iri(ontology_term.iri)
             self.logger.info("Ontology term %s has no labels (rdfs:label or skos:prefLabel). "
                              "Using a label based on the term IRI: %s", ontology_term.iri, label_from_iri)
             labels.add(label_from_iri)

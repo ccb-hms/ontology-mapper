@@ -5,7 +5,7 @@ import sys
 import urllib.request
 from urllib.error import HTTPError
 import pandas as pd
-import ontoutils
+import onto_utils
 
 ssl._create_default_https_context = ssl._create_stdlib_context
 
@@ -13,7 +13,7 @@ ssl._create_default_https_context = ssl._create_stdlib_context
 class OntoTag2Iri:
 
     def __init__(self):
-        self.logger = ontoutils.get_logger(__name__, logging.INFO)
+        self.logger = onto_utils.get_logger(__name__, logging.INFO)
 
     def get_iris(self, source_tags, resolve_iri):
         iri_mappings = []
@@ -45,13 +45,13 @@ class OntoTag2Iri:
 
     def _get_iri(self, ont_name, term_name):
         iri = ''
-        if ont_name in ontoutils.ONTOLOGY_IRIS:
+        if ont_name in onto_utils.ONTOLOGY_IRIS:
             if ont_name == 'ORPHA':
-                iri = ontoutils.ONTOLOGY_IRIS.get(ont_name) + term_name.replace('ORPHA_', 'Orphanet_')
+                iri = onto_utils.ONTOLOGY_IRIS.get(ont_name) + term_name.replace('ORPHA_', 'Orphanet_')
             elif ont_name == 'SNOMED' or ont_name == 'OMIM':
-                iri = ontoutils.ONTOLOGY_IRIS.get(ont_name) + term_name.replace(ont_name + '_', '')
+                iri = onto_utils.ONTOLOGY_IRIS.get(ont_name) + term_name.replace(ont_name + '_', '')
             else:
-                iri = ontoutils.ONTOLOGY_IRIS.get(ont_name) + term_name
+                iri = onto_utils.ONTOLOGY_IRIS.get(ont_name) + term_name
         return iri
 
     def remove_whitespace(self, string):
@@ -69,7 +69,7 @@ class OntoTag2Iri:
         return resolves
 
     def get_iris_df_for_file(self, input_file, resolve_iri):
-        iris_file = self.get_iris(ontoutils.parse_list_file(input_file), resolve_iri=resolve_iri)
+        iris_file = self.get_iris(onto_utils.parse_list_file(input_file), resolve_iri=resolve_iri)
         out_col_names = ['source_tag', 'target_iri', 'iri_resolves']
         return pd.DataFrame(iris_file, columns=out_col_names)
 

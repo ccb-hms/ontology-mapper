@@ -2,10 +2,10 @@
 
 import logging
 import time
-import ontoutils
+import onto_utils
 import sparse_dot_topn as ct
 from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
-from ontomapping import TermMapping, TermMappingCollection
+from term_mapping import TermMapping, TermMappingCollection
 
 
 class TFIDFMapper:
@@ -14,7 +14,7 @@ class TFIDFMapper:
         """
         :param target_ontology_terms: Collection of ontology terms to be mapped against
         """
-        self.logger = ontoutils.get_logger(__name__, logging.INFO)
+        self.logger = onto_utils.get_logger(__name__, logging.INFO)
         self.target_labels, self.target_terms = self._get_target_labels_terms(target_ontology_terms)
 
     def map(self, source_terms, max_mappings=3, min_score=0.3):
@@ -27,7 +27,7 @@ class TFIDFMapper:
         """
         self.logger.info("Mapping %i source terms...", len(source_terms))
         start = time.time()
-        source_terms = ontoutils.normalize_list(source_terms)
+        source_terms = onto_utils.normalize_list(source_terms)
         vectorizer = self._tokenize(source_terms, self.target_labels)
         results_mtx = self._sparse_dot_top(vectorizer, source_terms, self.target_labels, min_score)
         results_df, term_graphs = self._get_mappings(results_mtx, max_mappings, source_terms, self.target_terms)
