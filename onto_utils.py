@@ -2,6 +2,7 @@ import logging
 import re
 import sys
 import bioregistry
+from owlready2 import *
 from gensim.parsing import strip_non_alphanum, strip_multiple_whitespaces
 
 STOP_WORDS = {'in', 'the', 'any', 'all', 'for', 'and', 'or', 'dx', 'on', 'fh', 'tx', 'only', 'qnorm', 'w', 'iqb',
@@ -61,6 +62,17 @@ def parse_list_file(file_path):
     file = open(file_path)
     lines = file.read().splitlines()
     return lines
+
+
+def get_ontology_from_labels(term_labels):
+    onto = owlready2.get_ontology("http://ccb.harvard.edu/t2t/")
+    onto.metadata.comment.append("Created dynamically using text2term")
+    onto.metadata.comment.append(datetime.datetime.now())
+    for term_label in term_labels:
+        with onto:
+            new_class = types.new_class(term_label, (Thing,))
+            new_class.label = term_label
+    return onto
 
 
 OBO_BASE_IRI = "http://purl.obolibrary.org/obo/"
