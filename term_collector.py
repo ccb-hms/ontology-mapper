@@ -1,3 +1,5 @@
+"""Provides OntologyTermCollector class"""
+
 import logging
 import onto_utils
 from owlready2 import *

@@ -1,3 +1,6 @@
+"""Provides OntologyTermGraph, Node and Edge classes"""
+
+
 class OntologyTermGraph:
     """
     Represents a graph of the neighborhood of an ontology term.
