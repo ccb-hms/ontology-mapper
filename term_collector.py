@@ -15,7 +15,7 @@ class OntologyTermCollector:
         self.logger = onto_utils.get_logger(__name__, logging.INFO)
         self.ontology_iri = ontology_iri
 
-    def get_ontology_terms(self, base_iris=(), use_reasoning=False, exclude_deprecated=True, include_individuals=False):
+    def get_ontology_terms(self, base_iris=(), use_reasoning=False, exclude_deprecated=False, include_individuals=False):
         """
         Collect the terms described in the ontology at the specified IRI
         :param base_iris: Limit ontology term collection to terms whose IRIs start with any IRI given in this tuple
@@ -120,6 +120,8 @@ class OntologyTermCollector:
             synonyms.add(synonym)
         for nci_synonym in self._get_nci_synonyms(ontology_term):
             synonyms.add(nci_synonym)
+        for efo_alt_term in self._get_efo_alt_terms(ontology_term):
+            synonyms.add(efo_alt_term)
         self.logger.debug("Collected %i synonyms for %s", len(synonyms), ontology_term)
         return synonyms
 
@@ -150,6 +152,15 @@ class OntologyTermCollector:
         except AttributeError as err:
             self.logger.debug(err)
         return skos_labels
+
+    def _get_efo_alt_terms(self, ontology_term):
+        efo_alt_terms = []
+        try:
+            for efo_alt_term in ontology_term.alternative_term:
+                efo_alt_terms.append(efo_alt_term)
+        except AttributeError as err:
+            self.logger.debug(err)
+        return efo_alt_terms
 
     def _get_obo_exact_synonyms(self, ontology_term):
         """
