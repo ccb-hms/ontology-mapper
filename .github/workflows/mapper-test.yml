@@ -23,32 +23,32 @@ jobs:
                   repository: "ccb-hms/ontology-mapper-tests"
                   token: ${{ secrets.MAPPER_TESTING }}
                   fetch-depth: 0 # otherwise, there would be errors pushing refs to the destination repository.
-            - name: Set up Python 3.9
-              uses: actions/setup-python@v2
-              with:
-                  python-version: 3.9
-            - name: Install dependencies
-              run: |
-                  python -m pip install --upgrade pip
-                  pip install flake8 pytest
-                  if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-            - name: Run mapper on UK Biobank source terms
-              run: |
-                  python3 text2term.py -s $source_path -t $target_path -min 0 -o "tests/mapper-outputs/ukb-efo/${GITHUB_SHA}.csv"
-              env:
-                  source_path: ./tests/data/ukb-efo/terms.txt
-                  target_path: https://github.com/EBISPOT/efo/releases/download/current/efo.owl
+            # - name: Set up Python 3.9
+            #   uses: actions/setup-python@v2
+            #   with:
+            #       python-version: 3.9
+            # - name: Install dependencies
+            #   run: |
+            #       python -m pip install --upgrade pip
+            #       pip install flake8 pytest
+            #       if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+            # - name: Run mapper on UK Biobank source terms
+            #   run: |
+            #       python3 text2term.py -s $source_path -t $target_path -min 0 -o "tests/mapper-outputs/ukb-efo/${GITHUB_SHA}.csv"
+            #   env:
+            #       source_path: ./tests/data/ukb-efo/terms.txt
+            #       target_path: https://github.com/EBISPOT/efo/releases/download/current/efo.owl
             - name: Setup summary spreadsheet row
               run: |
                   echo -n "${GITHUB_REF},${GITHUB_SHA},ukb-efo/${GITHUB_SHA}.csv," >> $summary_path
               working-directory: tests
               env:
                   summary_path: summary.csv
-            - name: Run coverage_error script
-              run: |
-                  python3 $script_path
-              env:
-                  script_path: ./tests/compare-scripts/coverage_error.py
+            # - name: Run coverage_error script
+            #   run: |
+            #       python3 $script_path
+            #   env:
+            #       script_path: ./tests/compare-scripts/coverage_error.py
             - name: Commit changes to tests repo
               run: |
                   git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
