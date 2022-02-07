@@ -46,7 +46,7 @@ jobs:
                   summary_path: summary.csv
             - name: Run coverage_error script
               run: |
-                  python3 t2t.py $script_path
+                  python3 $script_path
               env:
                   script_path: ./tests/compare-scripts/coverage_error.py
             - name: Commit changes to tests repo
