@@ -44,6 +44,11 @@ jobs:
               working-directory: tests
               env:
                   summary_path: summary.csv
+            - name: Run coverage_error script
+              run: |
+                  python3 t2t.py $script_path
+              env:
+                  script_path: ./tests/compare-scripts/coverage_error.py
             - name: Commit changes to tests repo
               run: |
                   git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
