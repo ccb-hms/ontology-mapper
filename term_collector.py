@@ -32,8 +32,9 @@ class OntologyTermCollector:
         ontology_terms = []
         if len(base_iris) > 0:
             for iri in base_iris:
+                iri = iri.strip()
                 query = iri + "*"
-                self.logger.info("...Collecting terms with IRIs starting in: " + iri)
+                self.logger.info("...collecting terms with IRIs starting in: " + iri)
                 iris = list(default_world.search(iri=query))
                 ontology_terms.extend(self._get_ontology_terms(iris, ontology, exclude_deprecated))
         else:
@@ -103,10 +104,10 @@ class OntologyTermCollector:
             labels.add(skos_label)
         if len(labels) == 0:
             label_from_iri = onto_utils.label_from_iri(ontology_term.iri)
-            self.logger.info("Ontology term %s has no labels (rdfs:label or skos:prefLabel). "
+            self.logger.info("...ontology term %s has no labels (rdfs:label or skos:prefLabel). "
                              "Using a label based on the term IRI: %s", ontology_term.iri, label_from_iri)
             labels.add(label_from_iri)
-        self.logger.debug("Collected %i labels and synonyms for %s", len(labels), ontology_term)
+        self.logger.debug("...collected %i labels and synonyms for %s", len(labels), ontology_term)
         return labels
 
     def _get_synonyms(self, ontology_term):
@@ -122,7 +123,7 @@ class OntologyTermCollector:
             synonyms.add(nci_synonym)
         for efo_alt_term in self._get_efo_alt_terms(ontology_term):
             synonyms.add(efo_alt_term)
-        self.logger.debug("Collected %i synonyms for %s", len(synonyms), ontology_term)
+        self.logger.debug("...collected %i synonyms for %s", len(synonyms), ontology_term)
         return synonyms
 
     def _get_rdfs_labels(self, ontology_term):
@@ -216,7 +217,7 @@ class OntologyTermCollector:
         ontology = get_ontology(ontology_iri).load()
         end = time.time()
         self._log_ontology_metrics(ontology)
-        self.logger.info("done (loading time: %.2fs)", end-start)
+        self.logger.info("...done (ontology loading time: %.2fs)", end-start)
         return ontology
 
     def _classify_ontology(self, ontology):
@@ -229,7 +230,7 @@ class OntologyTermCollector:
         with ontology:  # entailments will be added to this ontology
             sync_reasoner(infer_property_values=True)
         end = time.time()
-        self.logger.info("done (reasoning time: %.2fs)", end - start)
+        self.logger.info("...done (reasoning time: %.2fs)", end - start)
 
     def _log_ontology_metrics(self, ontology):
         self.logger.debug(" Ontology IRI: %s", ontology.base_iri)

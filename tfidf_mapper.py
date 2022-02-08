@@ -15,6 +15,7 @@ class TFIDFMapper:
         :param target_ontology_terms: Collection of ontology terms to be mapped against
         """
         self.logger = onto_utils.get_logger(__name__, logging.INFO)
+        self.target_ontology_terms = target_ontology_terms
         self.target_labels, self.target_terms = self._get_target_labels_terms(target_ontology_terms)
 
     def map(self, source_terms, max_mappings=3, min_score=0.3):
@@ -26,13 +27,14 @@ class TFIDFMapper:
                             Default set to 0, so consider all candidates
         """
         self.logger.info("Mapping %i source terms...", len(source_terms))
+        self.logger.info("...against %i ontology terms (%i labels/synonyms)", len(self.target_ontology_terms), len(self.target_labels))
         start = time.time()
-        source_terms = onto_utils.normalize_list(source_terms)
-        vectorizer = self._tokenize(source_terms, self.target_labels)
-        results_mtx = self._sparse_dot_top(vectorizer, source_terms, self.target_labels, min_score)
+        source_terms_norm = onto_utils.normalize_list(source_terms)
+        vectorizer = self._tokenize(source_terms_norm, self.target_labels)
+        results_mtx = self._sparse_dot_top(vectorizer, source_terms_norm, self.target_labels, min_score)
         results_df, term_graphs = self._get_mappings(results_mtx, max_mappings, source_terms, self.target_terms)
         end = time.time()
-        self.logger.info('done (mapping time: %.2fs seconds)', end-start)
+        self.logger.info("...done (mapping time: %.2fs seconds)", end-start)
         return results_df, term_graphs
 
     def _tokenize(self, source_terms, target_labels, analyzer='char_wb', n=3):
@@ -53,30 +55,32 @@ class TFIDFMapper:
     def _sparse_dot_top(self, vectorizer, source_terms, target_labels, min_score):
         src_mtx = vectorizer.fit_transform(source_terms).tocsr()
         tgt_mtx = vectorizer.fit_transform(target_labels).transpose().tocsr()
+        # 'ntop' specifies the maximum number of labels/synonyms that should be considered
+        # multiple labels/synonyms in the 'ntop' matches may be from the same ontology term
         return ct.awesome_cossim_topn(src_mtx, tgt_mtx, ntop=20, lower_bound=min_score)
 
     def _get_mappings(self, results_mtx, max_mappings, source_terms, target_terms):
         """ Build and return dataframe for mapping results along with term graphs for the obtained mappings """
         coo_mtx = results_mtx.tocoo()
-        mapping_list = []
-        mapping_graph_list = []
-        last_source_string = ""
-        candidate_target_terms = set()
+        mappings = []
+        mapped_term_graphs = []
+        last_source_term = ""
+        top_mappings = set()
         for row, col, score in zip(coo_mtx.row, coo_mtx.col, coo_mtx.data):
             source_term = source_terms[row]
             onto_term = target_terms[col]
-            if source_term == last_source_string:
-                if len(candidate_target_terms) == max_mappings:
+            self.logger.debug("Source term: %s maps to %s (%f)", source_term, onto_term.label, score)
+            if source_term == last_source_term:
+                if len(top_mappings) == max_mappings:
                     continue
             else:
-                last_source_string = source_term
-                candidate_target_terms.clear()
-            if onto_term.iri not in candidate_target_terms:
-                mapping = TermMapping(source_term, onto_term.label, onto_term.iri, onto_term.ontology_iri, score)
-                mapping_list.append(mapping)
-                mapping_graph_list.append(onto_term.graph().graph_dict())
-            candidate_target_terms.add(onto_term.iri)
-        return TermMappingCollection(mapping_list).mappings_df(), mapping_graph_list
+                last_source_term = source_term
+                top_mappings.clear()
+            if onto_term.iri not in top_mappings:
+                mappings.append(TermMapping(source_term, onto_term.label, onto_term.iri, onto_term.ontology_iri, score))
+                mapped_term_graphs.append(onto_term.graph().graph_dict())
+                top_mappings.add(onto_term.iri)
+        return TermMappingCollection(mappings).mappings_df(), mapped_term_graphs
 
     def _get_target_labels_terms(self, ontology_terms):
         """Get lists of labels and terms to enable retrieving terms from their labels"""
@@ -84,5 +88,8 @@ class TFIDFMapper:
         for term in ontology_terms:
             for label in term.labels:
                 target_labels.append(label)
+                target_terms.append(term)
+            for synonym in term.synonyms:
+                target_labels.append(synonym)
                 target_terms.append(term)
         return target_labels, target_terms
