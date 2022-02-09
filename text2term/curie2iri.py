@@ -1,7 +1,5 @@
-import datetime
 import logging
 import ssl
-import sys
 import urllib.request
 from urllib.error import HTTPError
 import pandas as pd
@@ -72,14 +70,3 @@ class OntoTag2Iri:
         iris_file = self.get_iris(onto_utils.parse_list_file(input_file), resolve_iri=resolve_iri)
         out_col_names = ['source_tag', 'target_iri', 'iri_resolves']
         return pd.DataFrame(iris_file, columns=out_col_names)
-
-
-if __name__ == "__main__":
-    tag2iri = OntoTag2Iri()
-    if len(sys.argv) > 1:
-        input_tag_list_file = sys.argv[1]
-        output_file = "tag2iri-" + datetime.datetime.now().strftime("%d-%m-%YT%H-%M-%S") + ".csv"
-        output_df = tag2iri.get_iris_df_for_file(input_tag_list_file, resolve_iri=True)
-        output_df.to_csv(output_file, index=False)
-    else:
-        print("Provide input file with tags to convert to IRIs")

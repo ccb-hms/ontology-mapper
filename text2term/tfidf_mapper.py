@@ -57,7 +57,7 @@ class TFIDFMapper:
         tgt_mtx = vectorizer.fit_transform(target_labels).transpose().tocsr()
         # 'ntop' specifies the maximum number of labels/synonyms that should be considered
         # multiple labels/synonyms in the 'ntop' matches may be from the same ontology term
-        return ct.awesome_cossim_topn(src_mtx, tgt_mtx, ntop=20, lower_bound=min_score)
+        return ct.awesome_cossim_topn(src_mtx, tgt_mtx, ntop=15, lower_bound=min_score)
 
     def _get_mappings(self, results_mtx, max_mappings, source_terms, target_terms):
         """ Build and return dataframe for mapping results along with term graphs for the obtained mappings """
