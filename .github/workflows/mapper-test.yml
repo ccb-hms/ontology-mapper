@@ -37,10 +37,14 @@ jobs:
                   python3 text2term.py -s $source_path -t $target_path -min 0 -o "./tests/mapper-outputs/ukb-efo/${GITHUB_SHA}.csv"
               env:
                   source_path: ./tests/data/ukb-efo/terms.txt
-                  target_path: https://github.com/EBISPOT/efo/releases/download/current/efo.owl
+                  # https://github.com/EBISPOT/efo/releases/tag/v2019-03-18
+                  # 2019-03-18 EFO 2.106, as referenced by:
+                  # https://github.com/EBISPOT/EFO-UKB-mappings/blob/master/ISMB_Mapping_UK_Biobank_to_EFO.pdf
+                  # page 2, footnote 9
+                  target_path: ./tests/data/ukb-efo/efo-v2019-03-18.owl
             - name: Setup summary spreadsheet row
               run: |
-                  echo -n "${GITHUB_REF},${GITHUB_SHA},ukb-efo/${GITHUB_SHA}.csv," >> $summary_path
+                  echo -n "${GITHUB_REF},${GITHUB_SHA},${{ github.event.head_commit.message }},ukb-efo/${GITHUB_SHA}.csv," >> $summary_path
               working-directory: tests
               env:
                   summary_path: summary.csv
