@@ -1,5 +1,6 @@
 import argparse
 import datetime
+import json
 import os
 import sys
 import onto_utils
@@ -56,5 +57,5 @@ if __name__ == "__main__":
         mapper = TFIDFMapper(onto_terms)
         mappings_df, term_graphs = mapper.map(source_terms, max_mappings=max_mappings, min_score=min_score)
         mappings_df.to_csv(output_file, index=False)
-        # with open(output_file + "-term-graphs.json", 'w') as json_file:
-        #     json.dump(term_graphs, json_file, indent=2)
+        with open(output_file + "-term-graphs.json", 'w') as json_file:
+            json.dump(term_graphs, json_file, indent=2)
