@@ -26,6 +26,9 @@ setup(
         'Operating System :: OS Independent',
         'Programming Language :: Python',
         'Programming Language :: Python :: 3',
-        'Topic :: Scientific/Engineering'
-    ]
+        'Programming Language :: Python :: 3.9',
+        'Topic :: Scientific/Engineering',
+        'Topic :: Scientific/Engineering :: Bio-Informatics'
+    ],
+    python_requires=">=3.9",
 )
