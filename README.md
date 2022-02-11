@@ -4,7 +4,17 @@ A tool for mapping (uncontrolled) terms to ontology terms to facilitate semantic
 
 ## Usage
 
-`text2term.py -s SOURCE -t TARGET [-o OUTPUT] [-top TOP_MAPPINGS] [-min MIN_SCORE] [-iris BASE_IRIS] [-d EXCL_DEPRECATED] [-i INCL_INDIVIDUALS]`
+Install package using **pip**:
+
+`pip install .`
+
+Execute the tool as follows:
+
+`text2term -s SOURCE -t TARGET [-o OUTPUT] [-top TOP_MAPPINGS] [-min MIN_SCORE] [-iris BASE_IRIS] [-d EXCL_DEPRECATED] [-i INCL_INDIVIDUALS]`
+
+To display a help message with descriptions of tool arguments do:
+
+`text2term -h` or `text2term --help`
 
 ### Required arguments
 `-s SOURCE` Input file containing list of 'source' terms to map to ontology terms (one per line).
@@ -28,17 +38,17 @@ A tool for mapping (uncontrolled) terms to ontology terms to facilitate semantic
 ## Examples
 
 The basic use of the tool requires a `source` file containing a list of terms to map to the given `target` ontology:  
-`python text2term.py -s unstruct_terms.txt -t http://www.ebi.ac.uk/efo/efo.owl`
+`python text2term -s unstruct_terms.txt -t http://www.ebi.ac.uk/efo/efo.owl`
 
 Specify an output file where the mappings should be saved using `-o`:  
-`python text2term.py -s unstruct_terms.txt -t efo.owl -o /Documents/my-mappings.csv`
+`python text2term -s unstruct_terms.txt -t efo.owl -o /Documents/my-mappings.csv`
 
 Set the minimum acceptable similarity score for mapping each given term to an ontology term using `-min`:  
-`python text2term.py -s unstruct_terms.txt -t efo.owl -min 0.8`  
+`python text2term -s unstruct_terms.txt -t efo.owl -min 0.8`  
 The mapped terms returned will have been determined to be 0.8 similar to their source terms in a 0-1 scale.  
 
 Exclude deprecated ontology terms (declared as such via *owl:deprecated true*) using `-d`:  
-`python text2term.py -s unstruct_terms.txt -t efo.owl -d`
+`python text2term -s unstruct_terms.txt -t efo.owl -d`
 
 Limit search to only terms whose IRIs start with any IRI given in a list specified using `-iris`:  
 `python text2term.py -s unstruct_terms.txt -t efo.owl -iris http://www.ebi.ac.uk/efo/EFO,http://purl.obolibrary.org/obo/HP`  
