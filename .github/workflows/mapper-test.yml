@@ -48,12 +48,12 @@ jobs:
               working-directory: tests
               env:
                   summary_path: summary.csv
-            - name: Run coverage_error script
+            - name: Run coverage__one_error script
               run: |
                   python3 $script_path
               working-directory: tests/compare-scripts
               env:
-                  script_path: coverage_error.py
+                  script_path: coverage_one_error.py
             - name: Commit changes to tests repo
               run: |
                   git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
