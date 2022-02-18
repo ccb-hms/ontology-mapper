@@ -4,8 +4,8 @@ import json
 import logging
 import time
 import requests
-import onto_utils
-from term_mapping import TermMapping, TermMappingCollection
+from text2term import onto_utils
+from text2term.term_mapping import TermMappingCollection, TermMapping
 
 
 class ZoomaMapper:

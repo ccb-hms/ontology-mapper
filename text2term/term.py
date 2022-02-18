@@ -1,8 +1,8 @@
 """Provides OntologyTerm class"""
 
-import onto_utils
 from owlready2 import Thing, ThingClass
-from term_graph import OntologyTermGraph, Node, Edge
+from text2term import onto_utils
+from text2term.term_graph import OntologyTermGraph, Edge, Node
 
 
 class OntologyTerm:

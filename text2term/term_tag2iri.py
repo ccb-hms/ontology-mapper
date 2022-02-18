@@ -1,14 +1,14 @@
 import logging
 import ssl
 import urllib.request
-from urllib.error import HTTPError
 import pandas as pd
-import onto_utils
+from urllib.error import HTTPError
+from text2term import onto_utils
 
 ssl._create_default_https_context = ssl._create_stdlib_context
 
 
-class OntoTag2Iri:
+class TermTag2Iri:
 
     def __init__(self):
         self.logger = onto_utils.get_logger(__name__, logging.INFO)
