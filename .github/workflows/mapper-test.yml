@@ -18,11 +18,11 @@ jobs:
               run: |
                   if grep -q "," <<< "${{ github.event.head_commit.message }}"
                   then
-                    TEST=\"${MSG}\"
+                    MSG=\"${{ github.event.head_commit.message }}\"
                   else
-                    TEST=${MSG}
+                    MSG=${{ github.event.head_commit.message }}
                   fi
-                  echo -n "${GITHUB_REF},${GITHUB_SHA},${{ github.event.head_commit.message }},ukb-efo/${GITHUB_SHA}.csv,"
+                  echo -n "${GITHUB_REF},${GITHUB_SHA},${MSG},ukb-efo/${GITHUB_SHA}.csv,"
     # run_mapper:
     #     runs-on: ubuntu-latest
     #     name: Run Tests
