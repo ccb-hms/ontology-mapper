@@ -11,26 +11,39 @@ from text2term import onto_utils
 class BioPortalAnnotatorMapper:
 
     def __init__(self, bp_api_key):
+        """
+        :param bp_api_key: BioPortal API key
+        """
         self.logger = onto_utils.get_logger(__name__, logging.INFO)
         self.url = "http://data.bioontology.org/annotator"
         self.bp_api_key = bp_api_key
 
-    def map(self, source_terms, ontologies, max_mappings=3):
+    def map(self, source_terms, ontologies, max_mappings=3, api_params=()):
+        """
+        Find and return ontology mappings through the BioPortal Annotator Web service
+        :param source_terms: Collection of source terms to map to target ontologies
+        :param ontologies: String with a comma-separated list of ontology acronyms (eg "HP,EFO")
+        :param max_mappings: The maximum number of (top scoring) ontology term mappings that should be returned
+        :param api_params: Additional BioPortal Annotator-specific parameters to include in the request
+        """
         self.logger.info("Mapping %i source terms against ontologies: %s...", len(source_terms), ontologies)
         start = time.time()
         mappings = []
         for term in source_terms:
-            mappings.extend(self._map_term(term, ontologies, max_mappings))
+            mappings.extend(self._map_term(term, ontologies, max_mappings, api_params))
         self.logger.info('done (mapping time: %.2fs seconds)', time.time()-start)
         return TermMappingCollection(mappings).mappings_df()
 
-    def _map_term(self, source_term, ontologies, max_mappings):
+    def _map_term(self, source_term, ontologies, max_mappings, api_params):
         params = {
             "text": source_term,
             "longest_only": "true",
             "expand_mappings": "true",
             "ontologies": ontologies
         }
+        if len(api_params) > 0:
+            params.update(api_params)
+        self.logger.debug("API parameters: " + str(params))
         mappings = []
         self.logger.debug("Searching for ontology terms to match: " + source_term)
         response = self._do_get_request(self.url, params=params)
