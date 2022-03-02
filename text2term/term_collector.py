@@ -45,6 +45,12 @@ class OntologyTermCollector:
         self.logger.info("...done: collected %i ontology terms (collection time: %.2fs)", len(ontology_terms), end-start)
         return ontology_terms
 
+    def get_term_graphs(self, ontology_terms):
+        term_graphs = []
+        for term in ontology_terms:
+            term_graphs.append(term.graph().graph_dict())
+        return term_graphs
+
     def _get_ontology_terms(self, term_list, ontology, exclude_deprecated):
         ontology_terms = []
         for ontology_term in term_list:

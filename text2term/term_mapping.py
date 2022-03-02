@@ -4,6 +4,11 @@ import pandas as pd
 
 
 class TermMapping:
+    SRC_TERM = "Source Term"
+    TGT_TERM_LBL = "Mapped Term Label"
+    TGT_TERM_IRI = "Mapped Term IRI"
+    TGT_TERM_ONT_IRI = "Mapped Ontology IRI"
+    MAPPING_SCORE = "Mapping Score"
 
     def __init__(self, source_term, mapped_term_label, mapped_term_iri, mapped_ontology_iri, mapping_score):
         self._source_term = source_term
@@ -34,11 +39,11 @@ class TermMapping:
 
     def to_dict(self):
         return {
-            'Source Term': self.source_term,
-            'Mapped Term Label': self.mapped_term_label,
-            'Mapped Term IRI': self.mapped_term_iri,
-            'Mapped Ontology IRI': self.mapped_ontology_iri,
-            'Mapping Score': self.mapping_score
+            self.SRC_TERM: self.source_term,
+            self.TGT_TERM_LBL: self.mapped_term_label,
+            self.TGT_TERM_IRI: self.mapped_term_iri,
+            self.TGT_TERM_ONT_IRI: self.mapped_ontology_iri,
+            self.MAPPING_SCORE: self.mapping_score
         }
 
     def __eq__(self, other):
@@ -47,8 +52,7 @@ class TermMapping:
         return False
 
     def __str__(self):
-        return "Mapping: " + self.source_term + " -> " + self._mapped_term_label + \
-               " (" + self.mapped_term_iri + ")"
+        return self.source_term + " -> " + self._mapped_term_label + " (" + self.mapped_term_iri + ")"
 
 
 class TermMappingCollection:
