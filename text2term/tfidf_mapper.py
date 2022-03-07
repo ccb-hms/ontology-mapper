@@ -32,10 +32,10 @@ class TFIDFMapper:
         source_terms_norm = onto_utils.normalize_list(source_terms)
         vectorizer = self._tokenize(source_terms_norm, self.target_labels)
         results_mtx = self._sparse_dot_top(vectorizer, source_terms_norm, self.target_labels, min_score)
-        results_df, term_graphs = self._get_mappings(results_mtx, max_mappings, source_terms, self.target_terms)
+        results_df = self._get_mappings(results_mtx, max_mappings, source_terms, self.target_terms)
         end = time.time()
         self.logger.info("...done (mapping time: %.2fs seconds)", end-start)
-        return results_df, term_graphs
+        return results_df
 
     def _tokenize(self, source_terms, target_labels, analyzer='char_wb', n=3):
         """
@@ -63,7 +63,6 @@ class TFIDFMapper:
         """ Build and return dataframe for mapping results along with term graphs for the obtained mappings """
         coo_mtx = results_mtx.tocoo()
         mappings = []
-        mapped_term_graphs = []
         last_source_term = ""
         top_mappings = set()
         for row, col, score in zip(coo_mtx.row, coo_mtx.col, coo_mtx.data):
@@ -78,9 +77,8 @@ class TFIDFMapper:
                 top_mappings.clear()
             if onto_term.iri not in top_mappings:
                 mappings.append(TermMapping(source_term, onto_term.label, onto_term.iri, onto_term.ontology_iri, score))
-                mapped_term_graphs.append(onto_term.graph().graph_dict())
                 top_mappings.add(onto_term.iri)
-        return TermMappingCollection(mappings).mappings_df(), mapped_term_graphs
+        return TermMappingCollection(mappings).mappings_df()
 
     def _get_target_labels_terms(self, ontology_terms):
         """Get lists of labels and terms to enable retrieving terms from their labels"""
