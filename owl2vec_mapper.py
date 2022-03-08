@@ -6,31 +6,27 @@ from scipy import sparse
 import ontoutils
 import pandas as pd
 from sklearn.metrics.pairwise import cosine_similarity
+from nltk import word_tokenize
+import subprocess
+import gensim
+from owlready2 import *
 
-
-class BioBertMapper:
+class Owl2VecMapper:
     """
     Requires Java 8 and Python <3.9  (as of 1/22)
     See Colab notebook for environment instructions:
     https://colab.research.google.com/drive/1p98xNY6La0rc4CJ3tYyLxsJ2vx_dHzFq
     """
 
-    def __init__(self, target_ontology_terms):
+    def __init__(self, target_ontology_terms, ontology_file):
         """
         :param target_ontology_terms: Collection of ontology terms to be mapped against
         """
         self.logger = ontoutils.get_logger(__name__, logging.INFO)
         self.target_labels, self.target_terms = self._get_target_labels_terms(target_ontology_terms)
-        self.biobert = self.load_biobert()
-
-    def load_biobert(self):
-        # Load BioBERT model (for sentence-type embeddings)
-        self.logger.info("Loading BioBERT model...")
-        start = time.time()
-        biobert = nlu.load('en.embed_sentence.biobert.pmc_base_cased')
-        end = time.time()
-        self.logger.info('done (BioBERT loading time: %.2fs seconds)', end - start)
-        return biobert
+        # TODO: Alter call to this file to pass in ontology_file too.
+        self.ontology_file = ontology_file
+        
 
     def map(self, source_terms, max_mappings=3, min_score=0.3):
         """
@@ -44,10 +40,22 @@ class BioBertMapper:
         start = time.time()
         source_terms = ontoutils.normalize_list(source_terms)
 
+        # Generate ontology file for source_terms
+        ontology = ontoutils.get_ontology_from_labels(source_terms)
+        ontology.save(file="source_terms_ontology.owl")
+        
         # Generate embeddings for source and target terms
         self.logger.info("...Generating embeddings for source and target terms")
-        src_terms_embeddings = self.get_biobert_embeddings(source_terms)
-        tgt_terms_embeddings = self.get_biobert_embeddings(self.target_labels)
+        self.generate_owl2vec_embeddings("source_terms_ontology.owl", "./owl2vec_embeddings/source_embeddings")
+        self.generate_owl2vec_embeddings(self.ontology_file, "./owl2vec_embeddings/target_embeddings")
+
+        src_terms_embeddings = self.get_owl2vec_embeddings("source_terms_ontology.owl", "./owl2vec_embeddings/target_embeddings")
+        tgt_terms_embeddings = self.get_owl2vec_embeddings(self.ontology_file, "./owl2vec_embeddings/target_embeddings")
+
+        # Delete the embeddings files and source term ontology
+        subprocess.call("rm source_terms_ontology.owl", shell=True)
+        subprocess.call("rm ./owl2vec_embeddings/source_embeddings", shell=True)
+        subprocess.call("rm ./owl2vec_embeddings/target_embeddings", shell=True)
 
         # Compute cosine similarity between source and target term embeddings
         self.logger.info("...Computing cosine similarity between source and target term embeddings")
@@ -60,17 +68,33 @@ class BioBertMapper:
         end = time.time()
         self.logger.info('done (mapping time: %.2fs seconds)', end-start)
         return results_df
+    
+    def generate_owl2vec_embeddings(self, onto_filename, embeddings_filename):
+        subprocess.call("python3 OWL2Vec-Star/OWL2Vec_Standalone.py --config_file owl2vec_default.cfg --Embed_Out_URI no --Embed_Out_Words yes --ontology_file " + onto_filename + " --embedding_dir " + embeddings_filename, shell=True)
+        # TODO: Confirm that python waits for this to complete before going on.
 
-    def get_biobert_embeddings(self, strings):
+    def get_owl2vec_embeddings(self, onto_file , embeddings_file):
+        # TODO: Confirm what to return here with Rafael and adjust accordingly
+        model = gensim.models.Word2Vec.load(embeddings_file)
+        onto = get_ontology(onto_file).load()
+        classes = list(onto.classes())
+
+        for c in classes:
+            label = c.label[0]
+            text = ' '.join([re.sub(r'https?:\/\/.*[\r\n]*', '', w, flags=re.MULTILINE) for w in label.lower().split()])
+            words = [token.lower() for token in word_tokenize(text) if token.isalpha()]
+            n = 0
+            word_v = np.zeros(model.vector_size)
+            for word in words:
+                if word in model.wv.index_to_key:
+                    word_v += model.wv.get_vector(word)
+                    n += 1
+            word_v = word_v / n if n > 0 else word_v
+
+        #biobert stuff
         embedding_list = []
-        for string in strings:
-            self.logger.debug("...Generating embedding for: %s", string)
-            embedding_list.append(self.get_biobert_embedding(string))
         return embedding_list
 
-    def get_biobert_embedding(self, string):
-        embedding = self.biobert.predict(string, output_level='sentence', get_embeddings=True)
-        return embedding.sentence_embedding_biobert.values[0]
 
     def _get_matches(self, results_mtx, source_terms, target_terms, min_score):
         """ Build dataframe for results """

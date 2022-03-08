@@ -1,10 +1,12 @@
 import logging
+import re
 import sys
-
+# import bioregistry
+from owlready2 import *
 from gensim.parsing import strip_non_alphanum, strip_multiple_whitespaces
 
 STOP_WORDS = {'in', 'the', 'any', 'all', 'for', 'and', 'or', 'dx', 'on', 'fh', 'tx', 'only', 'qnorm', 'w', 'iqb',
-              'ds', 'rd', 'rdgwas'}
+              'ds', 'rd', 'rdgwas', 'average', 'weekly', 'monthly', 'daily'}
 
 
 def normalize_list(token_list):
@@ -20,11 +22,29 @@ def normalize(token):
     :param token: Text to be normalized
     :return: Normalized string
     """
+    token = re.sub(r"[\(\[].*?[\)\]]", "", token)  # remove text within parenthesis/brackets
     token = strip_non_alphanum(token).lower()
     token = token.replace("_", " ")
     token = " ".join(w for w in token.split() if w not in STOP_WORDS)
     token = strip_multiple_whitespaces(token)
     return token
+
+
+# def curie_from_iri(iri):
+#     return bioregistry.curie_from_iri(iri)
+
+
+def label_from_iri(iri):
+    if "#" in iri:
+        return iri.split("#")[1]
+    else:
+        return iri.rsplit('/', 1)[1]
+
+
+def remove_quotes(text):
+    text = text.replace("\"", "")
+    text = text.replace("\'", "")
+    return text
 
 
 def get_logger(name, level):
@@ -34,6 +54,7 @@ def get_logger(name, level):
     console_handler = logging.StreamHandler(sys.stdout)
     console_handler.setFormatter(formatter)
     logger.addHandler(console_handler)
+    logger.propagate = False
     return logger
 
 
@@ -41,6 +62,17 @@ def parse_list_file(file_path):
     file = open(file_path)
     lines = file.read().splitlines()
     return lines
+
+
+def get_ontology_from_labels(term_labels):
+    onto = owlready2.get_ontology("http://ccb.harvard.edu/t2t/")
+    onto.metadata.comment.append("Created dynamically using text2term")
+    onto.metadata.comment.append(datetime.datetime.now())
+    for term_label in term_labels:
+        with onto:
+            new_class = types.new_class(term_label, (Thing,))
+            new_class.label = term_label
+    return onto
 
 
 OBO_BASE_IRI = "http://purl.obolibrary.org/obo/"
