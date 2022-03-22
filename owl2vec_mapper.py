@@ -10,6 +10,9 @@ from nltk import word_tokenize
 import subprocess
 import gensim
 from owlready2 import *
+from ontotermcollector import get_ontology
+import re
+import numpy as np
 
 class Owl2VecMapper:
     """
@@ -78,7 +81,7 @@ class Owl2VecMapper:
         model = gensim.models.Word2Vec.load(embeddings_file)
         onto = get_ontology(onto_file).load()
         classes = list(onto.classes())
-
+        df = pd.DataFrame()
         for c in classes:
             label = c.label[0]
             text = ' '.join([re.sub(r'https?:\/\/.*[\r\n]*', '', w, flags=re.MULTILINE) for w in label.lower().split()])
@@ -90,11 +93,12 @@ class Owl2VecMapper:
                     word_v += model.wv.get_vector(word)
                     n += 1
             word_v = word_v / n if n > 0 else word_v
-
-        #biobert stuff
-        embedding_list = []
+            embeddings_list.append(word_v)
+        
+        
         return embedding_list
-
+    def get_embeddings(labels):
+        
 
     def _get_matches(self, results_mtx, source_terms, target_terms, min_score):
         """ Build dataframe for results """
