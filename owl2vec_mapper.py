@@ -1,4 +1,5 @@
 import logging
+from pickletools import stringnl
 import time
 import nlu
 from scipy import sparse
@@ -28,7 +29,7 @@ class Owl2VecMapper:
         self.logger = ontoutils.get_logger(__name__, logging.INFO)
         self.target_labels, self.target_terms = self._get_target_labels_terms(target_ontology_terms)
         # TODO: Alter call to this file to pass in ontology_file too.
-        self.ontology_file = ontology_file
+        self.target_ontology_file = ontology_file
         
 
     def map(self, source_terms, max_mappings=3, min_score=0.3):
@@ -46,14 +47,17 @@ class Owl2VecMapper:
         # Generate ontology file for source_terms
         ontology = ontoutils.get_ontology_from_labels(source_terms)
         ontology.save(file="source_terms_ontology.owl")
+        self.source_ontology_file = "source_terms_ontology.owl"
         
         # Generate embeddings for source and target terms
         self.logger.info("...Generating embeddings for source and target terms")
         self.generate_owl2vec_embeddings("source_terms_ontology.owl", "./owl2vec_embeddings/source_embeddings")
         self.generate_owl2vec_embeddings(self.ontology_file, "./owl2vec_embeddings/target_embeddings")
+        self.source_embeddings_file = "./owl2vec_embeddings/source_embeddings"
+        self.target_embeddings_file = "./owl2vec_embeddings/target_embeddings"
 
-        src_terms_embeddings = self.get_owl2vec_embeddings("source_terms_ontology.owl", "./owl2vec_embeddings/target_embeddings")
-        tgt_terms_embeddings = self.get_owl2vec_embeddings(self.ontology_file, "./owl2vec_embeddings/target_embeddings")
+        src_terms_embeddings = self.get_owl2vec_embeddings(source_terms, self.source_embeddings_file)
+        tgt_terms_embeddings = self.get_owl2vec_embeddings(self.target_labels, self.target_embeddings_file)
 
         # Delete the embeddings files and source term ontology
         subprocess.call("rm source_terms_ontology.owl", shell=True)
@@ -74,10 +78,16 @@ class Owl2VecMapper:
     
     def generate_owl2vec_embeddings(self, onto_filename, embeddings_filename):
         subprocess.call("python3 OWL2Vec-Star/OWL2Vec_Standalone.py --config_file owl2vec_default.cfg --Embed_Out_URI no --Embed_Out_Words yes --ontology_file " + onto_filename + " --embedding_dir " + embeddings_filename, shell=True)
+        self.embeddings_file = embeddings_filename
         # TODO: Confirm that python waits for this to complete before going on.
 
-    def get_owl2vec_embeddings(self, onto_file , embeddings_file):
-        # TODO: Confirm what to return here with Rafael and adjust accordingly
+    def get_owl2vec_embeddings(self, strings, embeddings_file):
+        embedding_list = []
+        for string in strings:
+            self.logger.debug("...Generating embedding for: %s", string)
+            embedding_list.append(self.get_owl2vec_embedding(string, embeddings_file))
+        return embedding_list
+        # # TODO: Confirm what to return here with Rafael and adjust accordingly
         model = gensim.models.Word2Vec.load(embeddings_file)
         onto = get_ontology(onto_file).load()
         classes = list(onto.classes())
@@ -95,10 +105,16 @@ class Owl2VecMapper:
             word_v = word_v / n if n > 0 else word_v
             embeddings_list.append(word_v)
         
-        
         return embedding_list
-    def get_embeddings(labels):
-        
+
+
+    def get_owl2vec_embedding(self, string, embeddings_file):
+        model = gensim.models.Word2Vec.load(embeddings_file)
+        word_v = np.zeros(model.vector_size)
+        if string in model.wv.index_to_key:
+            word_v += model.wv.get_vector(string)
+
+        return word_v
 
     def _get_matches(self, results_mtx, source_terms, target_terms, min_score):
         """ Build dataframe for results """
