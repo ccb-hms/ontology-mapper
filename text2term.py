@@ -4,6 +4,7 @@ import os
 import sys
 import ontoutils
 from biobert_mapper import BioBertMapper
+from owl2vec_mapper import Owl2VecMapper
 from ontotermcollector import OntologyTermCollector
 from newmapper import TFIDFMapper
 from biobert import biobert_mapper
@@ -75,7 +76,8 @@ if __name__ == "__main__":
     onto_terms = term_collector.get_ontology_terms(base_iri=base_iri,
                                                    exclude_deprecated=excl_deprecated,
                                                    include_individuals=incl_individuals)
-    mapper = BioBertMapper(onto_terms)
+    # mapper = BioBertMapper(onto_terms)
+    mapper = Owl2VecMapper(onto_terms, target_ontology)
     mappings_df = mapper.map(source_terms, max_mappings=max_mappings, min_score=min_score)
     print(mappings_df)
     mappings_df.to_csv(output_file)

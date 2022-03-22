@@ -28,7 +28,6 @@ class Owl2VecMapper:
         """
         self.logger = ontoutils.get_logger(__name__, logging.INFO)
         self.target_labels, self.target_terms = self._get_target_labels_terms(target_ontology_terms)
-        # TODO: Alter call to this file to pass in ontology_file too.
         self.target_ontology_file = ontology_file
         
 
@@ -52,7 +51,7 @@ class Owl2VecMapper:
         # Generate embeddings for source and target terms
         self.logger.info("...Generating embeddings for source and target terms")
         self.generate_owl2vec_embeddings("source_terms_ontology.owl", "./owl2vec_embeddings/source_embeddings")
-        self.generate_owl2vec_embeddings(self.ontology_file, "./owl2vec_embeddings/target_embeddings")
+        self.generate_owl2vec_embeddings(self.target_ontology_file, "./owl2vec_embeddings/target_embeddings")
         self.source_embeddings_file = "./owl2vec_embeddings/source_embeddings"
         self.target_embeddings_file = "./owl2vec_embeddings/target_embeddings"
 
@@ -88,24 +87,24 @@ class Owl2VecMapper:
             embedding_list.append(self.get_owl2vec_embedding(string, embeddings_file))
         return embedding_list
         # # TODO: Confirm what to return here with Rafael and adjust accordingly
-        model = gensim.models.Word2Vec.load(embeddings_file)
-        onto = get_ontology(onto_file).load()
-        classes = list(onto.classes())
-        df = pd.DataFrame()
-        for c in classes:
-            label = c.label[0]
-            text = ' '.join([re.sub(r'https?:\/\/.*[\r\n]*', '', w, flags=re.MULTILINE) for w in label.lower().split()])
-            words = [token.lower() for token in word_tokenize(text) if token.isalpha()]
-            n = 0
-            word_v = np.zeros(model.vector_size)
-            for word in words:
-                if word in model.wv.index_to_key:
-                    word_v += model.wv.get_vector(word)
-                    n += 1
-            word_v = word_v / n if n > 0 else word_v
-            embeddings_list.append(word_v)
+        # model = gensim.models.Word2Vec.load(embeddings_file)
+        # onto = get_ontology(onto_file).load()
+        # classes = list(onto.classes())
+        # df = pd.DataFrame()
+        # for c in classes:
+        #     label = c.label[0]
+        #     text = ' '.join([re.sub(r'https?:\/\/.*[\r\n]*', '', w, flags=re.MULTILINE) for w in label.lower().split()])
+        #     words = [token.lower() for token in word_tokenize(text) if token.isalpha()]
+        #     n = 0
+        #     word_v = np.zeros(model.vector_size)
+        #     for word in words:
+        #         if word in model.wv.index_to_key:
+        #             word_v += model.wv.get_vector(word)
+        #             n += 1
+        #     word_v = word_v / n if n > 0 else word_v
+        #     embeddings_list.append(word_v)
         
-        return embedding_list
+        # return embedding_list
 
 
     def get_owl2vec_embedding(self, string, embeddings_file):
