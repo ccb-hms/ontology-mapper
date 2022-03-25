@@ -31,6 +31,7 @@ class ZoomaMapper:
         return TermMappingCollection(mappings).mappings_df()
 
     def _map_term(self, source_term, ontologies, max_mappings, api_params):
+        # see https://www.ebi.ac.uk/spot/zooma/docs/api for details of API parameters
         params = {
             "propertyValue": source_term,
             "filter": "required:[none],ontologies:[" + ontologies + "]"
