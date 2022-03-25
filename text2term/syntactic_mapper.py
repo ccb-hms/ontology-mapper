@@ -6,7 +6,7 @@ import nltk
 import rapidfuzz
 from tqdm import tqdm
 from text2term import onto_utils
-from text2term.similarity_metric import SimilarityMetric
+from text2term.mapping_method import MappingMethod
 from text2term.term_mapping import TermMapping, TermMappingCollection
 
 
@@ -19,29 +19,29 @@ class SyntacticMapper:
         self.logger = onto_utils.get_logger(__name__, logging.INFO)
         self.target_ontology_terms = target_ontology_terms
 
-    def map(self, source_terms, similarity_metric=SimilarityMetric.JARO_WINKLER, max_mappings=3):
+    def map(self, source_terms, mapping_method=MappingMethod.JARO_WINKLER, max_mappings=3):
         """
         :param source_terms: List of source terms to be mapped with ontology terms
-        :param similarity_metric: Similarity metric to be used for matching
+        :param mapping_method: Mapping method to be used for matching
         :param max_mappings: Maximum number of (top scoring) ontology term mappings that should be returned
         """
         self.logger.info("Mapping %i source terms...", len(source_terms))
         start = time.time()
         mappings = []
         for input_term in tqdm(source_terms):
-            matches = self._map(input_term, similarity_metric, max_mappings)
+            matches = self._map(input_term, mapping_method, max_mappings)
             mappings.extend(matches)
         end = time.time()
         self.logger.info('done (mapping time: %.2fs seconds)', end - start)
         return TermMappingCollection(mappings).mappings_df()
 
-    def _map(self, source_term, similarity_metric, max_matches=3):
+    def _map(self, source_term, mapping_method, max_matches=3):
         self.logger.debug("Matching %s...", source_term)
         term_matches = []
         for term in self.target_ontology_terms:
             highest_similarity = 0.0
             for target_name in self._term_names(term):
-                similarity = self.compare(source_term, target_name, similarity_metric)
+                similarity = self.compare(source_term, target_name, mapping_method)
                 self.logger.debug("%s -> %s (%.2f)", source_term, target_name, similarity)
                 if similarity > highest_similarity:
                     highest_similarity = similarity
@@ -56,27 +56,27 @@ class SyntacticMapper:
         lbls_syns.extend(ontology_term.synonyms)
         return lbls_syns
 
-    def compare(self, s1, s2, similarity_metric):
+    def compare(self, s1, s2, mapping_method):
         """
-        Compare the given strings s1 and s2 with respect to the specified string similarity metric
+        Compare the given strings s1 and s2 with respect to the specified mapping method
         :param s1: source string
         :param s2: target string
-        :param similarity_metric: String similarity metric to be used (see supported metrics in `SimilarityMetric`)
+        :param mapping_method: Mapping method to be used (see supported methods in `MappingMethod`)
         """
-        if similarity_metric == SimilarityMetric.LEVENSHTEIN:
+        if mapping_method == MappingMethod.LEVENSHTEIN:
             return self.compare_levenshtein(s1, s2)
-        elif similarity_metric == SimilarityMetric.JARO:
+        elif mapping_method == MappingMethod.JARO:
             return self.compare_jaro(s1, s2)
-        elif similarity_metric == SimilarityMetric.JARO_WINKLER:
+        elif mapping_method == MappingMethod.JARO_WINKLER:
             return self.compare_jarowinkler(s1, s2)
-        elif similarity_metric == SimilarityMetric.FUZZY:
+        elif mapping_method == MappingMethod.FUZZY:
             return self.compare_fuzzy(s1, s2)
-        elif similarity_metric == SimilarityMetric.FUZZY_WEIGHTED:
+        elif mapping_method == MappingMethod.FUZZY_WEIGHTED:
             return self.compare_fuzzy_weighted(s1, s2)
-        elif similarity_metric == SimilarityMetric.JACCARD:
+        elif mapping_method == MappingMethod.JACCARD:
             return self.compare_jaccard(s1, s2)
         else:
-            self.logger.error("Unsupported similarity metric: %s", similarity_metric)
+            self.logger.error("Unsupported method: %s", mapping_method)
 
     def compare_levenshtein(self, s1, s2):
         """
