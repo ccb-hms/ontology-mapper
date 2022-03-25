@@ -33,7 +33,7 @@ class ZoomaMapper:
     def _map_term(self, source_term, ontologies, max_mappings, api_params):
         params = {
             "propertyValue": source_term,
-            "ontologies": ontologies
+            "filter": "required:[none],ontologies:[" + ontologies + "]"
         }
         if len(api_params) > 0:
             params.update(api_params)
