@@ -9,7 +9,7 @@ with open('requirements.txt') as f:
 version = '0.3.0'
 
 setup(
-    name='text2term ontology mapper',
+    name='text2term',
     version=version,
     install_requires=requirements,
     packages=find_packages(),
@@ -20,6 +20,7 @@ setup(
     long_description=long_description,
     long_description_content_type='text/markdown',
     author='Center for Computational Biomedicine, Harvard Medical School',
+    author_email='rafael_goncalves@hms.harvard.edu',
     classifiers=[
         'Development Status :: 3 - Alpha',
         'License :: OSI Approved :: MIT License',
