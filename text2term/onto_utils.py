@@ -67,13 +67,14 @@ def parse_list_file(file_path):
 
 
 def get_ontology_from_labels(term_labels):
-    base_iri = "http://ccb.harvard.edu/t2t/"
-    onto = owlready2.get_ontology(base_iri)
+    onto_base_iri = "http://ccb.harvard.edu/t2t/"
+    onto_iri = onto_base_iri + "Ontology-" + str(uuid.uuid4())
+    onto = owlready2.get_ontology(onto_iri)
     onto.metadata.comment.append("Created dynamically using text2term")
     onto.metadata.comment.append(datetime.datetime.now())
     for term_label in term_labels:
         with onto:
-            new_term_iri = base_iri + str(uuid.uuid4())
+            new_term_iri = onto_base_iri + "R" + str(uuid.uuid4())
             new_term = types.new_class(new_term_iri, (Thing,))
             new_term.label = term_label
     return onto
