@@ -1,6 +1,8 @@
 import logging
 import re
 import sys
+import uuid
+
 import bioregistry
 from owlready2 import *
 from gensim.parsing import strip_non_alphanum, strip_multiple_whitespaces
@@ -65,13 +67,15 @@ def parse_list_file(file_path):
 
 
 def get_ontology_from_labels(term_labels):
-    onto = owlready2.get_ontology("http://ccb.harvard.edu/t2t/")
+    base_iri = "http://ccb.harvard.edu/t2t/"
+    onto = owlready2.get_ontology(base_iri)
     onto.metadata.comment.append("Created dynamically using text2term")
     onto.metadata.comment.append(datetime.datetime.now())
     for term_label in term_labels:
         with onto:
-            new_class = types.new_class(term_label, (Thing,))
-            new_class.label = term_label
+            new_term_iri = base_iri + str(uuid.uuid4())
+            new_term = types.new_class(new_term_iri, (Thing,))
+            new_term.label = term_label
     return onto
 
 
