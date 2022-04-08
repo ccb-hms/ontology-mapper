@@ -62,7 +62,7 @@ class OntologyTermCollector:
                     children = self._get_children(ontology_term, ontology)
                     instances = self._get_instances(ontology_term, ontology)
                     definition = self._get_definition(ontology_term)
-                    term_details = OntologyTerm(ontology_term.iri, labels, synonyms, definition, ontology.base_iri,
+                    term_details = OntologyTerm(ontology_term.iri, labels, synonyms, definition,
                                                 parents=parents, children=children, instances=instances)
                     ontology_terms.append(term_details)
                 else:
@@ -85,7 +85,7 @@ class OntologyTermCollector:
         children = set()
         try:
             children = set(ontology.get_children_of(ontology_term))
-        except AttributeError as err:
+        except TypeError and AttributeError as err:
             self.logger.debug(err)
         return children
 

@@ -10,12 +10,11 @@ class OntologyTerm:
     Represents an ontology class or individual. In the case of an individual 'children' is always empty and
     'parents' specifies the individual's types.
     """
-    def __init__(self, iri, labels, synonyms, definition, ontology_iri, parents=(), children=(), instances=()):
+    def __init__(self, iri, labels, synonyms, definition, parents=(), children=(), instances=()):
         self._iri = iri
         self._labels = labels
         self._synonyms = synonyms
         self._definition = definition
-        self._ontology_iri = ontology_iri
         self._parents = parents
         self._children = children
         self._instances = instances
@@ -35,10 +34,6 @@ class OntologyTerm:
     @property
     def definition(self):
         return self._definition
-
-    @property
-    def ontology_iri(self):
-        return self._ontology_iri
 
     @property
     def parents(self):

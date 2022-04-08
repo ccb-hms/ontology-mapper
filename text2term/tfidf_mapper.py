@@ -76,7 +76,7 @@ class TFIDFMapper:
                 last_source_term = source_term
                 top_mappings.clear()
             if onto_term.iri not in top_mappings:
-                mappings.append(TermMapping(source_term, onto_term.label, onto_term.iri, onto_term.ontology_iri, score))
+                mappings.append(TermMapping(source_term, onto_term.label, onto_term.iri, score))
                 top_mappings.add(onto_term.iri)
         return TermMappingCollection(mappings).mappings_df()
 

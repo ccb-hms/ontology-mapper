@@ -7,14 +7,12 @@ class TermMapping:
     SRC_TERM = "Source Term"
     TGT_TERM_LBL = "Mapped Term Label"
     TGT_TERM_IRI = "Mapped Term IRI"
-    TGT_TERM_ONT_IRI = "Mapped Ontology IRI"
     MAPPING_SCORE = "Mapping Score"
 
-    def __init__(self, source_term, mapped_term_label, mapped_term_iri, mapped_ontology_iri, mapping_score):
+    def __init__(self, source_term, mapped_term_label, mapped_term_iri, mapping_score):
         self._source_term = source_term
         self._mapped_term_label = mapped_term_label
         self._mapped_term_iri = mapped_term_iri
-        self._mapped_ontology_iri = mapped_ontology_iri
         self._mapping_score = mapping_score
 
     @property
@@ -30,10 +28,6 @@ class TermMapping:
         return self._mapped_term_iri
 
     @property
-    def mapped_ontology_iri(self):
-        return self._mapped_ontology_iri
-
-    @property
     def mapping_score(self):
         return self._mapping_score
 
@@ -42,7 +36,6 @@ class TermMapping:
             self.SRC_TERM: self.source_term,
             self.TGT_TERM_LBL: self.mapped_term_label,
             self.TGT_TERM_IRI: self.mapped_term_iri,
-            self.TGT_TERM_ONT_IRI: self.mapped_ontology_iri,
             self.MAPPING_SCORE: self.mapping_score
         }
 

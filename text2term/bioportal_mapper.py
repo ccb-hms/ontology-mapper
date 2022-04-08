@@ -125,7 +125,7 @@ class BioPortalMapping:
         self.match_type = match_type
 
     def as_term_mapping(self):
-        return TermMapping(self.original_text, self.term_name, self.term_iri, self.ontology_iri, self.mapping_score)
+        return TermMapping(self.original_text, self.term_name, self.term_iri, self.mapping_score)
 
     @property
     def mapping_score(self):

@@ -58,11 +58,9 @@ class ZoomaMapper:
         tags = mapping_response["semanticTags"]
         term_iri = tags[0]
 
-        ontology_iri = ""  # TODO: Get Ontology IRI
-
         # get mapping confidence score
         mapping_score = self._mapping_score(mapping_response["confidence"])
-        return TermMapping(text, term_label, term_iri, ontology_iri, mapping_score)
+        return TermMapping(text, term_label, term_iri, mapping_score)
 
     def _mapping_score(self, confidence):
         """Represent numerically the mapping confidence categories returned by Zooma (high, good, medium or low)"""

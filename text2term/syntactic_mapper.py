@@ -45,7 +45,7 @@ class SyntacticMapper:
                 self.logger.debug("%s -> %s (%.2f)", source_term, target_name, similarity)
                 if similarity > highest_similarity:
                     highest_similarity = similarity
-            term_matches.append(TermMapping(source_term, term.label, term.iri, term.ontology_iri, highest_similarity))
+            term_matches.append(TermMapping(source_term, term.label, term.iri, highest_similarity))
         matches_sorted = sorted(term_matches, key=lambda x: x.mapping_score, reverse=True)
         del matches_sorted[max_matches:]
         return matches_sorted
