@@ -2,6 +2,10 @@
 
 A tool to map unstructured terms to ontology terms. 
 
+### Set Up
+To pull the submodule of OWL2Vec, run:
+`git submodule update --init`
+
 ### Usage
 
 `text2term.py -s SOURCE -t TARGET [-o OUTPUT] [-top TOP_MAPPINGS] [-min MIN_SCORE] [-iri BASE_IRI] [-d EXCL_DEPRECATED] [-i INCL_INDIVIDUALS]`
