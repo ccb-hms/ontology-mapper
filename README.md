@@ -44,3 +44,8 @@ Exclude deprecated ontology terms (declared as such via *owl:deprecated true*) u
 Constrain the mapping to ontology terms whose IRIs (identifiers) start with a given string, specified using `-iri`:  
 `python text2term.py -s unstruct_terms.txt -t efo.owl -iri http://www.ebi.ac.uk/efo/EFO`  
 Here, because the EFO ontology reuses terms from other ontologies such as ChEBI and GO, the non-EFO terms would be excluded.
+
+Biobert Requirements: 
+https://nlu.johnsnowlabs.com
+https://nlu.johnsnowlabs.com/docs/en/install
+Java8, pyspark==3.0.1
