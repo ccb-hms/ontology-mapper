@@ -1,7 +1,7 @@
-"""Provides OntologyTermGraph, Node and Edge classes"""
+"""Provides TermGraph, Node and Edge classes"""
 
 
-class OntologyTermGraph:
+class TermGraph:
     """
     Represents a graph of the neighborhood of an ontology term.
     The graph includes all (direct and indirect) superclasses and all direct subclasses.
@@ -23,7 +23,7 @@ class OntologyTermGraph:
     def edges(self):
         return self._edges
 
-    def graph_dict(self):
+    def as_dict(self):
         graph = {
             "iri": self.term_iri,
             "nodes": self._nodes_dict(),
