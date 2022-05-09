@@ -33,7 +33,6 @@ To display a help message with descriptions of tool arguments do:
 
 `-d EXCL_DEPRECATED` Exclude terms stated as deprecated via owl:deprecated.
 
-`-i INCL_INDIVIDUALS` Include ontology individuals in addition to classes.
 
 ## Examples
 

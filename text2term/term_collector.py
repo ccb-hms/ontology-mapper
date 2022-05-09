@@ -15,13 +15,12 @@ class OntologyTermCollector:
         self.logger = onto_utils.get_logger(__name__, logging.INFO)
         self.ontology_iri = ontology_iri
 
-    def get_ontology_terms(self, base_iris=(), use_reasoning=False, exclude_deprecated=False, include_individuals=False):
+    def get_ontology_terms(self, base_iris=(), use_reasoning=False, exclude_deprecated=False):
         """
         Collect the terms described in the ontology at the specified IRI
         :param base_iris: Limit ontology term collection to terms whose IRIs start with any IRI given in this tuple
-        :param use_reasoning: Use a reasoner to compute inferred class hierarchy and individual types
+        :param use_reasoning: Use a reasoner to compute inferred class hierarchy
         :param exclude_deprecated: Exclude ontology terms stated as deprecated using owl:deprecated 'true'
-        :param include_individuals: Include OWL ontology individuals in addition to ontology classes
         :return: Collection of ontology terms in the specified ontology
         """
         ontology = self._load_ontology(self.ontology_iri)
@@ -39,8 +38,6 @@ class OntologyTermCollector:
                 ontology_terms.extend(self._get_ontology_terms(iris, ontology, exclude_deprecated))
         else:
             ontology_terms = self._get_ontology_terms(ontology.classes(), ontology, exclude_deprecated)
-            if include_individuals:
-                ontology_terms.extend(self._get_ontology_terms(ontology.individuals(), ontology, exclude_deprecated))
         end = time.time()
         self.logger.info("...done: collected %i ontology terms (collection time: %.2fs)", len(ontology_terms), end-start)
         return ontology_terms
@@ -241,7 +238,6 @@ class OntologyTermCollector:
     def _log_ontology_metrics(self, ontology):
         self.logger.debug(" Ontology IRI: %s", ontology.base_iri)
         self.logger.debug(" Class count: %i", len(list(ontology.classes())))
-        self.logger.debug(" Individual count: %i", len(list(ontology.individuals())))
         self.logger.debug(" Object property count: %i", len(list(ontology.object_properties())))
         self.logger.debug(" Data property count: %i", len(list(ontology.data_properties())))
         self.logger.debug(" Annotation property count: %i", len(list(ontology.annotation_properties())))
