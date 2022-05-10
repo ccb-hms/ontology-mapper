@@ -19,23 +19,24 @@ class SyntacticMapper:
         self.logger = onto_utils.get_logger(__name__, logging.INFO)
         self.target_ontology_terms = target_ontology_terms
 
-    def map(self, source_terms, mapping_method=MappingMethod.JARO_WINKLER, max_mappings=3):
+    def map(self, source_terms, source_terms_ids, mapping_method=MappingMethod.JARO_WINKLER, max_mappings=3):
         """
         :param source_terms: List of source terms to be mapped with ontology terms
+        :param source_terms_ids: List of identifiers for the given source terms
         :param mapping_method: Mapping method to be used for matching
         :param max_mappings: Maximum number of (top scoring) ontology term mappings that should be returned
         """
         self.logger.info("Mapping %i source terms...", len(source_terms))
         start = time.time()
         mappings = []
-        for input_term in tqdm(source_terms):
-            matches = self._map(input_term, mapping_method, max_mappings)
+        for term, term_id in tqdm(zip(source_terms, source_terms_ids)):
+            matches = self._map(term, term_id, mapping_method, max_mappings)
             mappings.extend(matches)
         end = time.time()
         self.logger.info('done (mapping time: %.2fs seconds)', end - start)
         return TermMappingCollection(mappings).mappings_df()
 
-    def _map(self, source_term, mapping_method, max_matches=3):
+    def _map(self, source_term, source_term_id, mapping_method, max_matches=3):
         self.logger.debug("Matching %s...", source_term)
         term_matches = []
         for term in self.target_ontology_terms:
@@ -45,7 +46,7 @@ class SyntacticMapper:
                 self.logger.debug("%s -> %s (%.2f)", source_term, target_name, similarity)
                 if similarity > highest_similarity:
                     highest_similarity = similarity
-            term_matches.append(TermMapping(source_term, term.label, term.iri, highest_similarity))
+            term_matches.append(TermMapping(source_term, source_term_id, term.label, term.iri, highest_similarity))
         matches_sorted = sorted(term_matches, key=lambda x: x.mapping_score, reverse=True)
         del matches_sorted[max_matches:]
         return matches_sorted

@@ -1,14 +1,16 @@
 import logging
 import re
 import sys
-import uuid
-
+import pandas as pd
 import bioregistry
+import shortuuid
 from owlready2 import *
 from gensim.parsing import strip_non_alphanum, strip_multiple_whitespaces
 
 STOP_WORDS = {'in', 'the', 'any', 'all', 'for', 'and', 'or', 'dx', 'on', 'fh', 'tx', 'only', 'qnorm', 'w', 'iqb',
               'ds', 'rd', 'rdgwas', 'average', 'weekly', 'monthly', 'daily'}
+
+BASE_IRI = "http://ccb.hms.harvard.edu/t2t/"
 
 
 def normalize_list(token_list):
@@ -63,21 +65,47 @@ def get_logger(name, level):
 def parse_list_file(file_path):
     file = open(file_path)
     lines = file.read().splitlines()
+    file.close()
     return lines
 
 
+def parse_csv_file(file_path, term_column_name, term_id_column_name, separator=','):
+    data = pd.read_csv(file_path, sep=separator)
+    if term_column_name not in data.columns:
+        raise ValueError("Could not find specified column name for input terms: " + term_column_name)
+    terms = data[term_column_name].values
+    if term_id_column_name not in data.columns:
+        term_ids = generate_iris(len(terms))
+    elif data[term_id_column_name].isnull().values.all():
+        term_ids = generate_iris(len(terms))
+    else:
+        term_ids = data[term_id_column_name].values
+    return terms, term_ids
+
+
 def get_ontology_from_labels(term_labels):
-    onto_base_iri = "http://ccb.harvard.edu/t2t/"
-    onto_iri = onto_base_iri + "Ontology-" + str(uuid.uuid4())
+    onto_iri = BASE_IRI + "Ontology-" + generate_uuid()
     onto = owlready2.get_ontology(onto_iri)
     onto.metadata.comment.append("Created dynamically using text2term")
     onto.metadata.comment.append(datetime.datetime.now())
     for term_label in term_labels:
         with onto:
-            new_term_iri = onto_base_iri + "R" + str(uuid.uuid4())
+            new_term_iri = generate_iri()
             new_term = types.new_class(new_term_iri, (Thing,))
             new_term.label = term_label
     return onto
+
+
+def generate_uuid():
+    return str(shortuuid.ShortUUID().random(length=10))
+
+
+def generate_iri():
+    return BASE_IRI + "R" + generate_uuid()
+
+
+def generate_iris(quantity):
+    return [generate_iri() for _ in range(quantity)]
 
 
 OBO_BASE_IRI = "http://purl.obolibrary.org/obo/"

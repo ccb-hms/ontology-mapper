@@ -18,23 +18,24 @@ class BioPortalAnnotatorMapper:
         self.url = "http://data.bioontology.org/annotator"
         self.bp_api_key = bp_api_key
 
-    def map(self, source_terms, ontologies, max_mappings=3, api_params=()):
+    def map(self, source_terms, source_terms_ids, ontologies='', max_mappings=3, api_params=()):
         """
         Find and return ontology mappings through the BioPortal Annotator Web service
         :param source_terms: Collection of source terms to map to target ontologies
-        :param ontologies: String with a comma-separated list of ontology acronyms (eg "HP,EFO")
+        :param source_terms_ids: List of identifiers for the given source terms
+        :param ontologies: String with comma-separated list of ontology acronyms (eg 'HP,EFO'). Default: all ontologies ('')
         :param max_mappings: The maximum number of (top scoring) ontology term mappings that should be returned
         :param api_params: Additional BioPortal Annotator-specific parameters to include in the request
         """
         self.logger.info("Mapping %i source terms against ontologies: %s...", len(source_terms), ontologies)
         start = time.time()
         mappings = []
-        for term in source_terms:
-            mappings.extend(self._map_term(term, ontologies, max_mappings, api_params))
+        for term, term_id in zip(source_terms, source_terms_ids):
+            mappings.extend(self._map_term(term, term_id, ontologies, max_mappings, api_params))
         self.logger.info('done (mapping time: %.2fs seconds)', time.time()-start)
         return TermMappingCollection(mappings).mappings_df()
 
-    def _map_term(self, source_term, ontologies, max_mappings, api_params):
+    def _map_term(self, source_term, source_term_id, ontologies, max_mappings, api_params):
         params = {
             "text": source_term,
             "longest_only": "true",
@@ -51,44 +52,23 @@ class BioPortalAnnotatorMapper:
             self.logger.debug("...found " + str(len(response)) + " mappings")
             for mapping in response:
                 if len(mappings) < max_mappings:
-                    mappings.append(self._mapping_details(source_term, mapping).as_term_mapping())
+                    mappings.append(self._mapping_details(source_term, source_term_id, mapping))
         return mappings
 
-    def _mapping_details(self, text, annotation):
-        ann_class = annotation["annotatedClass"]
+    def _mapping_details(self, source_term, source_term_id, mapping):
+        ann_class = mapping["annotatedClass"]
         term_iri = ann_class["@id"]
         term_link_bp = ann_class["links"]["self"]
-        onto_iri = ann_class["links"]["ontology"]
-        onto_name = onto_utils.curie_from_iri(term_iri)
-        bp_link = ann_class["links"]["ui"]
-        match_type = annotation["annotations"][0]["matchType"]
-        term_name, term_definition, ancestors = self.get_term_details(term_link_bp)
-        return BioPortalMapping(text, term_name, term_iri, term_definition, ancestors, onto_iri, onto_name, bp_link,
-                                match_type)
+        match_type = mapping["annotations"][0]["matchType"]
+        term_label = self.get_term_details(term_link_bp)
+        return TermMapping(source_term, source_term_id, term_label, term_iri, 1)
 
     def get_term_details(self, term_iri):
         response = self._do_get_request(term_iri)
-        term_name, term_definition = "", ""
-        ancestors = []
+        term_label = ""
         if response is not None:
-            term_name = onto_utils.remove_quotes(response["prefLabel"])
-            if len(response["definition"]) > 0:
-                term_definition = response["definition"][0]
-                term_definition = onto_utils.remove_quotes(term_definition)
-            ancestors_link = response["links"]["ancestors"]
-            ancestors = self._get_ancestors(ancestors_link)
-        return term_name, term_definition, ancestors
-
-    def _get_ancestors(self, term_ancestors_bp_link):
-        response = self._do_get_request(term_ancestors_bp_link)
-        ancestors = []
-        if response is not None:
-            for ancestor in response:
-                if ancestor is not None:
-                    ancestor_name = ancestor["prefLabel"]
-                    ancestors.append(ancestor_name)
-        ancestors = list(dict.fromkeys(ancestors))  # remove duplicate ancestors
-        return ancestors
+            term_label = onto_utils.remove_quotes(response["prefLabel"])
+        return term_label
 
     def _do_get_request(self, request_url, params=None):
         headers = {
@@ -108,25 +88,3 @@ class BioPortalAnnotatorMapper:
         else:
             json_resp = json.loads(response.content)
             self.logger.error(response.reason + ":" + request_url + ". " + json_resp["errors"][0])
-
-
-class BioPortalMapping:
-
-    def __init__(self, original_text, term_name, term_iri, term_definition, term_ancestors, ontology_iri, ontology_name,
-                 bioportal_link, match_type):
-        self.original_text = original_text
-        self.term_name = term_name
-        self.term_iri = term_iri
-        self.term_definition = term_definition
-        self.term_ancestors = term_ancestors
-        self.ontology_iri = ontology_iri
-        self.ontology_name = ontology_name
-        self.bioportal_link = bioportal_link
-        self.match_type = match_type
-
-    def as_term_mapping(self):
-        return TermMapping(self.original_text, self.term_name, self.term_iri, self.mapping_score)
-
-    @property
-    def mapping_score(self):
-        return 1  # if SYN|PREF

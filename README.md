@@ -25,6 +25,8 @@ To display a help message with descriptions of tool arguments do:
 
 `-o OUTPUT` Path to desired output file for the mappings.
 
+`-csv CSV_INPUT` Specifies that the input is a CSV file—followed by the name of the column that contains the terms to map, optionally followed by the name of the column that contains identifiers for the terms (e.g., "my terms,my term ids")
+
 `-top TOP_MAPPINGS` Maximum number of top-ranked mappings returned per source term.
 
 `-min MIN_SCORE` Minimum score [0,1] for the mappings (0=dissimilar, 1=exact match).

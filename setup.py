@@ -6,7 +6,7 @@ long_description = open('README.md').read()
 with open('requirements.txt') as f:
     requirements = f.read().splitlines()
 
-version = '0.3.0'
+version = '0.4.0'
 
 setup(
     name='text2term',

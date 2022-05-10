@@ -14,23 +14,24 @@ class ZoomaMapper:
         self.logger = onto_utils.get_logger(__name__, logging.INFO)
         self.url = "http://www.ebi.ac.uk/spot/zooma/v2/api/services/annotate"
 
-    def map(self, source_terms, ontologies, max_mappings=3, api_params=()):
+    def map(self, source_terms, source_terms_ids, ontologies='', max_mappings=3, api_params=()):
         """
         Find and return ontology mappings through the Zooma Web service
         :param source_terms: Collection of source terms to map to target ontologies
-        :param ontologies: String with a comma-separated list of ontology acronyms (eg "HP,EFO")
+        :param source_terms_ids: List of identifiers for the given source terms
+        :param ontologies: String with comma-separated list of ontology acronyms (eg 'HP,EFO'). Default: all ontologies ('')
         :param max_mappings: The maximum number of (top scoring) ontology term mappings that should be returned
         :param api_params: Additional Zooma API-specific parameters to include in the request
         """
         self.logger.info("Mapping %i source terms against ontologies: %s", len(source_terms), ontologies)
         start = time.time()
         mappings = []
-        for term in source_terms:
-            mappings.extend(self._map_term(term, ontologies, max_mappings, api_params))
+        for term, term_id in zip(source_terms, source_terms_ids):
+            mappings.extend(self._map_term(term, term_id, ontologies, max_mappings, api_params))
         self.logger.info('done (mapping time: %.2fs seconds)', time.time()-start)
         return TermMappingCollection(mappings).mappings_df()
 
-    def _map_term(self, source_term, ontologies, max_mappings, api_params):
+    def _map_term(self, source_term, source_term_id, ontologies, max_mappings, api_params):
         # see https://www.ebi.ac.uk/spot/zooma/docs/api for details of API parameters
         params = {
             "propertyValue": source_term,
@@ -46,10 +47,10 @@ class ZoomaMapper:
             self.logger.debug("...found " + str(len(response)) + " mappings")
             for mapping in response:
                 if len(mappings) < max_mappings:
-                    mappings.append(self._mapping_details(source_term, mapping))
+                    mappings.append(self._mapping_details(source_term, source_term_id, mapping))
         return mappings
 
-    def _mapping_details(self, text, mapping_response):
+    def _mapping_details(self, source_term, source_term_id, mapping_response):
         # get ontology term label
         ann_class = mapping_response["annotatedProperty"]
         term_label = ann_class["propertyValue"]
@@ -58,9 +59,8 @@ class ZoomaMapper:
         tags = mapping_response["semanticTags"]
         term_iri = tags[0]
 
-        # get mapping confidence score
         mapping_score = self._mapping_score(mapping_response["confidence"])
-        return TermMapping(text, term_label, term_iri, mapping_score)
+        return TermMapping(source_term, source_term_id, term_label, term_iri, mapping_score)
 
     def _mapping_score(self, confidence):
         """Represent numerically the mapping confidence categories returned by Zooma (high, good, medium or low)"""

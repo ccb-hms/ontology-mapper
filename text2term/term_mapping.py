@@ -5,12 +5,14 @@ import pandas as pd
 
 class TermMapping:
     SRC_TERM = "Source Term"
+    SRC_TERM_ID = "Source Term Id"
     TGT_TERM_LBL = "Mapped Term Label"
     TGT_TERM_IRI = "Mapped Term IRI"
     MAPPING_SCORE = "Mapping Score"
 
-    def __init__(self, source_term, mapped_term_label, mapped_term_iri, mapping_score):
+    def __init__(self, source_term, source_term_id, mapped_term_label, mapped_term_iri, mapping_score):
         self._source_term = source_term
+        self._source_term_id = source_term_id
         self._mapped_term_label = mapped_term_label
         self._mapped_term_iri = mapped_term_iri
         self._mapping_score = mapping_score
@@ -18,6 +20,10 @@ class TermMapping:
     @property
     def source_term(self):
         return self._source_term
+
+    @property
+    def source_term_id(self):
+        return self._source_term_id
 
     @property
     def mapped_term_label(self):
@@ -33,6 +39,7 @@ class TermMapping:
 
     def to_dict(self):
         return {
+            self.SRC_TERM_ID: self.source_term_id,
             self.SRC_TERM: self.source_term,
             self.TGT_TERM_LBL: self.mapped_term_label,
             self.TGT_TERM_IRI: self.mapped_term_iri,
