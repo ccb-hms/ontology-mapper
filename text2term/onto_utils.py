@@ -34,6 +34,16 @@ def normalize(token):
     return token
 
 
+def remove_quotes(string):
+    string = string.replace("\"", "")
+    string = string.replace("\'", "")
+    return string
+
+
+def remove_whitespace(string):
+    return string.replace(' ', '')
+
+
 def curie_from_iri(iri):
     return bioregistry.curie_from_iri(iri)
 
@@ -45,10 +55,32 @@ def label_from_iri(iri):
         return iri.rsplit('/', 1)[1]
 
 
-def remove_quotes(text):
-    text = text.replace("\"", "")
-    text = text.replace("\'", "")
-    return text
+def iri_from_tag(source_tag):
+    iri = source_tag
+    if len(source_tag) > 0 and source_tag != "NA":
+        iri = remove_whitespace(iri)
+        if ":" in source_tag:
+            onto_name = iri.split(":")[0]
+            term_name = iri.replace(":", "_")
+            full_iri = _get_iri(onto_name, term_name)
+            iri = full_iri if len(full_iri) > 0 else iri
+        elif "_" in source_tag:
+            onto_name = iri.split("_")[0]
+            full_iri = _get_iri(onto_name, iri)
+            iri = full_iri if len(full_iri) > 0 else iri
+    return iri
+
+
+def _get_iri(ont_name, term_name):
+    iri = ''
+    if ont_name in ONTOLOGY_IRIS:
+        if ont_name == 'ORPHA':
+            iri = ONTOLOGY_IRIS.get(ont_name) + term_name.replace('ORPHA_', 'Orphanet_')
+        elif ont_name == 'SNOMED' or ont_name == 'OMIM':
+            iri = ONTOLOGY_IRIS.get(ont_name) + term_name.replace(ont_name + '_', '')
+        else:
+            iri = ONTOLOGY_IRIS.get(ont_name) + term_name
+    return iri
 
 
 def get_logger(name, level):
@@ -114,6 +146,7 @@ ORPHANET_IRI = "http://www.orpha.net/ORDO/"
 ONTOLOGY_IRIS = {"EFO": "http://www.ebi.ac.uk/efo/",
                  "Orphanet": ORPHANET_IRI,
                  "ORPHA": ORPHANET_IRI,
+                 "CL": OBO_BASE_IRI,
                  "MONDO": OBO_BASE_IRI,
                  "HP": OBO_BASE_IRI,
                  "UBERON": OBO_BASE_IRI,
