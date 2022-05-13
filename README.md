@@ -25,7 +25,7 @@ To display a help message with descriptions of tool arguments do:
 
 `-o OUTPUT` Path to desired output file for the mappings.
 
-`-m MAPPER` Mapping method to use. One of: `[levenshtein,jaro,jarowinkler,jaccard,fuzzy,tfidf,zooma,bioportal]`
+`-m MAPPER` Mapping method to use. One of: `levenshtein,jaro,jarowinkler,jaccard,fuzzy,tfidf,zooma,bioportal`
 
 `-csv CSV_INPUT` Indicates a CSV format input—follow with the name of the column containing terms to map, optionally followed by the name of the column containing identifiers for the terms (eg 'my terms,my term ids')
 
