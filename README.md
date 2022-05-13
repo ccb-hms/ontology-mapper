@@ -19,17 +19,15 @@ To display a help message with descriptions of tool arguments do:
 ### Required arguments
 `-s SOURCE` Input file containing 'source' terms to map to ontology terms (list of terms or CSV file).
 
-`-t TARGET` Path or URL of 'target' ontology to map the source terms to. When the chosen mapper is "
-                             "BioPortal or Zooma, provide a comma-separated list of acronyms (eg 'EFO,HPO') or write "
-                             "'all' to search all ontologies in BioPortal or OLS, respectively.
+`-t TARGET` Path or URL of 'target' ontology to map source terms to. When the chosen mapper is BioPortal or Zooma, provide a comma-separated list of acronyms (eg 'EFO,HPO') or write `'all'` to search all ontologies in BioPortal or OLS.
 
 ### Optional arguments
 
 `-o OUTPUT` Path to desired output file for the mappings.
 
-`-m MAPPER` Mapping method to use. One of: [levenshtein,jaro,jarowinkler,jaccard,fuzzy,tfidf,zooma,bioportal] (default=tfidf)
+`-m MAPPER` Mapping method to use. One of: [levenshtein,jaro,jarowinkler,jaccard,fuzzy,tfidf,zooma,bioportal]
 
-`-csv CSV_INPUT` Specifies that the input is a CSV file—followed by the name of the column that contains the terms to map, optionally followed by the name of the column that contains identifiers for the terms (e.g., "my terms,my term ids")
+`-csv CSV_INPUT` Indicates a CSV format input—follow with the name of the column containing terms to map, optionally followed by the name of the column containing identifiers for the terms (eg 'my terms,my term ids')
 
 `-top TOP_MAPPINGS` Maximum number of top-ranked mappings returned per source term.
 
