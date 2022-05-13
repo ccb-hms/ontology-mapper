@@ -17,23 +17,29 @@ To display a help message with descriptions of tool arguments do:
 `text2term -h` or `text2term --help`
 
 ### Required arguments
-`-s SOURCE` Input file containing list of 'source' terms to map to ontology terms (one per line).
+`-s SOURCE` Input file containing 'source' terms to map to ontology terms (list of terms or CSV file).
 
-`-t TARGET` Path or URL of 'target' ontology to map the source terms to.
+`-t TARGET` Path or URL of 'target' ontology to map the source terms to. When the chosen mapper is "
+                             "BioPortal or Zooma, provide a comma-separated list of acronyms (eg 'EFO,HPO') or write "
+                             "'all' to search all ontologies in BioPortal or OLS, respectively.
 
 ### Optional arguments
 
 `-o OUTPUT` Path to desired output file for the mappings.
 
+`-m MAPPER` Mapping method to use. One of: [levenshtein,jaro,jarowinkler,jaccard,fuzzy,tfidf,zooma,bioportal] (default=tfidf)
+
 `-csv CSV_INPUT` Specifies that the input is a CSV file—followed by the name of the column that contains the terms to map, optionally followed by the name of the column that contains identifiers for the terms (e.g., "my terms,my term ids")
 
 `-top TOP_MAPPINGS` Maximum number of top-ranked mappings returned per source term.
 
-`-min MIN_SCORE` Minimum score [0,1] for the mappings (0=dissimilar, 1=exact match).
+`-min MIN_SCORE` Minimum similarity score [0,1] for the mappings (1=exact match; default=0.5).
 
-`-iris BASE_IRIS` Map only to terms whose IRIs start with any IRI given in this comma-separated list.
+`-iris BASE_IRIS` Map only to ontology terms whose IRIs start with a value given in this comma-separated list.
 
-`-d EXCL_DEPRECATED` Exclude terms stated as deprecated via owl:deprecated.
+`-d EXCL_DEPRECATED` Exclude ontology terms stated as deprecated via `owl:deprecated true` (default=False).
+
+`-g SAVE_TERM_GRAPHS` Save the graphs representing the neighborhood of each ontology term (default=False).
 
 
 ## Examples
