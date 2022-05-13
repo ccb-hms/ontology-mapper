@@ -14,12 +14,12 @@ class ZoomaMapper:
         self.logger = onto_utils.get_logger(__name__, logging.INFO)
         self.url = "http://www.ebi.ac.uk/spot/zooma/v2/api/services/annotate"
 
-    def map(self, source_terms, source_terms_ids, ontologies='', max_mappings=3, api_params=()):
+    def map(self, source_terms, source_terms_ids, ontologies, max_mappings=3, api_params=()):
         """
         Find and return ontology mappings through the Zooma Web service
         :param source_terms: Collection of source terms to map to target ontologies
         :param source_terms_ids: List of identifiers for the given source terms
-        :param ontologies: String with comma-separated list of ontology acronyms (eg 'HP,EFO'). Default: all ontologies ('')
+        :param ontologies: Comma-separated list of ontology acronyms (eg 'HP,EFO') or 'all' to search all ontologies
         :param max_mappings: The maximum number of (top scoring) ontology term mappings that should be returned
         :param api_params: Additional Zooma API-specific parameters to include in the request
         """

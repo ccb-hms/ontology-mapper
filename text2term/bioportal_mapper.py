@@ -18,12 +18,12 @@ class BioPortalAnnotatorMapper:
         self.url = "http://data.bioontology.org/annotator"
         self.bp_api_key = bp_api_key
 
-    def map(self, source_terms, source_terms_ids, ontologies='', max_mappings=3, api_params=()):
+    def map(self, source_terms, source_terms_ids, ontologies, max_mappings=3, api_params=()):
         """
         Find and return ontology mappings through the BioPortal Annotator Web service
         :param source_terms: Collection of source terms to map to target ontologies
         :param source_terms_ids: List of identifiers for the given source terms
-        :param ontologies: String with comma-separated list of ontology acronyms (eg 'HP,EFO'). Default: all ontologies ('')
+        :param ontologies: Comma-separated list of ontology acronyms (eg 'HP,EFO') or 'all' to search all ontologies
         :param max_mappings: The maximum number of (top scoring) ontology term mappings that should be returned
         :param api_params: Additional BioPortal Annotator-specific parameters to include in the request
         """
