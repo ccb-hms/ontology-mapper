@@ -25,19 +25,19 @@ To display a help message with descriptions of tool arguments do:
 
 `-o OUTPUT` Path to desired output file for the mappings.
 
-`-m MAPPER` Mapping method to use. One of: *levenshtein,jaro,jarowinkler,jaccard,fuzzy,tfidf,zooma,bioportal*
+`-m MAPPER` Method used to compare source terms with ontology terms. One of: *levenshtein, jaro, jarowinkler, jaccard, fuzzy, tfidf, zooma, bioportal*.
 
-`-csv CSV_INPUT` Indicates a CSV format input—follow with the name of the column containing terms to map, optionally followed by the name of the column containing identifiers for the terms (eg 'my terms,my term ids')
+`-csv CSV_INPUT` Indicates a CSV format input—follow with the name of the column containing terms to map, optionally followed by the name of the column containing identifiers for the terms (eg 'my terms,my term ids').
 
 `-top TOP_MAPPINGS` Maximum number of top-ranked mappings returned per source term.
 
 `-min MIN_SCORE` Minimum similarity score [0,1] for the mappings (1=exact match).
 
-`-iris BASE_IRIS` Map only to ontology terms whose IRIs start with a value given in this comma-separated list.
+`-iris BASE_IRIS` Map only to ontology terms whose IRIs start with a value given in this comma-separated list (eg 'http://www.ebi.ac.uk/efo,http://purl.obolibrary.org/obo/HP)').
 
 `-d EXCL_DEPRECATED` Exclude ontology terms stated as deprecated via `owl:deprecated true`.
 
-`-g SAVE_TERM_GRAPHS` Save the graphs representing the neighborhood of each ontology term.
+`-g SAVE_TERM_GRAPHS` Save [vis.js](https://visjs.org) graphs representing the neighborhood of each ontology term.
 
 
 ## Examples
