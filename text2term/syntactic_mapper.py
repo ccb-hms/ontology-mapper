@@ -29,7 +29,7 @@ class SyntacticMapper:
         self.logger.info("Mapping %i source terms...", len(source_terms))
         start = time.time()
         mappings = []
-        for term, term_id in tqdm(zip(source_terms, source_terms_ids)):
+        for term, term_id in tqdm(zip(source_terms, source_terms_ids), total=len(source_terms)):
             matches = self._map(term, term_id, mapper, max_mappings)
             mappings.extend(matches)
         end = time.time()

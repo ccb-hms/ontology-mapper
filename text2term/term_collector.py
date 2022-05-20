@@ -76,7 +76,7 @@ class OntologyTermCollector:
         children = set()
         try:
             children = set(ontology.get_children_of(ontology_term))
-        except TypeError and AttributeError as err:
+        except (TypeError, AttributeError) as err:
             self.logger.debug(err)
         return children
 

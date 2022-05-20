@@ -23,7 +23,7 @@ class ZoomaMapper:
         :param max_mappings: The maximum number of (top scoring) ontology term mappings that should be returned
         :param api_params: Additional Zooma API-specific parameters to include in the request
         """
-        self.logger.info("Mapping %i source terms against ontologies: %s", len(source_terms), ontologies)
+        self.logger.info("Mapping %i source terms against ontologies: %s...", len(source_terms), ontologies)
         start = time.time()
         mappings = []
         for term, term_id in zip(source_terms, source_terms_ids):
@@ -34,7 +34,7 @@ class ZoomaMapper:
     def _map_term(self, source_term, source_term_id, ontologies, max_mappings, api_params):
         # see https://www.ebi.ac.uk/spot/zooma/docs/api for details of API parameters
         params = {
-            "propertyValue": source_term,
+            "propertyValue": onto_utils.normalize(source_term),
             "filter": "required:[none],ontologies:[" + ontologies + "]"
         }
         if len(api_params) > 0:

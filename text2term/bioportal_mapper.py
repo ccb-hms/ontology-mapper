@@ -23,7 +23,10 @@ class BioPortalAnnotatorMapper:
         Find and return ontology mappings through the BioPortal Annotator Web service
         :param source_terms: Collection of source terms to map to target ontologies
         :param source_terms_ids: List of identifiers for the given source terms
-        :param ontologies: Comma-separated list of ontology acronyms (eg 'HP,EFO') or 'all' to search all ontologies
+        :param ontologies: Comma-separated list of ontology acronyms (eg 'HP,EFO') or 'all' to search all ontologies.
+            The ontology names accepted must match the names used in BioPortal. Here are some known ontologies:
+            GO, UBERON, "CL" for Cell Ontology, MESH, SNOMEDCT, FMA, NCIT, EFO, DOID, MONDO, "PR" for Protein Ontology,
+            "HP" for Human Phenotype Ontology
         :param max_mappings: The maximum number of (top scoring) ontology term mappings that should be returned
         :param api_params: Additional BioPortal Annotator-specific parameters to include in the request
         """
@@ -37,7 +40,7 @@ class BioPortalAnnotatorMapper:
 
     def _map_term(self, source_term, source_term_id, ontologies, max_mappings, api_params):
         params = {
-            "text": source_term,
+            "text": onto_utils.normalize(source_term),
             "longest_only": "true",
             "expand_mappings": "true",
             "ontologies": ontologies

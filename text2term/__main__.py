@@ -14,7 +14,7 @@ if __name__ == "__main__":
                              "'all' to search all ontologies")
     parser.add_argument("-o", "--output", required=False, type=str, default="",
                         help="Path to desired output file for the mappings (default=current working directory)")
-    parser.add_argument("-m", "--mapper", required=False, type=str, default=Mapper.TFIDF,
+    parser.add_argument("-m", "--mapper", required=False, type=str, default="tfidf",
                         help="Method used to compare source terms with ontology terms. One of: " + str(Mapper.list()) +
                              " (default=tfidf)")
     parser.add_argument("-csv", "--csv_input", required=False, type=str, default=(),
