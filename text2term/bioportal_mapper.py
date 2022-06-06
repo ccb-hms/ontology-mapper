@@ -62,7 +62,6 @@ class BioPortalAnnotatorMapper:
         ann_class = mapping["annotatedClass"]
         term_iri = ann_class["@id"]
         term_link_bp = ann_class["links"]["self"]
-        match_type = mapping["annotations"][0]["matchType"]
         term_label = self.get_term_details(term_link_bp)
         return TermMapping(source_term, source_term_id, term_label, term_iri, 1)
 
