@@ -35,7 +35,7 @@ class ZoomaMapper:
         # see https://www.ebi.ac.uk/spot/zooma/docs/api for details of API parameters
         params = {
             "propertyValue": onto_utils.normalize(source_term),
-            "filter": "required:[gwas,cttv,atlas],ontologies:[" + ontologies + "]"
+            "filter": "required:[gwas,cttv,atlas,eva-clinvar,sysmicro],ontologies:[" + ontologies + "]"
         }
         if len(api_params) > 0:
             params.update(api_params)
