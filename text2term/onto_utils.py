@@ -7,10 +7,22 @@ import shortuuid
 from owlready2 import *
 from gensim.parsing import strip_non_alphanum, strip_multiple_whitespaces
 
-STOP_WORDS = {'in', 'the', 'any', 'all', 'for', 'and', 'or', 'dx', 'on', 'fh', 'tx', 'only', 'qnorm', 'w', 'iqb',
-              'ds', 'rd', 'rdgwas', 'average', 'weekly', 'monthly', 'daily'}
 
 BASE_IRI = "http://ccb.hms.harvard.edu/t2t/"
+
+STOP_WORDS = {'in', 'the', 'any', 'all', 'for', 'and', 'or', 'dx', 'on', 'fh', 'tx', 'only', 'qnorm', 'w', 'iqb', 's',
+              'ds', 'rd', 'rdgwas', 'ICD', 'excluded', 'excluding', 'unspecified', 'certain', 'also', 'undefined',
+              'ordinary', 'least', 'squares', 'FINNGEN', 'elsewhere', 'more', 'excluded', 'classified', 'classifeid',
+              'unspcified', 'unspesified', 'specified', 'acquired', 'combined', 'unspeficied', 'elsewhere', 'not', 'by',
+              'strict', 'wide', 'definition', 'definitions', 'confirmed', 'chapter', 'chapters', 'controls',
+              'characterized', 'main', 'diagnosis', 'hospital', 'admissions', 'other', 'resulting', 'from'}
+
+TEMPORAL_WORDS = {'age', 'time', 'times', 'date', 'initiation', 'cessation', 'progression', 'duration', 'early', 'late',
+                  'later', 'trimester'}
+
+QUANTITY_WORDS = {'hourly', 'daily', 'weekly', 'monthly', 'yearly', 'frequently', 'per', 'hour', 'day', 'week', 'month',
+                  'year', 'years', 'total', 'quantity', 'amount', 'level', 'levels', 'volume', 'count', 'counts', 'percentage',
+                  'abundance', 'proportion', 'content', 'average', 'prevalence', 'mean', 'ratio'}
 
 
 def normalize_list(token_list):
@@ -26,7 +38,6 @@ def normalize(token):
     :param token: Text to be normalized
     :return: Normalized string
     """
-    token = re.sub(r"[\(\[].*?[\)\]]", "", token)  # remove text within parenthesis/brackets
     token = strip_non_alphanum(token).lower()
     token = token.replace("_", " ")
     token = " ".join(w for w in token.split() if w not in STOP_WORDS)
@@ -89,7 +100,8 @@ def get_logger(name, level):
     logger.setLevel(level=level)
     console_handler = logging.StreamHandler(sys.stdout)
     console_handler.setFormatter(formatter)
-    logger.addHandler(console_handler)
+    if not logger.hasHandlers():
+        logger.addHandler(console_handler)
     logger.propagate = False
     return logger
 
@@ -113,6 +125,10 @@ def parse_csv_file(file_path, term_column_name, term_id_column_name, separator='
     else:
         term_ids = data[term_id_column_name].values
     return terms, term_ids
+
+
+def parse_tsv_file(file_path, term_column_name, term_id_column_name):
+    return parse_csv_file(file_path, term_column_name, term_id_column_name, separator="\t")
 
 
 def get_ontology_from_labels(term_labels):
