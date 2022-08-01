@@ -1,9 +1,14 @@
+import os
+import sys
+os.environ['PYSPARK_PYTHON'] = sys.executable
+os.environ['PYSPARK_DRIVER_PYTHON'] = sys.executable
+
 import logging
 import time
 import nlu
 from scipy import sparse
 
-import ontoutils
+import onto_utils
 import pandas as pd
 from sklearn.metrics.pairwise import cosine_similarity
 
@@ -19,7 +24,7 @@ class BioBertMapper:
         """
         :param target_ontology_terms: Collection of ontology terms to be mapped against
         """
-        self.logger = ontoutils.get_logger(__name__, logging.INFO)
+        self.logger = onto_utils.get_logger(__name__, logging.INFO)
         self.target_labels, self.target_terms = self._get_target_labels_terms(target_ontology_terms)
         self.biobert = self.load_biobert()
 
@@ -42,7 +47,7 @@ class BioBertMapper:
         """
         self.logger.info("Mapping %i source terms...", len(source_terms))
         start = time.time()
-        source_terms = ontoutils.normalize_list(source_terms)
+        source_terms = onto_utils.normalize_list(source_terms)
 
         # Generate embeddings for source and target terms
         self.logger.info("...Generating embeddings for source and target terms")
@@ -69,7 +74,11 @@ class BioBertMapper:
         return embedding_list
 
     def get_biobert_embedding(self, string):
-        embedding = self.biobert.predict(string, output_level='sentence', get_embeddings=True)
+        try:
+            embedding = self.biobert.predict(str(string), output_level='sentence', get_embeddings=True)
+        except:
+            self.logger.info('Nonexistent embedding for term ', string)
+            return [None]
         return embedding.sentence_embedding_biobert.values[0]
 
     def _get_matches(self, results_mtx, source_terms, target_terms, min_score):

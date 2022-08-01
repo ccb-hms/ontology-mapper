@@ -11,6 +11,7 @@ from bioportal_mapper import BioPortalAnnotatorMapper
 from syntactic_mapper import SyntacticMapper
 from tfidf_mapper import TFIDFMapper
 from zooma_mapper import ZoomaMapper
+from biobert_mapper import BioBertMapper
 
 
 class Text2Term:
@@ -20,7 +21,7 @@ class Text2Term:
         pass
 
     def map_file(self, input_file, target_ontology, base_iris=(), csv_columns=(), excl_deprecated=False, max_mappings=3,
-                 mapper=Mapper.TFIDF, min_score=0.3, output_file='', save_graphs=False, save_mappings=False):
+                 mapper=Mapper.TFIDF, min_score=0.3, output_file='', biobert_file='', save_graphs=False, save_mappings=False):
         """
         Map the terms in the given input file to the specified target ontology.
 
@@ -61,10 +62,10 @@ class Text2Term:
         source_terms, source_terms_ids = self._load_data(input_file, csv_columns)
         return self.map(source_terms, target_ontology, source_terms_ids=source_terms_ids, base_iris=base_iris,
                         excl_deprecated=excl_deprecated, max_mappings=max_mappings, mapper=mapper, min_score=min_score,
-                        output_file=output_file, save_graphs=save_graphs, save_mappings=save_mappings)
+                        output_file=output_file, save_graphs=save_graphs, save_mappings=save_mappings, biobert_file=biobert_file)
 
     def map(self, source_terms, target_ontology, base_iris=(), excl_deprecated=False, max_mappings=3, min_score=0.3,
-            mapper=Mapper.TFIDF, output_file='', save_graphs=False, save_mappings=False, source_terms_ids=()):
+            mapper=Mapper.TFIDF, output_file='', save_graphs=False, save_mappings=False, source_terms_ids=(), biobert_file=''):
         """
         Map the terms in the given list to the specified target ontology.
 
@@ -111,6 +112,7 @@ class Text2Term:
         else:
             target_terms = self._load_ontology(target_ontology, base_iris, excl_deprecated)
         mappings_df = self._do_mapping(source_terms, source_terms_ids, target_terms, mapper, max_mappings, min_score)
+        self._do_biobert_mapping(source_terms, target_terms, biobert_file)
         if save_mappings:
             self._save_mappings(mappings_df, output_file)
         if save_graphs:
@@ -152,6 +154,13 @@ class Text2Term:
             return term_mapper.map(source_terms, source_term_ids, mapper, max_mappings=max_mappings)
         else:
             raise ValueError("Unsupported mapper: " + mapper)
+
+    def _do_biobert_mapping(self, source_terms, ontology_terms, biobert_file):
+        if biobert_file == '':
+            return
+        biobert = BioBertMapper(ontology_terms)
+        mappings = biobert.map(source_terms)
+        mappings.to_csv(biobert_file, sep='\t')
 
     def _save_mappings(self, mappings, output_file):
         if os.path.dirname(output_file):  # create output directories if needed

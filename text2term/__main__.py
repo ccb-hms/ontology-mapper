@@ -28,6 +28,8 @@ if __name__ == "__main__":
     parser.add_argument("-iris", "--base_iris", required=False, type=str, default=(),
                         help="Map only to ontology terms whose IRIs start with a value given in this comma-separated "
                              "list (eg 'http://www.ebi.ac.uk/efo,http://purl.obolibrary.org/obo/HP)')")
+    parser.add_argument("-b", "--biobert", required=False, type=str, default="",
+                        help="Specifies the output filepath for BioBert mappings. Will not calculate if blank")
     parser.add_argument("-d", "--excl_deprecated", required=False, default=False, action="store_true",
                         help="Exclude ontology terms stated as deprecated via `owl:deprecated true` (default=False)")
     parser.add_argument("-g", "--save_term_graphs", required=False, default=False, action="store_true",
@@ -45,5 +47,5 @@ if __name__ == "__main__":
         csv_columns = tuple(csv_columns.split(','))
     Text2Term().map_file(arguments.source, arguments.target, output_file=arguments.output, csv_columns=csv_columns,
                          excl_deprecated=arguments.excl_deprecated, mapper=mapper, max_mappings=arguments.top_mappings,
-                         min_score=arguments.min_score, base_iris=iris, save_graphs=arguments.save_term_graphs,
-                         save_mappings=True)
+                         min_score=arguments.min_score, base_iris=iris, save_graphs=arguments.save_term_graphs, 
+                         biobert_file=arguments.biobert, save_mappings=True)
