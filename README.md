@@ -1,6 +1,6 @@
 # text2term ontology mapper
 
-A tool for mapping (uncontrolled) terms to ontology terms to facilitate semantic integration. 
+A tool for mapping free-text descriptions of (biomedical) entities to controlled terms in an ontology. 
 
 ## Usage
 
@@ -25,7 +25,7 @@ To display a help message with descriptions of tool arguments do:
 
 `-o OUTPUT` Path to desired output file for the mappings.
 
-`-m MAPPER` Method used to compare source terms with ontology terms. One of: *levenshtein, jaro, jarowinkler, jaccard, fuzzy, tfidf, zooma, bioportal*.
+`-m MAPPER` Method used to compare source terms with ontology terms. One of: *levenshtein, jaro, jarowinkler, jaccard, indel, fuzzy, tfidf, zooma, bioportal*.
 
 `-csv CSV_INPUT` Indicates a CSV format input—follow with the name of the column containing terms to map, optionally followed by the name of the column containing identifiers for the terms (eg 'my terms,my term ids').
 

@@ -70,10 +70,10 @@ class SyntacticMapper:
             return self.compare_jaro(s1, s2)
         elif mapper == Mapper.JARO_WINKLER:
             return self.compare_jarowinkler(s1, s2)
+        elif mapper == Mapper.INDEL:
+            return self.compare_indel(s1, s2)
         elif mapper == Mapper.FUZZY:
-            return self.compare_fuzzy(s1, s2)
-        elif mapper == Mapper.FUZZY_WEIGHTED:
-            return self.compare_fuzzy_weighted(s1, s2)
+            return self.compare_fuzzy_ratio(s1, s2)
         elif mapper == Mapper.JACCARD:
             return self.compare_jaccard(s1, s2)
         else:
@@ -103,7 +103,7 @@ class SyntacticMapper:
         similarity = rapidfuzz.string_metric.jaro_winkler_similarity(s1, s2)/100
         return similarity
 
-    def compare_fuzzy(self, s1, s2):
+    def compare_indel(self, s1, s2):
         """
         Calculates the normalized Indel distance between s1 and s2.
         See: https://maxbachmann.github.io/RapidFuzz/Usage/fuzz.html#ratio
@@ -112,7 +112,7 @@ class SyntacticMapper:
         similarity = rapidfuzz.fuzz.ratio(s1, s2)/100
         return similarity
 
-    def compare_fuzzy_weighted(self, s1, s2):
+    def compare_fuzzy_ratio(self, s1, s2):
         """
         Calculates a weighted ratio between s1 and s2 based on rapidfuzz's fuzzy ratio algorithms.
         See: https://maxbachmann.github.io/RapidFuzz/Usage/fuzz.html#wratio

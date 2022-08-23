@@ -6,7 +6,7 @@ long_description = open('README.md').read()
 with open('requirements.txt') as f:
     requirements = f.read().splitlines()
 
-version = '0.4.0'
+version = '0.4.1'
 
 setup(
     name='text2term',
@@ -16,7 +16,7 @@ setup(
     include_package_data=True,
     url='https://github.com/ccb-hms/ontology-mapper',
     license='MIT',
-    description='A tool for mapping (uncontrolled) terms to ontology terms to facilitate semantic integration',
+    description='A tool for mapping free-text descriptions of (biomedical) entities to controlled terms in an ontology',
     long_description=long_description,
     long_description_content_type='text/markdown',
     author='Center for Computational Biomedicine, Harvard Medical School',

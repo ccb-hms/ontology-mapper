@@ -147,7 +147,7 @@ class Text2Term:
         elif mapper == Mapper.BIOPORTAL:
             term_mapper = BioPortalAnnotatorMapper("8f0cbe43-2906-431a-9572-8600d3f4266e")
             return term_mapper.map(source_terms, source_term_ids, ontologies=ontology_terms, max_mappings=max_mappings)
-        elif mapper in {Mapper.LEVENSHTEIN, Mapper.JARO, Mapper.JARO_WINKLER, Mapper.FUZZY, Mapper.FUZZY_WEIGHTED, Mapper.JACCARD}:
+        elif mapper in {Mapper.LEVENSHTEIN, Mapper.JARO, Mapper.JARO_WINKLER, Mapper.INDEL, Mapper.FUZZY, Mapper.JACCARD}:
             term_mapper = SyntacticMapper(ontology_terms)
             return term_mapper.map(source_terms, source_term_ids, mapper, max_mappings=max_mappings)
         else:

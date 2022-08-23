@@ -11,5 +11,5 @@ tqdm==4.62.3
 sparse_dot_topn==0.3.1
 bioregistry==0.4.63
 nltk==3.7
-rapidfuzz==2.0.5
+rapidfuzz==2.6.0
 shortuuid==1.0.9
