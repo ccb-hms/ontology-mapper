@@ -20,7 +20,8 @@ class Text2Term:
         pass
 
     def map_file(self, input_file, target_ontology, base_iris=(), csv_columns=(), excl_deprecated=False, max_mappings=3,
-                 mapper=Mapper.TFIDF, min_score=0.3, output_file='', save_graphs=False, save_mappings=False):
+                 mapper=Mapper.TFIDF, min_score=0.3, output_file='', save_graphs=False, save_mappings=False,
+                 separator=','):
         """
         Map the terms in the given input file to the specified target ontology.
 
@@ -37,6 +38,8 @@ class Text2Term:
         csv_columns : tuple
             Name of the column that contains the terms to map, optionally followed by the name of the column that
             contains identifiers for the terms (eg 'my_terms,my_term_ids')
+        separator : str
+            Specifies the cell separator to be used when reading a non-comma-separated tabular file
         excl_deprecated : bool
             Exclude ontology terms stated as deprecated via `owl:deprecated true`
         mapper : mapper.Mapper
@@ -58,7 +61,7 @@ class Text2Term:
         df
             Data frame containing the generated ontology mappings
         """
-        source_terms, source_terms_ids = self._load_data(input_file, csv_columns)
+        source_terms, source_terms_ids = self._load_data(input_file, csv_columns, separator)
         return self.map(source_terms, target_ontology, source_terms_ids=source_terms_ids, base_iris=base_iris,
                         excl_deprecated=excl_deprecated, max_mappings=max_mappings, mapper=mapper, min_score=min_score,
                         output_file=output_file, save_graphs=save_graphs, save_mappings=save_mappings)
@@ -117,12 +120,12 @@ class Text2Term:
             self._save_graphs(target_terms, output_file)
         return mappings_df
 
-    def _load_data(self, input_file_path, csv_column_names):
+    def _load_data(self, input_file_path, csv_column_names, separator):
         if len(csv_column_names) >= 1:
             term_id_col_name = ""
             if len(csv_column_names) == 2:
                 term_id_col_name = csv_column_names[1]
-            terms, term_ids = onto_utils.parse_csv_file(input_file_path,
+            terms, term_ids = onto_utils.parse_csv_file(input_file_path, separator=separator,
                                                         term_column_name=csv_column_names[0],
                                                         term_id_column_name=term_id_col_name)
         else:

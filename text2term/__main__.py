@@ -21,6 +21,8 @@ if __name__ == "__main__":
                         help="Specifies that the input is a CSV file—This should be followed by the name of the column "
                              "that contains the terms to map, optionally followed by the name of the column that "
                              "contains identifiers for the terms (eg 'my_terms,my_term_ids')")
+    parser.add_argument("-sep", "--separator", required=False, type=str, default=',',
+                        help="Specifies the cell separator to be used when reading a non-comma-separated tabular file")
     parser.add_argument("-top", "--top_mappings", required=False, type=int, default=3,
                         help="Maximum number of top-ranked mappings returned per source term (default=3)")
     parser.add_argument("-min", "--min_score", required=False, type=float, default=0.5,
@@ -46,4 +48,4 @@ if __name__ == "__main__":
     Text2Term().map_file(arguments.source, arguments.target, output_file=arguments.output, csv_columns=csv_columns,
                          excl_deprecated=arguments.excl_deprecated, mapper=mapper, max_mappings=arguments.top_mappings,
                          min_score=arguments.min_score, base_iris=iris, save_graphs=arguments.save_term_graphs,
-                         save_mappings=True)
+                         save_mappings=True, separator=arguments.separator)
