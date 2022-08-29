@@ -10,7 +10,7 @@ Install package using **pip**:
 
 Execute the tool as follows:
 
-`text2term -s SOURCE -t TARGET [-o OUTPUT] [-top TOP_MAPPINGS] [-min MIN_SCORE] [-iris BASE_IRIS] [-d EXCL_DEPRECATED] [-i INCL_INDIVIDUALS]`
+`text2term -s SOURCE -t TARGET [-o OUTPUT] [-m MAPPER] [-csv CSV_INPUT] [-top TOP_MAPPINGS] [-min MIN_SCORE] [-iris BASE_IRIS] [-d EXCL_DEPRECATED] [-s SAVE_TERM_GRAPHS]`
 
 To display a help message with descriptions of tool arguments do:
 
