@@ -1,7 +1,0 @@
-Source Term	Mapped Term Label	Mapped Term IRI	Score
-bmi	CoberturaRocket	http://www.co-ode.org/ontologies/pizza/pizza.owl#RocketTopping	0.9135890644981793
-bmi	VegetarianPizza1	http://www.co-ode.org/ontologies/pizza/pizza.owl#VegetarianPizzaEquivalent1	0.7734586483603985
-bmi	CoberturaDeTomateFatiado	http://www.co-ode.org/ontologies/pizza/pizza.owl#SlicedTomatoTopping	0.773237988753023
-body mass index	PepperTopping	http://www.co-ode.org/ontologies/pizza/pizza.owl#PepperTopping	0.7096321694569637
-body mass index	Chicken	http://www.co-ode.org/ontologies/pizza/pizza.owl#ChickenTopping	0.7088211749616633
-body mass index	CajunSpiceTopping	http://www.co-ode.org/ontologies/pizza/pizza.owl#CajunSpiceTopping	0.7088140644365352
