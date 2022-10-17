@@ -35,6 +35,14 @@ if __name__ == "__main__":
                         help="Exclude ontology terms stated as deprecated via `owl:deprecated true` (default=False)")
     parser.add_argument("-g", "--save_term_graphs", required=False, default=False, action="store_true",
                         help="Save vis.js graphs representing the neighborhood of each ontology term (default=False)")
+
+    # TODO mapping to a cached ontology should be possible through the command-line interface
+    parser.add_argument("-rc", "--read_from_cache", required=False, default=False, action="store_true",
+                        help="Load the target ontology from local cache")
+    # TODO writing to cache is an entirely different operation (mapping has 2 required arguments, caching has none)...
+    parser.add_argument("-wc", "--write_cache", required=False, default=False, action="store_true",
+                        help="Write a local cache of ontology term details from the ontologies specified in the file: "
+                             "'resources/ontologies.csv' for faster performance when mapping terms to those ontologies")
     arguments = parser.parse_args()
     if not os.path.exists(arguments.source):
         parser.error("The file '{}' does not exist".format(arguments.source))

@@ -2,8 +2,11 @@
 
 import os
 import json
+import pickle
+import time
 import datetime
 import onto_utils
+import pandas as pd
 from mapper import Mapper
 from term_collector import OntologyTermCollector
 from term_graph_generator import TermGraphGenerator
@@ -11,6 +14,7 @@ from bioportal_mapper import BioPortalAnnotatorMapper
 from syntactic_mapper import SyntacticMapper
 from tfidf_mapper import TFIDFMapper
 from zooma_mapper import ZoomaMapper
+from term_encoder import TermEncoder
 
 
 class Text2Term:
@@ -120,6 +124,39 @@ class Text2Term:
             self._save_graphs(target_terms, output_file)
         return mappings_df
 
+    def cache_ontology_set(self, ontology_registry_path):
+        registry = pd.read_csv(ontology_registry_path)
+        for index, row in registry.iterrows():
+            self.cache_ontology(row.url, row.acronym)
+
+    def cache_ontology(self, ontology_url, ontology_acronym, base_iris=()):
+        ontology_terms = self._load_ontology(ontology_url, base_iris, exclude_deprecated=False)
+        cache_dir = "cache/" + ontology_acronym + "/"
+        if not os.path.exists(cache_dir):
+            os.makedirs(cache_dir)
+
+        self.serialize_ontology_json(ontology_terms, ontology_acronym, cache_dir)
+
+        self.serialize_ontology_pickle(ontology_terms, ontology_acronym, cache_dir)
+
+        self._save_graphs(ontology_terms, output_file=cache_dir + ontology_acronym)
+        ontology_terms.clear()
+
+    def serialize_ontology_pickle(self, ontology_terms, ontology_acronym, cache_dir):
+        start = time.time()
+        with open(cache_dir + ontology_acronym + "-term-details.pickle", 'wb+') as out_file:
+            pickle.dump(ontology_terms, out_file)
+        end = time.time()
+        print("Ontology-Term-Details Pickle serialization time: " + str(end - start))
+
+    def serialize_ontology_json(self, ontology_terms, ontology_acronym, cache_dir):
+        start = time.time()
+        term_dicts = [t.__dict__ for t in ontology_terms.values()]
+        with open(cache_dir + ontology_acronym + "-term-details.json", 'w+') as json_file:
+            json.dump(term_dicts, json_file, indent=2, cls=TermEncoder)
+        end = time.time()
+        print("Ontology-Term-Details JSON serialization time: " + str(end - start))
+
     def _load_data(self, input_file_path, csv_column_names, separator):
         if len(csv_column_names) >= 1:
             term_id_col_name = ""
@@ -134,8 +171,8 @@ class Text2Term:
         return terms, term_ids
 
     def _load_ontology(self, ontology, iris, exclude_deprecated):
-        term_collector = OntologyTermCollector(ontology)
-        onto_terms = term_collector.get_ontology_terms(base_iris=iris, exclude_deprecated=exclude_deprecated)
+        term_collector = OntologyTermCollector()
+        onto_terms = term_collector.get_ontology_terms(ontology, base_iris=iris, exclude_deprecated=exclude_deprecated)
         if len(onto_terms) == 0:
             raise RuntimeError("Could not find any terms in the given ontology.")
         return onto_terms
@@ -162,6 +199,6 @@ class Text2Term:
         mappings.to_csv(output_file, index=False)
 
     def _save_graphs(self, terms, output_file):
-        term_graphs = TermGraphGenerator().graphs_dicts(terms)
+        term_graphs = TermGraphGenerator(terms).graphs_dicts()
         with open(output_file + "-term-graphs.json", 'w') as json_file:
             json.dump(term_graphs, json_file, indent=2)
