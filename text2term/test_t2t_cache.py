@@ -1,6 +1,7 @@
 import json
 import pickle
 import time
+from mapper import Mapper
 from t2t import Text2Term
 
 t2t = Text2Term()
@@ -22,3 +23,11 @@ for term_iri, term_obj in terms.items():
     print(term_iri)
     print(term_obj)
     break
+
+mappings = t2t._do_mapping(['heart attack', 'alzeimers'],
+                           ['t1', 't2'],
+                           terms,
+                           Mapper.TFIDF,
+                           max_mappings=3,
+                           min_score=0.2)
+print(mappings)
