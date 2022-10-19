@@ -22,24 +22,33 @@ All other arguments are the same, and have the same functionality:
 `target_ontology` : str
     Path or URL of 'target' ontology to map the source terms to. When the chosen mapper is BioPortal or Zooma,
     provide a comma-separated list of ontology acronyms (eg 'EFO,HPO') or write 'all' to search all ontologies
+
 `base_iris` : tuple
     Map only to ontology terms whose IRIs start with one of the strings given in this tuple, for example:
     ('http://www.ebi.ac.uk/efo','http://purl.obolibrary.org/obo/HP')
+
 `source_terms_ids` : tuple
     Collection of identifiers for the given source terms
+
 `excl_deprecated` : bool
     Exclude ontology terms stated as deprecated via `owl:deprecated true`
+
 `mapper` : mapper.Mapper
     Method used to compare source terms with ontology terms. One of: levenshtein, jaro, jarowinkler, jaccard, fuzzy, tfidf, zooma, bioportal
     These can be initialized by invoking mapper.Mapper e.g. `mapper.Mapper.TFIDF`
+
 `max_mappings` : int
     Maximum number of top-ranked mappings returned per source term
+
 `min_score` : float
     Minimum similarity score [0,1] for the mappings (1=exact match)
+
 `output_file` : str
     Path to desired output file for the mappings
+
 `save_graphs` : bool
     Save vis.js graphs representing the neighborhood of each ontology term
+
 `save_mappings` : bool
     Save the generated mappings to a file (specified by `output_file`) 
 
@@ -47,6 +56,7 @@ All default values, if they exist, can be seen above.
 
 ### Return Value
 Both functions return the same value:
+
 `df` : Data frame containing the generated ontology mappings
 
 ## Command Line Usage
