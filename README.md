@@ -2,7 +2,64 @@
 
 A tool for mapping free-text descriptions of (biomedical) entities to controlled terms in an ontology. 
 
-## Usage
+## Programmatic Usage
+Install package using **pip**:
+
+`pip install text2term`
+
+The tool can be executed in Python with either of the two following functions:
+`text2term.map_files(input_file, target_ontology, base_iris=(), csv_columns=(), excl_deprecated=False, max_mappings=3, mapper=Mapper.TFIDF,min_score=0.3, output_file='', save_graphs=False, save_mappings=False, separator=',')`
+
+or
+
+`map_terms(source_terms, target_ontology, base_iris=(), excl_deprecated=False, max_mappings=3, min_score=0.3, mapper=Mapper.TFIDF, output_file='', save_graphs=False, save_mappings=False, source_terms_ids=())`
+
+### Arguments
+For `map_files`, the first argument 'input_file' specifies a path to a file containing the names of every term that needs to be mapped. For `map_terms`, The first argument 'source_terms' takes in a list of the terms to be mapped.
+
+All other arguments are the same, and have the same functionality:
+
+`target_ontology` : str
+    Path or URL of 'target' ontology to map the source terms to. When the chosen mapper is BioPortal or Zooma,
+    provide a comma-separated list of ontology acronyms (eg 'EFO,HPO') or write 'all' to search all ontologies
+
+`base_iris` : tuple
+    Map only to ontology terms whose IRIs start with one of the strings given in this tuple, for example:
+    ('http://www.ebi.ac.uk/efo','http://purl.obolibrary.org/obo/HP')
+
+`source_terms_ids` : tuple
+    Collection of identifiers for the given source terms
+
+`excl_deprecated` : bool
+    Exclude ontology terms stated as deprecated via `owl:deprecated true`
+
+`mapper` : mapper.Mapper
+    Method used to compare source terms with ontology terms. One of: levenshtein, jaro, jarowinkler, jaccard, fuzzy, tfidf, zooma, bioportal
+    These can be initialized by invoking mapper.Mapper e.g. `mapper.Mapper.TFIDF`
+
+`max_mappings` : int
+    Maximum number of top-ranked mappings returned per source term
+
+`min_score` : float
+    Minimum similarity score [0,1] for the mappings (1=exact match)
+
+`output_file` : str
+    Path to desired output file for the mappings
+
+`save_graphs` : bool
+    Save vis.js graphs representing the neighborhood of each ontology term
+
+`save_mappings` : bool
+    Save the generated mappings to a file (specified by `output_file`) 
+
+All default values, if they exist, can be seen above.
+
+### Return Value
+Both functions return the same value:
+
+`df` : Data frame containing the generated ontology mappings
+
+## Command Line Usage
 
 Install package using **pip**:
 
@@ -10,11 +67,11 @@ Install package using **pip**:
 
 Execute the tool as follows:
 
-`text2term -s SOURCE -t TARGET [-o OUTPUT] [-m MAPPER] [-csv CSV_INPUT] [-top TOP_MAPPINGS] [-min MIN_SCORE] [-iris BASE_IRIS] [-d EXCL_DEPRECATED] [-s SAVE_TERM_GRAPHS]`
+`python text2term -s SOURCE -t TARGET [-o OUTPUT] [-m MAPPER] [-csv CSV_INPUT] [-top TOP_MAPPINGS] [-min MIN_SCORE] [-iris BASE_IRIS] [-d EXCL_DEPRECATED] [-g SAVE_TERM_GRAPHS]`
 
 To display a help message with descriptions of tool arguments do:
 
-`text2term -h` or `text2term --help`
+`python text2term -h` or `python text2term --help`
 
 ### Required arguments
 `-s SOURCE` Input file containing 'source' terms to map to ontology terms (list of terms or CSV file).
@@ -41,7 +98,16 @@ To display a help message with descriptions of tool arguments do:
 
 
 ## Examples
+### Programmatic
+```
+import text2term
+import pandas
 
+df1 = text2term.map_file(unstruct_terms.txt, http://www.ebi.ac.uk/efo/efo.owl)
+df2 = text2term.map_terms(["asthma", "colon cancer"], http://www.ebi.ac.uk/efo/efo.owl)
+```
+
+### Command Line
 The basic use of the tool requires a `source` file containing a list of terms to map to the given `target` ontology:  
 `python text2term -s unstruct_terms.txt -t http://www.ebi.ac.uk/efo/efo.owl`
 

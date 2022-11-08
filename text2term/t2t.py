@@ -5,24 +5,23 @@ import json
 import pickle
 import time
 import datetime
-import onto_utils
 import owlready2
 import pandas as pd
 from shutil import rmtree
-from mapper import Mapper
-from term_collector import OntologyTermCollector
-from term_graph_generator import TermGraphGenerator
-from bioportal_mapper import BioPortalAnnotatorMapper
-from syntactic_mapper import SyntacticMapper
-from tfidf_mapper import TFIDFMapper
-from zooma_mapper import ZoomaMapper
-from term_encoder import TermEncoder
+from text2term import onto_utils
+from text2term.mapper import Mapper
+from text2term.term_collector import OntologyTermCollector
+from text2term.term_graph_generator import TermGraphGenerator
+from text2term.bioportal_mapper import BioPortalAnnotatorMapper
+from text2term.syntactic_mapper import SyntacticMapper
+from text2term.tfidf_mapper import TFIDFMapper
+from text2term.zooma_mapper import ZoomaMapper
 
 def map_file(input_file, target_ontology, base_iris=(), csv_columns=(), excl_deprecated=False, max_mappings=3,
              mapper=Mapper.TFIDF, min_score=0.3, output_file='', save_graphs=False, save_mappings=False,
              separator=',', use_cache=False):
     """
-    Map the terms in the given input file to the specified target ontology.
+    Maps the terms in the given input file to the specified target ontology.
 
     Parameters
     ----------
@@ -68,7 +67,7 @@ def map_file(input_file, target_ontology, base_iris=(), csv_columns=(), excl_dep
 def map_terms(source_terms, target_ontology, base_iris=(), excl_deprecated=False, max_mappings=3, min_score=0.3,
         mapper=Mapper.TFIDF, output_file='', save_graphs=False, save_mappings=False, source_terms_ids=(), use_cache=False):
     """
-    Map the terms in the given list to the specified target ontology.
+    Maps the terms in the given list to the specified target ontology.
 
     Parameters
     ----------

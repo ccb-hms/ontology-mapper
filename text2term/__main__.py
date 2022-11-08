@@ -1,7 +1,7 @@
 import argparse
 import os
 import sys
-from t2t import Text2Term
+from t2t import map_file
 from mapper import Mapper
 
 if __name__ == "__main__":
@@ -54,7 +54,7 @@ if __name__ == "__main__":
     csv_columns = arguments.csv_input
     if len(csv_columns) > 0:
         csv_columns = tuple(csv_columns.split(','))
-    Text2Term().map_file(arguments.source, arguments.target, output_file=arguments.output, csv_columns=csv_columns,
+    map_file(arguments.source, arguments.target, output_file=arguments.output, csv_columns=csv_columns,
                          excl_deprecated=arguments.excl_deprecated, mapper=mapper, max_mappings=arguments.top_mappings,
                          min_score=arguments.min_score, base_iris=iris, save_graphs=arguments.save_term_graphs,
                          save_mappings=True, separator=arguments.separator)

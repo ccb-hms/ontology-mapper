@@ -1,6 +1,5 @@
-import onto_utils
-from term_graph import TermGraph, Node, Edge
-
+from text2term import onto_utils
+from text2term.term_graph import TermGraph, Node, Edge
 
 class TermGraphGenerator:
 
