@@ -3,7 +3,7 @@
 
 class OntologyTerm:
 
-    def __init__(self, iri, labels, definitions=(), synonyms=(), parents=(), children=(), instances=()):
+    def __init__(self, iri, labels, definitions=(), synonyms=(), parents=(), children=(), instances=(), deprecated=False):
         """
         Constructor for a succinct representation of an ontology term
         :param iri: IRI of the ontology term
@@ -21,6 +21,7 @@ class OntologyTerm:
         self._parents = parents
         self._children = children
         self._instances = instances
+        self._deprecated = deprecated
 
     @property
     def iri(self):
@@ -54,6 +55,10 @@ class OntologyTerm:
     def label(self):
         """Return a single label for this term"""
         return next(iter(self.labels))
+
+    @property
+    def deprecated(self):
+        return self._deprecated
 
     def __eq__(self, other):
         if isinstance(other, OntologyTerm):

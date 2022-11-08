@@ -39,8 +39,19 @@ class OntologyTermCollector:
                          end - start)
         # when multiple ontologies are loaded with owlready2, and they reference the same ontology term (IRI), a lookup
         # for that IRI returns the term from the first ontology loaded —> need to unload previously loaded ontologies
-        ontology.destroy()
+        try:
+            ontology.destroy()
+        except Exception as err:
+            print("Unable to destroy ontology: ", err)
         return ontology_terms
+
+    def filter_terms(self, onto_terms, iris=(), excl_deprecated=False):
+        for term in onto_terms:
+            begins_with_iri = (iris == ()) or any(term.iri().startswith(iri) for iri in iris)
+            is_not_depricated = (excl_deprecated and not term.deprecated()) or (not excl_deprecated)
+            if not (begins_with_iri and is_not_depricated):
+                onto_terms.pop(term.iri())
+        return onto_terms
 
     def _get_ontology_terms(self, term_list, ontology, exclude_deprecated):
         ontology_terms = dict()
@@ -55,8 +66,10 @@ class OntologyTermCollector:
                     children = self._get_children(ontology_term, ontology)
                     instances = self._get_instances(ontology_term, ontology)
                     definitions = self._get_definitions(ontology_term)
+                    is_deprecated = deprecated[ontology_term] == [True]
                     term_details = OntologyTerm(iri, labels, definitions=definitions, synonyms=synonyms,
-                                                parents=parents, children=children, instances=instances)
+                                                parents=parents, children=children, instances=instances,
+                                                deprecated=is_deprecated)
                     ontology_terms[iri] = term_details
                 else:
                     self.logger.debug("Excluding deprecated ontology term: %s", ontology_term.iri)
