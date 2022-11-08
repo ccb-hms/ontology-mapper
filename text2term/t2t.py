@@ -2,7 +2,12 @@
 
 import os
 import json
+import pickle
+import time
 import datetime
+import owlready2
+import pandas as pd
+from shutil import rmtree
 from text2term import onto_utils
 from text2term.mapper import Mapper
 from text2term.term_collector import OntologyTermCollector
@@ -14,7 +19,7 @@ from text2term.zooma_mapper import ZoomaMapper
 
 def map_file(input_file, target_ontology, base_iris=(), csv_columns=(), excl_deprecated=False, max_mappings=3,
              mapper=Mapper.TFIDF, min_score=0.3, output_file='', save_graphs=False, save_mappings=False,
-             separator=','):
+             separator=',', use_cache=False):
     """
     Maps the terms in the given input file to the specified target ontology.
 
@@ -57,10 +62,10 @@ def map_file(input_file, target_ontology, base_iris=(), csv_columns=(), excl_dep
     source_terms, source_terms_ids = _load_data(input_file, csv_columns, separator)
     return map_terms(source_terms, target_ontology, source_terms_ids=source_terms_ids, base_iris=base_iris,
                     excl_deprecated=excl_deprecated, max_mappings=max_mappings, mapper=mapper, min_score=min_score,
-                    output_file=output_file, save_graphs=save_graphs, save_mappings=save_mappings)
+                    output_file=output_file, save_graphs=save_graphs, save_mappings=save_mappings, use_cache=use_cache)
 
 def map_terms(source_terms, target_ontology, base_iris=(), excl_deprecated=False, max_mappings=3, min_score=0.3,
-        mapper=Mapper.TFIDF, output_file='', save_graphs=False, save_mappings=False, source_terms_ids=()):
+        mapper=Mapper.TFIDF, output_file='', save_graphs=False, save_mappings=False, source_terms_ids=(), use_cache=False):
     """
     Maps the terms in the given list to the specified target ontology.
 
@@ -105,13 +110,50 @@ def map_terms(source_terms, target_ontology, base_iris=(), excl_deprecated=False
     if mapper in {Mapper.ZOOMA, Mapper.BIOPORTAL}:
         target_terms = '' if target_ontology.lower() == 'all' else target_ontology
     else:
-        target_terms = _load_ontology(target_ontology, base_iris, excl_deprecated)
+        target_terms = _load_ontology(target_ontology, base_iris, excl_deprecated, use_cache)
     mappings_df = _do_mapping(source_terms, source_terms_ids, target_terms, mapper, max_mappings, min_score)
     if save_mappings:
         _save_mappings(mappings_df, output_file)
     if save_graphs:
         _save_graphs(target_terms, output_file)
     return mappings_df
+
+def cache_ontology_set(ontology_registry_path):
+    registry = pd.read_csv(ontology_registry_path)
+    for index, row in registry.iterrows():
+        try:
+            cache_ontology(row.url, row.acronym)
+        except Exception as err:
+            print("Could not cache ontology ", row.acronym, " due to error: ", err)
+        owlready2.default_world.ontologies.clear()
+
+def cache_ontology(ontology_url, ontology_acronym, base_iris=()):
+    ontology_terms = _load_ontology(ontology_url, base_iris, exclude_deprecated=False)
+    cache_dir = "cache/" + ontology_acronym + "/"
+    if not os.path.exists(cache_dir):
+        os.makedirs(cache_dir)
+
+    _serialize_ontology(ontology_terms, ontology_acronym, cache_dir)
+    _save_graphs(ontology_terms, output_file=cache_dir + ontology_acronym)
+    ontology_terms.clear()
+
+def clear_cache(ontology_acronym=''):
+    cache_dir = "cache/" 
+    if ontology_acronym != '':
+        cache_dir = os.path.join(cache_dir, ontology_acronym)
+    # rm -r cache_dir
+    try:
+        rmtree(cache_dir)
+        print("Cache has been cleared successfully")
+    except OSError as error:
+        print("Cache cannot be removed:")
+        print(error)
+
+def _serialize_ontology(ontology_terms, ontology_acronym, cache_dir):
+    start = time.time()
+    with open(cache_dir + ontology_acronym + "-term-details.pickle", 'wb+') as out_file:
+        pickle.dump(ontology_terms, out_file)
+    end = time.time()
 
 def _load_data(input_file_path, csv_column_names, separator):
     if len(csv_column_names) >= 1:
@@ -126,9 +168,14 @@ def _load_data(input_file_path, csv_column_names, separator):
         term_ids = onto_utils.generate_iris(len(terms))
     return terms, term_ids
 
-def _load_ontology(ontology, iris, exclude_deprecated):
-    term_collector = OntologyTermCollector(ontology)
-    onto_terms = term_collector.get_ontology_terms(base_iris=iris, exclude_deprecated=exclude_deprecated)
+def _load_ontology(ontology, iris, exclude_deprecated, use_cache=False):
+    term_collector = OntologyTermCollector()
+    if use_cache:
+        pickle_file = "cache/" + ontology + "/" + ontology + "-term-details.pickle"
+        onto_terms_unfiltered = pickle.load(open(pickle_file, "rb"))
+        onto_terms = term_collector.filter_terms(onto_terms_unfiltered, iris, exclude_deprecated)
+    else:
+        onto_terms = term_collector.get_ontology_terms(ontology, base_iris=iris, exclude_deprecated=exclude_deprecated)
     if len(onto_terms) == 0:
         raise RuntimeError("Could not find any terms in the given ontology.")
     return onto_terms
@@ -155,6 +202,6 @@ def _save_mappings(mappings, output_file):
     mappings.to_csv(output_file, index=False)
 
 def _save_graphs(terms, output_file):
-    term_graphs = TermGraphGenerator().graphs_dicts(terms)
+    term_graphs = TermGraphGenerator(terms).graphs_dicts()
     with open(output_file + "-term-graphs.json", 'w') as json_file:
         json.dump(term_graphs, json_file, indent=2)

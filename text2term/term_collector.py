@@ -1,6 +1,5 @@
 """Provides OntologyTermCollector class"""
 
-import logging
 from owlready2 import *
 from text2term import onto_utils
 from text2term.term import OntologyTerm
@@ -8,82 +7,112 @@ from text2term.term import OntologyTerm
 
 class OntologyTermCollector:
 
-    def __init__(self, ontology_iri):
-        """"
-        :param ontology_iri: IRI of the ontology (e.g., path of ontology document in the local file system, URL)
-        """
-        self.logger = onto_utils.get_logger(__name__, logging.INFO)
-        self.ontology_iri = ontology_iri
+    def __init__(self):
+        self.logger = onto_utils.get_logger(__name__)
 
-    def get_ontology_terms(self, base_iris=(), use_reasoning=False, exclude_deprecated=False):
+    def get_ontology_terms(self, ontology_iri, base_iris=(), use_reasoning=False, exclude_deprecated=False):
         """
         Collect the terms described in the ontology at the specified IRI
+        :param ontology_iri: IRI of the ontology (e.g., path of ontology document in the local file system, URL)
         :param base_iris: Limit ontology term collection to terms whose IRIs start with any IRI given in this tuple
         :param use_reasoning: Use a reasoner to compute inferred class hierarchy
         :param exclude_deprecated: Exclude ontology terms stated as deprecated using owl:deprecated 'true'
-        :return: Collection of ontology terms in the specified ontology
+        :return: Dictionary of ontology term IRIs and their respective details in the specified ontology
         """
-        ontology = self._load_ontology(self.ontology_iri)
+        ontology = self._load_ontology(ontology_iri)
         if use_reasoning:
             self._classify_ontology(ontology)
         self.logger.info("Collecting ontology term details...")
         start = time.time()
-        ontology_terms = []
+        ontology_terms = dict()
         if len(base_iris) > 0:
             for iri in base_iris:
                 iri = iri.strip()
                 query = iri + "*"
                 self.logger.info("...collecting terms with IRIs starting in: " + iri)
                 iris = list(default_world.search(iri=query))
-                ontology_terms.extend(self._get_ontology_terms(iris, ontology, exclude_deprecated))
+                ontology_terms = ontology_terms | self._get_ontology_terms(iris, ontology, exclude_deprecated)
         else:
             ontology_terms = self._get_ontology_terms(ontology.classes(), ontology, exclude_deprecated)
         end = time.time()
-        self.logger.info("...done: collected %i ontology terms (collection time: %.2fs)", len(ontology_terms), end-start)
+        self.logger.info("...done: collected %i ontology terms (collection time: %.2fs)", len(ontology_terms),
+                         end - start)
+        # when multiple ontologies are loaded with owlready2, and they reference the same ontology term (IRI), a lookup
+        # for that IRI returns the term from the first ontology loaded —> need to unload previously loaded ontologies
+        try:
+            ontology.destroy()
+        except Exception as err:
+            print("Unable to destroy ontology: ", err)
         return ontology_terms
 
+    def filter_terms(self, onto_terms, iris=(), excl_deprecated=False):
+        for term in onto_terms:
+            begins_with_iri = (iris == ()) or any(term.iri().startswith(iri) for iri in iris)
+            is_not_depricated = (excl_deprecated and not term.deprecated()) or (not excl_deprecated)
+            if not (begins_with_iri and is_not_depricated):
+                onto_terms.pop(term.iri())
+        return onto_terms
+
     def _get_ontology_terms(self, term_list, ontology, exclude_deprecated):
-        ontology_terms = []
+        ontology_terms = dict()
         for ontology_term in term_list:
-            if not isinstance(ontology_term, PropertyClass) and ontology_term is not Thing and ontology_term is not Nothing:
+            if not isinstance(ontology_term, PropertyClass) and ontology_term is not Thing \
+                    and ontology_term is not Nothing:
                 if (exclude_deprecated and not deprecated[ontology_term]) or (not exclude_deprecated):
+                    iri = ontology_term.iri
                     labels = self._get_labels(ontology_term)
                     synonyms = self._get_synonyms(ontology_term)
                     parents = self._get_parents(ontology_term)
                     children = self._get_children(ontology_term, ontology)
                     instances = self._get_instances(ontology_term, ontology)
-                    definition = self._get_definition(ontology_term)
-                    term_details = OntologyTerm(ontology_term.iri, labels, synonyms, definition,
-                                                parents=parents, children=children, instances=instances)
-                    ontology_terms.append(term_details)
+                    definitions = self._get_definitions(ontology_term)
+                    is_deprecated = deprecated[ontology_term] == [True]
+                    term_details = OntologyTerm(iri, labels, definitions=definitions, synonyms=synonyms,
+                                                parents=parents, children=children, instances=instances,
+                                                deprecated=is_deprecated)
+                    ontology_terms[iri] = term_details
                 else:
                     self.logger.debug("Excluding deprecated ontology term: %s", ontology_term.iri)
         return ontology_terms
 
     def _get_parents(self, ontology_term):
-        parents = set()  # named/atomic superclasses except owl:Thing
+        parents = dict()  # named/atomic superclasses except owl:Thing
         try:
-            all_parents = ontology_term.is_a  # obtain all (direct and indirect) parents of this entity
+            all_parents = ontology_term.is_a  # obtain direct parents of this entity
             for parent in all_parents:
                 # exclude OWL restrictions and owl:Thing and Self
                 if isinstance(parent, ThingClass) and parent is not Thing and parent is not ontology_term:
-                    parents.add(parent)
+                    if len(parent.label) > 0:
+                        parents.update({parent.iri: parent.label[0]})
+                    else:
+                        parents.update({parent.iri: onto_utils.label_from_iri(parent.iri)})
         except AttributeError as err:
             self.logger.debug(err)
         return parents
 
     def _get_children(self, ontology_term, ontology):
-        children = set()
+        children = dict()
         try:
-            children = set(ontology.get_children_of(ontology_term))
+            for child in ontology.get_children_of(ontology_term):
+                if len(child.iri) > 0:
+                    if len(child.label) > 0:
+                        children.update({child.iri: child.label[0]})
+                    else:
+                        children.update({child.iri: onto_utils.label_from_iri(child.iri)})
         except (TypeError, AttributeError) as err:
             self.logger.debug(err)
         return children
 
     def _get_instances(self, ontology_term, ontology):
-        instances = set()
+        instances = dict()
         try:
-            instances = set(ontology.get_instances_of(ontology_term))
+            for instance in ontology.get_instances_of(ontology_term):
+                if len(instance.iri) > 0:
+                    if len(instance.label) > 0:
+                        instances.update({instance.iri: instance.label[0]})
+                    else:
+                        instances.update({instance.iri: onto_utils.label_from_iri(instance.iri)})
+                instances[instance.iri] = instance.label[0]
         except AttributeError as err:
             self.logger.debug(err)
         return instances
@@ -101,8 +130,8 @@ class OntologyTermCollector:
             labels.add(skos_label)
         if len(labels) == 0:
             label_from_iri = onto_utils.label_from_iri(ontology_term.iri)
-            self.logger.info("...ontology term %s has no labels (rdfs:label or skos:prefLabel). "
-                             "Using a label based on the term IRI: %s", ontology_term.iri, label_from_iri)
+            self.logger.debug("...ontology term %s has no labels (rdfs:label or skos:prefLabel). "
+                              "Using a label based on the term IRI: %s", ontology_term.iri, label_from_iri)
             labels.add(label_from_iri)
         self.logger.debug("...collected %i labels and synonyms for %s", len(labels), ontology_term)
         return labels
@@ -190,12 +219,29 @@ class OntologyTermCollector:
             self.logger.debug(err)
         return nci_synonyms
 
-    def _get_definition(self, ontology_term):
+    def _get_definitions(self, ontology_term):
         """
-         Get the definition (if one exists) of the given term as specified using the skos:definition annotation property
+         Get definitions (if any exist) of the given term as specified using either the skos:definition annotation
+         property or the IAO_0000115 ('definition') property
          :param ontology_term: Ontology term to collect definition of
-         :return: String value of the skos:definition annotation property assertion on the given term
+         :return: Set of term definition strings
          """
+        definitions = set()
+        for definition in self._get_skos_definition(ontology_term):
+            definitions.add(definition)
+        for definition in self._get_iao_definition(ontology_term):
+            definitions.add(definition)
+        return definitions
+
+    def _get_iao_definition(self, ontology_term):
+        definition = ""
+        try:
+            definition = ontology_term.IAO_0000115
+        except AttributeError as err:
+            self.logger.debug(err)
+        return definition
+
+    def _get_skos_definition(self, ontology_term):
         definition = ""
         try:
             definition = ontology_term.definition
@@ -214,7 +260,7 @@ class OntologyTermCollector:
         ontology = get_ontology(ontology_iri).load()
         end = time.time()
         self._log_ontology_metrics(ontology)
-        self.logger.info("...done (ontology loading time: %.2fs)", end-start)
+        self.logger.info("...done (ontology loading time: %.2fs)", end - start)
         return ontology
 
     def _classify_ontology(self, ontology):

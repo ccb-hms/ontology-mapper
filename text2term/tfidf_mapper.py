@@ -84,7 +84,7 @@ class TFIDFMapper:
     def _get_target_labels_terms(self, ontology_terms):
         """Get lists of labels and terms to enable retrieving terms from their labels"""
         target_labels, target_terms = [], []
-        for term in ontology_terms:
+        for term in ontology_terms.values():
             for label in term.labels:
                 target_labels.append(label)
                 target_terms.append(term)
