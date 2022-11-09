@@ -118,6 +118,9 @@ def map_terms(source_terms, target_ontology, base_iris=(), excl_deprecated=False
         _save_graphs(target_terms, output_file)
     return mappings_df
 
+"""
+CACHING FUNCTIONS -- Public
+"""
 def cache_ontology_set(ontology_registry_path):
     registry = pd.read_csv(ontology_registry_path)
     for index, row in registry.iterrows():
@@ -149,6 +152,9 @@ def clear_cache(ontology_acronym=''):
         print("Cache cannot be removed:")
         print(error)
 
+"""
+PRIVATE/HELPER FUNCTIONS
+"""
 def _serialize_ontology(ontology_terms, ontology_acronym, cache_dir):
     start = time.time()
     with open(cache_dir + ontology_acronym + "-term-details.pickle", 'wb+') as out_file:
