@@ -1,7 +1,7 @@
 import argparse
 import os
 import sys
-from t2t import map_file
+from t2t import map_file, cache_ontology, cache_exists
 from mapper import Mapper
 
 if __name__ == "__main__":
@@ -35,14 +35,9 @@ if __name__ == "__main__":
                         help="Exclude ontology terms stated as deprecated via `owl:deprecated true` (default=False)")
     parser.add_argument("-g", "--save_term_graphs", required=False, default=False, action="store_true",
                         help="Save vis.js graphs representing the neighborhood of each ontology term (default=False)")
+    parser.add_argument("-c", "--store_in_cache", required=False, type=str, default="",
+                        help="Store the target ontology into local cache under acronym")
 
-    # TODO mapping to a cached ontology should be possible through the command-line interface
-    parser.add_argument("-rc", "--read_from_cache", required=False, default=False, action="store_true",
-                        help="Load the target ontology from local cache")
-    # TODO writing to cache is an entirely different operation (mapping has 2 required arguments, caching has none)...
-    parser.add_argument("-wc", "--write_cache", required=False, default=False, action="store_true",
-                        help="Write a local cache of ontology term details from the ontologies specified in the file: "
-                             "'resources/ontologies.csv' for faster performance when mapping terms to those ontologies")
     arguments = parser.parse_args()
     if not os.path.exists(arguments.source):
         parser.error("The file '{}' does not exist".format(arguments.source))
@@ -54,7 +49,12 @@ if __name__ == "__main__":
     csv_columns = arguments.csv_input
     if len(csv_columns) > 0:
         csv_columns = tuple(csv_columns.split(','))
-    map_file(arguments.source, arguments.target, output_file=arguments.output, csv_columns=csv_columns,
+    target = arguments.target
+    acronym = arguments.store_in_cache
+    if acronym != "":
+        cache_ontology(target, acronym, iris)
+        target = acronym
+    map_file(arguments.source, target, output_file=arguments.output, csv_columns=csv_columns,
                          excl_deprecated=arguments.excl_deprecated, mapper=mapper, max_mappings=arguments.top_mappings,
                          min_score=arguments.min_score, base_iris=iris, save_graphs=arguments.save_term_graphs,
-                         save_mappings=True, separator=arguments.separator)
+                         save_mappings=True, separator=arguments.separator, use_cache=cache_exists(target))

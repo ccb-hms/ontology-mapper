@@ -121,6 +121,7 @@ def map_terms(source_terms, target_ontology, base_iris=(), excl_deprecated=False
 """
 CACHING FUNCTIONS -- Public
 """
+# Caches many ontologies from a csv
 def cache_ontology_set(ontology_registry_path):
     registry = pd.read_csv(ontology_registry_path)
     for index, row in registry.iterrows():
@@ -130,6 +131,7 @@ def cache_ontology_set(ontology_registry_path):
             print("Could not cache ontology ", row.acronym, " due to error: ", err)
         owlready2.default_world.ontologies.clear()
 
+# Caches a single ontology
 def cache_ontology(ontology_url, ontology_acronym, base_iris=()):
     ontology_terms = _load_ontology(ontology_url, base_iris, exclude_deprecated=False)
     cache_dir = "cache/" + ontology_acronym + "/"
@@ -140,6 +142,11 @@ def cache_ontology(ontology_url, ontology_acronym, base_iris=()):
     _save_graphs(ontology_terms, output_file=cache_dir + ontology_acronym)
     ontology_terms.clear()
 
+# Will check if an acronym exists in the cache
+def cache_exists(ontology_acronym):
+    return os.path.exists("cache/" + ontology_acronym)
+
+# Clears the cache
 def clear_cache(ontology_acronym=''):
     cache_dir = "cache/" 
     if ontology_acronym != '':
