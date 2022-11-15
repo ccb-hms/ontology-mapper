@@ -94,7 +94,7 @@ def _get_iri(ont_name, term_name):
     return iri
 
 
-def get_logger(name, level):
+def get_logger(name, level=logging.INFO):
     formatter = logging.Formatter("%(asctime)s %(levelname)s [%(name)s]: %(message)s", "%Y-%m-%d %H:%M:%S")
     logger = logging.getLogger(name)
     logger.setLevel(level=level)
