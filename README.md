@@ -131,8 +131,8 @@ df2 = text2term.map_terms(["asthma", "colon cancer"], "http://www.ebi.ac.uk/efo/
 Below is an example of caching, assuming the same imports as above:
 ```
 text2term.cache_ontology("http://www.ebi.ac.uk/efo/efo.owl", "EFO")
-df1 = text2term.map_file(unstruct_terms.txt, "EFO")
-df2 = text2term.map_terms(["asthma", "colon cancer"], "EFO")
+df1 = text2term.map_file(unstruct_terms.txt, "EFO", use_cache=True)
+df2 = text2term.map_terms(["asthma", "colon cancer"], "EFO", use_cache=True)
 text2term.clear_cache("EFO")
 ```
 
