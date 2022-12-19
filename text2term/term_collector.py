@@ -46,12 +46,16 @@ class OntologyTermCollector:
         return ontology_terms
 
     def filter_terms(self, onto_terms, iris=(), excl_deprecated=False):
-        for term in onto_terms:
-            begins_with_iri = (iris == ()) or any(term.iri().startswith(iri) for iri in iris)
-            is_not_depricated = (excl_deprecated and not term.deprecated()) or (not excl_deprecated)
-            if not (begins_with_iri and is_not_depricated):
-                onto_terms.pop(term.iri())
-        return onto_terms
+        filtered_onto_terms = {}
+        for base_iri, term in onto_terms.items():
+            if type(iris) == str:
+                begins_with_iri = (iris == ()) or base_iri.startswith(iris)
+            else:
+                begins_with_iri = (iris == ()) or any(base_iri.startswith(iri) for iri in iris)
+            is_not_depricated = (not excl_deprecated) or (not term.deprecated)
+            if begins_with_iri and is_not_depricated:
+                filtered_onto_terms.update({base_iri: term})
+        return filtered_onto_terms
 
     def _get_ontology_terms(self, term_list, ontology, exclude_deprecated):
         ontology_terms = dict()
@@ -112,7 +116,6 @@ class OntologyTermCollector:
                         instances.update({instance.iri: instance.label[0]})
                     else:
                         instances.update({instance.iri: onto_utils.label_from_iri(instance.iri)})
-                instances[instance.iri] = instance.label[0]
         except AttributeError as err:
             self.logger.debug(err)
         return instances
