@@ -80,6 +80,16 @@ To clear the cache, one can call:
 If no arguments are specified, the entire cache will be cleared. Otherwise, only the ontology with the given acronym will be cleared.
 Finally, `cache_exists(ontology_acronym)` is a simple program that returns `True` if the given acronym exists in the cache, and `False` otherwise. It is worth noting that while ontology URLs can repeat, acronyms must be distinct in a given environment.
 
+### Preprocessing
+As of version 1.2.0, text2term now includes a simple preprocessing functionality for input. Specifically, these functions take the original input text and Regex expressions, then match each text to a regular expression to simplify the input.
+
+Like the "map" functions above, the two functions differ on whether is input is a file or a list of strings:
+`preprocess_file(file_path, template_path)`
+or
+`preprocess_terms(terms, template_path)`
+
+In both cases, the templates must be stored in a newline seperated file. 
+
 ## Command Line Usage
 
 Install package using **pip**:
