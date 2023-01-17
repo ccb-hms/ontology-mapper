@@ -33,7 +33,8 @@ class OntologyTermCollector:
                 iris = list(default_world.search(iri=query))
                 ontology_terms = ontology_terms | self._get_ontology_terms(iris, ontology, exclude_deprecated)
         else:
-            ontology_terms = self._get_ontology_terms(ontology.classes(), ontology, exclude_deprecated)
+            ontology_signature = self._get_ontology_signature(ontology)
+            ontology_terms = self._get_ontology_terms(ontology_signature, ontology, exclude_deprecated)
         end = time.time()
         self.logger.info("...done: collected %i ontology terms (collection time: %.2fs)", len(ontology_terms),
                          end - start)
@@ -56,6 +57,13 @@ class OntologyTermCollector:
             if begins_with_iri and is_not_deprecated:
                 filtered_onto_terms.update({base_iri: term})
         return filtered_onto_terms
+
+    def _get_ontology_signature(self, ontology):
+        signature = list(ontology.classes())
+        # ontology.classes() does not include classes in imported ontologies; we need to explicitly add them to our list
+        for imported_ontology in ontology.imported_ontologies:
+            signature.extend(list(imported_ontology.classes()))
+        return signature
 
     def _get_ontology_terms(self, term_list, ontology, exclude_deprecated):
         ontology_terms = dict()
