@@ -52,8 +52,8 @@ class OntologyTermCollector:
                 begins_with_iri = (iris == ()) or base_iri.startswith(iris)
             else:
                 begins_with_iri = (iris == ()) or any(base_iri.startswith(iri) for iri in iris)
-            is_not_depricated = (not excl_deprecated) or (not term.deprecated)
-            if begins_with_iri and is_not_depricated:
+            is_not_deprecated = (not excl_deprecated) or (not term.deprecated)
+            if begins_with_iri and is_not_deprecated:
                 filtered_onto_terms.update({base_iri: term})
         return filtered_onto_terms
 
@@ -90,7 +90,7 @@ class OntologyTermCollector:
                         parents.update({parent.iri: parent.label[0]})
                     else:
                         parents.update({parent.iri: onto_utils.label_from_iri(parent.iri)})
-        except AttributeError as err:
+        except (AttributeError, ValueError) as err:
             self.logger.debug(err)
         return parents
 
@@ -103,7 +103,7 @@ class OntologyTermCollector:
                         children.update({child.iri: child.label[0]})
                     else:
                         children.update({child.iri: onto_utils.label_from_iri(child.iri)})
-        except (TypeError, AttributeError) as err:
+        except (TypeError, AttributeError, ValueError) as err:
             self.logger.debug(err)
         return children
 
@@ -148,6 +148,8 @@ class OntologyTermCollector:
         synonyms = set()
         for synonym in self._get_obo_exact_synonyms(ontology_term):
             synonyms.add(synonym)
+        for synonym in self._get_obo_related_synonyms(ontology_term):
+            synonyms.add(synonym)
         for nci_synonym in self._get_nci_synonyms(ontology_term):
             synonyms.add(nci_synonym)
         for efo_alt_term in self._get_efo_alt_terms(ontology_term):
@@ -165,7 +167,7 @@ class OntologyTermCollector:
         try:
             for rdfs_label in ontology_term.label:
                 rdfs_labels.append(rdfs_label)
-        except AttributeError as err:
+        except (AttributeError, ValueError) as err:
             self.logger.debug(err)
         return rdfs_labels
 
@@ -194,14 +196,33 @@ class OntologyTermCollector:
 
     def _get_obo_exact_synonyms(self, ontology_term):
         """
-        Collect synonyms of the given term that are specified using the annotation property used by DOID, MONDO, EFO,
-        HPO, and other OBO ontologies: <http://www.geneontology.org/formats/oboInOwl#hasExactSynonym>.
-        :param ontology_term: Ontology term to collect synonyms from
-        :return: Collection of synonyms
+        Collect exact synonyms of the given term that are specified using the annotation property:
+            <http://www.geneontology.org/formats/oboInOwl#hasExactSynonym>.
+        :param ontology_term: Ontology term to collect exact synonyms from
+        :return: Collection of exact synonyms
         """
         synonyms = []
         try:
             for synonym in ontology_term.hasExactSynonym:
+                if synonym.iri is not None:
+                    synonym = synonym.iri
+                synonyms.append(synonym)
+        except AttributeError as err:
+            self.logger.debug(err)
+        return synonyms
+
+    def _get_obo_related_synonyms(self, ontology_term):
+        """
+        Collect related synonyms of the given term that are specified using the annotation property:
+            <http://www.geneontology.org/formats/oboInOwl#hasRelatedSynonym>.
+        :param ontology_term: Ontology term to collect related synonyms from
+        :return: Collection of related synonyms
+        """
+        synonyms = []
+        try:
+            for synonym in ontology_term.hasRelatedSynonym:
+                if synonym.iri is not None:
+                    synonym = synonym.iri
                 synonyms.append(synonym)
         except AttributeError as err:
             self.logger.debug(err)
