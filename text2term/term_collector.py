@@ -5,6 +5,7 @@ from text2term import onto_utils
 from text2term.term import OntologyTerm
 import logging
 
+
 class OntologyTermCollector:
 
     def __init__(self, log_level=logging.INFO):
@@ -158,6 +159,8 @@ class OntologyTermCollector:
             synonyms.add(synonym)
         for synonym in self._get_obo_related_synonyms(ontology_term):
             synonyms.add(synonym)
+        for synonym in self._get_obo_broad_synonyms(ontology_term):
+            synonyms.add(synonym)
         for nci_synonym in self._get_nci_synonyms(ontology_term):
             synonyms.add(nci_synonym)
         for efo_alt_term in self._get_efo_alt_terms(ontology_term):
@@ -212,7 +215,7 @@ class OntologyTermCollector:
         synonyms = []
         try:
             for synonym in ontology_term.hasExactSynonym:
-                if synonym.iri is not None:
+                if hasattr(synonym, 'iri'):
                     synonym = synonym.iri
                 synonyms.append(synonym)
         except AttributeError as err:
@@ -229,7 +232,24 @@ class OntologyTermCollector:
         synonyms = []
         try:
             for synonym in ontology_term.hasRelatedSynonym:
-                if synonym.iri is not None:
+                if hasattr(synonym, 'iri'):
+                    synonym = synonym.iri
+                synonyms.append(synonym)
+        except AttributeError as err:
+            self.logger.debug(err)
+        return synonyms
+
+    def _get_obo_broad_synonyms(self, ontology_term):
+        """
+        Collect broad synonyms of the given term that are specified using the annotation property:
+            <http://www.geneontology.org/formats/oboInOwl#hasBroadSynonym>.
+        :param ontology_term: Ontology term to collect broad synonyms from
+        :return: Collection of broad synonyms
+        """
+        synonyms = []
+        try:
+            for synonym in ontology_term.hasBroadSynonym:
+                if hasattr(synonym, 'iri'):
                     synonym = synonym.iri
                 synonyms.append(synonym)
         except AttributeError as err:
