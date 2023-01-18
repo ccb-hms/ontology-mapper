@@ -3,12 +3,12 @@
 from owlready2 import *
 from text2term import onto_utils
 from text2term.term import OntologyTerm
-
+import logging
 
 class OntologyTermCollector:
 
-    def __init__(self):
-        self.logger = onto_utils.get_logger(__name__)
+    def __init__(self, log_level=logging.INFO):
+        self.logger = onto_utils.get_logger(__name__, level=log_level)
 
     def get_ontology_terms(self, ontology_iri, base_iris=(), use_reasoning=False, exclude_deprecated=False):
         """
@@ -43,7 +43,7 @@ class OntologyTermCollector:
         try:
             ontology.destroy()
         except Exception as err:
-            print("Unable to destroy ontology: ", err)
+            self.logger.debug("Unable to destroy ontology: ", err)
         return ontology_terms
 
     def filter_terms(self, onto_terms, iris=(), excl_deprecated=False):
