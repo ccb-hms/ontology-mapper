@@ -24,11 +24,15 @@ class TermGraphGenerator:
             self._add_ancestors(parent_iri, nodes, edges)
 
     def _add_ancestors(self, node_iri, nodes, edges):
-        ancestors = self._terms[node_iri].parents
-        for ancestor_iri in ancestors:
-            self._add_node(ancestor_iri, ancestors[ancestor_iri], nodes)
-            edges.add(Edge(node_iri, ancestor_iri, Edge.IS_A))
-            self._add_ancestors(ancestor_iri, nodes, edges)
+        if node_iri in self._terms:
+            ancestors = self._terms[node_iri].parents
+            for ancestor_iri in ancestors:
+                self._add_node(ancestor_iri, ancestors[ancestor_iri], nodes)
+                edges.add(Edge(node_iri, ancestor_iri, Edge.IS_A))
+                self._add_ancestors(ancestor_iri, nodes, edges)
+        else:
+            self._logger.debug("Unable to get ancestor term %s from the ontology term details dictionary "
+                               "(possibly filtered out through the `base_iris` option)", node_iri)
 
     def _add_children(self, term, children, edge_type, nodes, edges):
         for child_iri in children:
