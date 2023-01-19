@@ -1,21 +1,49 @@
-# text2term ontology mapper
-
+# *text2term* ontology mapper
 A tool for mapping free-text descriptions of (biomedical) entities to controlled terms in an ontology. 
 
-## Programmatic Usage
+## Installation
 Install package using **pip**:
 
-`pip install text2term`
+```
+pip install .
+```
 
+## Programmatic Usage
 The tool can be executed in Python with either of the two following functions:
-`text2term.map_files(input_file, target_ontology, base_iris=(), csv_columns=(), excl_deprecated=False, max_mappings=3, mapper=Mapper.TFIDF,min_score=0.3, output_file='', save_graphs=False, save_mappings=False, separator=',', use_cache=False)`
 
+```python
+text2term.map_file(input_file='/some/file.txt', 
+                   target_ontology='http://some.ontology/v1.owl',
+                   base_iris=(),
+                   csv_columns=(), 
+                   excl_deprecated=False, 
+                   max_mappings=3, 
+                   mapper=Mapper.TFIDF,
+                   min_score=0.3, 
+                   output_file='', 
+                   save_graphs=False, 
+                   save_mappings=False, 
+                   separator=',', 
+                   use_cache=False)
+```
 or
-
-`map_terms(source_terms, target_ontology, base_iris=(), excl_deprecated=False, max_mappings=3, min_score=0.3, mapper=Mapper.TFIDF, output_file='', save_graphs=False, save_mappings=False, source_terms_ids=(), use_cache=False)`
+```python
+map_terms(source_terms=['term one', 'term two'], 
+          target_ontology='http://some.ontology/v1.owl', 
+          base_iris=(), 
+          excl_deprecated=False, 
+          max_mappings=3, 
+          min_score=0.3, 
+          mapper=Mapper.TFIDF, 
+          output_file='', 
+          save_graphs=False, 
+          save_mappings=False, 
+          source_terms_ids=(), 
+          use_cache=False)
+```
 
 ### Arguments
-For `map_files`, the first argument 'input_file' specifies a path to a file containing the names of every term that needs to be mapped. For `map_terms`, The first argument 'source_terms' takes in a list of the terms to be mapped.
+For `map_file`, the first argument 'input_file' specifies a path to a file containing the terms to be mapped. For `map_terms`, the first argument 'source_terms' takes in a list of the terms to be mapped.
 
 All other arguments are the same, and have the same functionality:
 
@@ -92,11 +120,7 @@ In both cases, the templates must be stored in a newline seperated file.
 
 ## Command Line Usage
 
-Install package using **pip**:
-
-`pip install .`
-
-Execute the tool as follows:
+After installation, execute the tool from a command line as follows:
 
 `python text2term -s SOURCE -t TARGET [-o OUTPUT] [-m MAPPER] [-csv CSV_INPUT] [-top TOP_MAPPINGS] [-min MIN_SCORE] [-iris BASE_IRIS] [-d EXCL_DEPRECATED] [-g SAVE_TERM_GRAPHS]`
 
