@@ -28,18 +28,18 @@ text2term.map_file(input_file='/some/file.txt',
 ```
 or
 ```python
-map_terms(source_terms=['term one', 'term two'], 
-          target_ontology='http://some.ontology/v1.owl', 
-          base_iris=(), 
-          excl_deprecated=False, 
-          max_mappings=3, 
-          min_score=0.3, 
-          mapper=Mapper.TFIDF, 
-          output_file='', 
-          save_graphs=False, 
-          save_mappings=False, 
-          source_terms_ids=(), 
-          use_cache=False)
+text2term.map_terms(source_terms=['term one', 'term two'],
+                    target_ontology='http://some.ontology/v1.owl',
+                    base_iris=(),
+                    excl_deprecated=False,
+                    max_mappings=3,
+                    min_score=0.3,
+                    mapper=Mapper.TFIDF,
+                    output_file='',
+                    save_graphs=False,
+                    save_mappings=False,
+                    source_terms_ids=(),
+                    use_cache=False)
 ```
 
 ### Arguments
