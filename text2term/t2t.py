@@ -1,6 +1,7 @@
 """Provides Text2Term class"""
 
 import os
+import sys
 import json
 import pickle
 import time
@@ -128,7 +129,7 @@ def cache_ontology_set(ontology_registry_path):
         try:
             cache_ontology(row.url, row.acronym)
         except Exception as err:
-            print("Could not cache ontology ", row.acronym, " due to error: ", err)
+            sys.stderr.write("Could not cache ontology", row.acronym, "due to error:", err)
         owlready2.default_world.ontologies.clear()
 
 # Caches a single ontology
@@ -151,13 +152,13 @@ def clear_cache(ontology_acronym=''):
     cache_dir = "cache/" 
     if ontology_acronym != '':
         cache_dir = os.path.join(cache_dir, ontology_acronym)
-    # rm -r cache_dir
+    # Is equivalent to: rm -r cache_dir
     try:
         rmtree(cache_dir)
-        print("Cache has been cleared successfully")
+        sys.stderr.write("Cache has been cleared successfully")
     except OSError as error:
-        print("Cache cannot be removed:")
-        print(error)
+        sys.stderr.write("Cache cannot be removed:")
+        sys.stderr.write(error)
 
 """
 PRIVATE/HELPER FUNCTIONS

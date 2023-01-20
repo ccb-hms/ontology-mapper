@@ -3,12 +3,13 @@
 from owlready2 import *
 from text2term import onto_utils
 from text2term.term import OntologyTerm
+import logging
 
 
 class OntologyTermCollector:
 
-    def __init__(self):
-        self.logger = onto_utils.get_logger(__name__)
+    def __init__(self, log_level=logging.INFO):
+        self.logger = onto_utils.get_logger(__name__, level=log_level)
 
     def get_ontology_terms(self, ontology_iri, base_iris=(), use_reasoning=False, exclude_deprecated=False):
         """
@@ -33,7 +34,8 @@ class OntologyTermCollector:
                 iris = list(default_world.search(iri=query))
                 ontology_terms = ontology_terms | self._get_ontology_terms(iris, ontology, exclude_deprecated)
         else:
-            ontology_terms = self._get_ontology_terms(ontology.classes(), ontology, exclude_deprecated)
+            ontology_signature = self._get_ontology_signature(ontology)
+            ontology_terms = self._get_ontology_terms(ontology_signature, ontology, exclude_deprecated)
         end = time.time()
         self.logger.info("...done: collected %i ontology terms (collection time: %.2fs)", len(ontology_terms),
                          end - start)
@@ -42,7 +44,7 @@ class OntologyTermCollector:
         try:
             ontology.destroy()
         except Exception as err:
-            print("Unable to destroy ontology: ", err)
+            self.logger.debug("Unable to destroy ontology: ", err)
         return ontology_terms
 
     def filter_terms(self, onto_terms, iris=(), excl_deprecated=False):
@@ -52,10 +54,17 @@ class OntologyTermCollector:
                 begins_with_iri = (iris == ()) or base_iri.startswith(iris)
             else:
                 begins_with_iri = (iris == ()) or any(base_iri.startswith(iri) for iri in iris)
-            is_not_depricated = (not excl_deprecated) or (not term.deprecated)
-            if begins_with_iri and is_not_depricated:
+            is_not_deprecated = (not excl_deprecated) or (not term.deprecated)
+            if begins_with_iri and is_not_deprecated:
                 filtered_onto_terms.update({base_iri: term})
         return filtered_onto_terms
+
+    def _get_ontology_signature(self, ontology):
+        signature = list(ontology.classes())
+        # ontology.classes() does not include classes in imported ontologies; we need to explicitly add them to our list
+        for imported_ontology in ontology.imported_ontologies:
+            signature.extend(list(imported_ontology.classes()))
+        return signature
 
     def _get_ontology_terms(self, term_list, ontology, exclude_deprecated):
         ontology_terms = dict()
@@ -90,7 +99,7 @@ class OntologyTermCollector:
                         parents.update({parent.iri: parent.label[0]})
                     else:
                         parents.update({parent.iri: onto_utils.label_from_iri(parent.iri)})
-        except AttributeError as err:
+        except (AttributeError, ValueError) as err:
             self.logger.debug(err)
         return parents
 
@@ -103,7 +112,7 @@ class OntologyTermCollector:
                         children.update({child.iri: child.label[0]})
                     else:
                         children.update({child.iri: onto_utils.label_from_iri(child.iri)})
-        except (TypeError, AttributeError) as err:
+        except (TypeError, AttributeError, ValueError) as err:
             self.logger.debug(err)
         return children
 
@@ -148,6 +157,10 @@ class OntologyTermCollector:
         synonyms = set()
         for synonym in self._get_obo_exact_synonyms(ontology_term):
             synonyms.add(synonym)
+        for synonym in self._get_obo_related_synonyms(ontology_term):
+            synonyms.add(synonym)
+        for synonym in self._get_obo_broad_synonyms(ontology_term):
+            synonyms.add(synonym)
         for nci_synonym in self._get_nci_synonyms(ontology_term):
             synonyms.add(nci_synonym)
         for efo_alt_term in self._get_efo_alt_terms(ontology_term):
@@ -165,7 +178,7 @@ class OntologyTermCollector:
         try:
             for rdfs_label in ontology_term.label:
                 rdfs_labels.append(rdfs_label)
-        except AttributeError as err:
+        except (AttributeError, ValueError) as err:
             self.logger.debug(err)
         return rdfs_labels
 
@@ -194,14 +207,50 @@ class OntologyTermCollector:
 
     def _get_obo_exact_synonyms(self, ontology_term):
         """
-        Collect synonyms of the given term that are specified using the annotation property used by DOID, MONDO, EFO,
-        HPO, and other OBO ontologies: <http://www.geneontology.org/formats/oboInOwl#hasExactSynonym>.
-        :param ontology_term: Ontology term to collect synonyms from
-        :return: Collection of synonyms
+        Collect exact synonyms of the given term that are specified using the annotation property:
+            <http://www.geneontology.org/formats/oboInOwl#hasExactSynonym>.
+        :param ontology_term: Ontology term to collect exact synonyms from
+        :return: Collection of exact synonyms
         """
         synonyms = []
         try:
             for synonym in ontology_term.hasExactSynonym:
+                if hasattr(synonym, 'iri'):
+                    synonym = synonym.iri
+                synonyms.append(synonym)
+        except AttributeError as err:
+            self.logger.debug(err)
+        return synonyms
+
+    def _get_obo_related_synonyms(self, ontology_term):
+        """
+        Collect related synonyms of the given term that are specified using the annotation property:
+            <http://www.geneontology.org/formats/oboInOwl#hasRelatedSynonym>.
+        :param ontology_term: Ontology term to collect related synonyms from
+        :return: Collection of related synonyms
+        """
+        synonyms = []
+        try:
+            for synonym in ontology_term.hasRelatedSynonym:
+                if hasattr(synonym, 'iri'):
+                    synonym = synonym.iri
+                synonyms.append(synonym)
+        except AttributeError as err:
+            self.logger.debug(err)
+        return synonyms
+
+    def _get_obo_broad_synonyms(self, ontology_term):
+        """
+        Collect broad synonyms of the given term that are specified using the annotation property:
+            <http://www.geneontology.org/formats/oboInOwl#hasBroadSynonym>.
+        :param ontology_term: Ontology term to collect broad synonyms from
+        :return: Collection of broad synonyms
+        """
+        synonyms = []
+        try:
+            for synonym in ontology_term.hasBroadSynonym:
+                if hasattr(synonym, 'iri'):
+                    synonym = synonym.iri
                 synonyms.append(synonym)
         except AttributeError as err:
             self.logger.debug(err)
