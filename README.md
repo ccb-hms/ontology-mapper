@@ -112,11 +112,13 @@ Finally, `cache_exists(ontology_acronym)` is a simple program that returns `True
 As of version 1.2.0, text2term now includes a simple preprocessing functionality for input. Specifically, these functions take the original input text and Regex expressions, then match each text to a regular expression to simplify the input.
 
 Like the "map" functions above, the two functions differ on whether is input is a file or a list of strings:
-`preprocess_file(file_path, template_path)`
+`preprocess_file(file_path, template_path, output_file="", blacklist_path="", blacklist_char='')`
 or
-`preprocess_terms(terms, template_path)`
+`preprocess_terms(terms, template_path, output_file="", blacklist_path="", blacklist_char='')`
 
-In both cases, the templates must be stored in a newline seperated file. 
+In both cases, the templates and the blacklist must be stored in a newline seperated file. If an output file is specified, the preprocessed strings are written to that file and the list is passed back regardless.
+
+The blacklist functionality allows the user to specify another regex file. If any terms match any regex in blacklist, they are removed from the terms, or, if a blacklist character is specified, replaced with that character for placeholding.
 
 ## Command Line Usage
 
