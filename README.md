@@ -112,13 +112,24 @@ Finally, `cache_exists(ontology_acronym)` is a simple program that returns `True
 As of version 1.2.0, text2term now includes a simple preprocessing functionality for input. Specifically, these functions take the original input text and Regex expressions, then match each text to a regular expression to simplify the input.
 
 Like the "map" functions above, the two functions differ on whether is input is a file or a list of strings:
-`preprocess_file(file_path, template_path, output_file="", blacklist_path="", blacklist_char='')`
+`preprocess_file(file_path, template_path, output_file="", blacklist_path="", blacklist_char='', rem_duplicates=DupSetting.NO_REM)`
 or
-`preprocess_terms(terms, template_path, output_file="", blacklist_path="", blacklist_char='')`
+`preprocess_terms(terms, template_path, output_file="", blacklist_path="", blacklist_char='', rem_duplicates=DupSetting.NO_REM)`
 
 In both cases, the templates and the blacklist must be stored in a newline seperated file. If an output file is specified, the preprocessed strings are written to that file and the list is passed back regardless.
 
 The blacklist functionality allows the user to specify another regex file. If any terms match any regex in blacklist, they are removed from the terms, or, if a blacklist character is specified, replaced with that character for placeholding.
+
+Finally, the Remove Duplicates functionality will remove all duplicate terms before processing, after, or both depending on the setting. To represent the settings, the following emnumeration class exists in the preprocessing module:
+```python
+class DupSetting(Enum):
+    NO_REM = 0
+    REM_BEFORE = 1
+    REM_AFTER = 2
+    REM_BOTH = 3
+```
+
+WARNING: Removing duplicates at any point does not guarantee that the order of the terms are maintained. As such, if order is important to the output, this functionality is not recommended.
 
 ## Command Line Usage
 
