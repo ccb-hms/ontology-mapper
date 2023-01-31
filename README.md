@@ -5,7 +5,7 @@ A tool for mapping free-text descriptions of (biomedical) entities to controlled
 Install package using **pip**:
 
 ```
-pip install .
+pip install text2term
 ```
 
 ## Programmatic Usage
