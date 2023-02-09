@@ -9,7 +9,7 @@ pip install text2term
 ```
 
 ## Programmatic Usage
-The tool can be executed in Python with either of the two following functions:
+The tool can be executed in Python with any of the three following functions:
 
 ```python
 text2term.map_file(input_file='/some/file.txt', 
@@ -41,9 +41,26 @@ text2term.map_terms(source_terms=['term one', 'term two'],
                     source_terms_ids=(),
                     use_cache=False)
 ```
+or
+```python
+text2term.map_tagged_terms(tagged_terms_dict={'term one': ["tag 1", "tag 2"]},
+                    target_ontology='http://some.ontology/v1.owl',
+                    base_iris=(),
+                    excl_deprecated=False,
+                    max_mappings=3,
+                    min_score=0.3,
+                    mapper=Mapper.TFIDF,
+                    output_file='',
+                    save_graphs=False,
+                    save_mappings=False,
+                    source_terms_ids=(),
+                    use_cache=False)
+```
 
 ### Arguments
-For `map_file`, the first argument 'input_file' specifies a path to a file containing the terms to be mapped. For `map_terms`, the first argument 'source_terms' takes in a list of the terms to be mapped.
+For `map_file`, the first argument 'input_file' specifies a path to a file containing the terms to be mapped. It also has a `csv_column` argument that allows the user to specify a column to map if a csv is passed in as the input file. 
+For `map_terms`, the first argument 'source_terms' takes in a list of the terms to be mapped.
+For `map_tagged_terms`, everything is the same as `map_terms` except the first argument is either a dictionary of terms to a list of tags, or a list of TaggedTerm objects (see below). Currently, the tags do not affect the mapping in any way, but they are added to the output dataframe at the end of the process.
 
 All other arguments are the same, and have the same functionality:
 
@@ -115,21 +132,27 @@ Like the "map" functions above, the two functions differ on whether is input is 
 `preprocess_file(file_path, template_path, output_file="", blacklist_path="", blacklist_char='', rem_duplicates=DupSetting.NO_REM)`
 or
 `preprocess_terms(terms, template_path, output_file="", blacklist_path="", blacklist_char='', rem_duplicates=DupSetting.NO_REM)`
+or 
+`preprocess_tagged_terms(file_path, template_path="", blacklist_path="", blacklist_char='', rem_duplicates=False, separator=";:;")`
 
-In both cases, the templates and the blacklist must be stored in a newline seperated file. If an output file is specified, the preprocessed strings are written to that file and the list is passed back regardless.
+In all cases, the templates and the blacklist must be stored in a newline seperated file. If an output file is specified, the preprocessed strings are written to that file and the list is passed back regardless.
 
 The blacklist functionality allows the user to specify another regex file. If any terms match any regex in blacklist, they are removed from the terms, or, if a blacklist character is specified, replaced with that character for placeholding.
 
-Finally, the Remove Duplicates functionality will remove all duplicate terms before processing, after, or both depending on the setting. To represent the settings, the following emnumeration class exists in the preprocessing module:
-```python
-class DupSetting(Enum):
-    NO_REM = 0
-    REM_BEFORE = 1
-    REM_AFTER = 2
-    REM_BOTH = 3
-```
+The Remove Duplicates functionality will remove all duplicate terms after processing, if true. 
+WARNING: Removing duplicates at any point does not guarantee which original term is kept. This is particularly important if original terms have different tags, so user caution is advised.
 
-WARNING: Removing duplicates at any point does not guarantee that the order of the terms are maintained. As such, if order is important to the output, this functionality is not recommended.
+The non-tagged functions both return a dictionary where the keys are the original terms and the values are the preprocessed terms.
+The tagged function returns a list of TaggedTerm items with the following function contracts:
+```python
+def __init__(self, term=None, tags=[], original_term=None)
+def add_tags(self, new_tags)
+def update_term(self, term)
+def get_original_term(self)
+def get_term(self)
+def get_tags(self)
+```
+As mentioned in the mapping section above, this can then be passed directly to map_tagged_terms(), allowing for easy prgorammatic usage. Note that this allows multiple of the same preprocessed term with different tags. 
 
 ## Command Line Usage
 

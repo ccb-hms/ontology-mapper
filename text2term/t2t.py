@@ -65,6 +65,40 @@ def map_file(input_file, target_ontology, base_iris=(), csv_columns=(), excl_dep
                     excl_deprecated=excl_deprecated, max_mappings=max_mappings, mapper=mapper, min_score=min_score,
                     output_file=output_file, save_graphs=save_graphs, save_mappings=save_mappings, use_cache=use_cache)
 
+def map_tagged_terms(tagged_terms_dict, target_ontology, base_iris=(), excl_deprecated=False, max_mappings=3, min_score=0.3,
+        mapper=Mapper.TFIDF, output_file='', save_graphs=False, save_mappings=False, source_terms_ids=(), use_cache=False):
+    """
+    All parameters are the same as below, but tagged_terms_dict is a dictionary where the 
+        key is the source term and the value is a list of all tags (or a single string for 
+        one tag). It can also be a list of TaggedTerm objects. 
+        The dataframe returned is the same but contains a tags column
+    """
+    # If the input is a dict, use keys. If it is a list, it is a list of TaggedTerms
+    if tagged_terms_dict is dict:
+        terms = list(tagged_terms_dict.keys())
+    else:
+        terms = [tagged_term.get_term() for tagged_term in tagged_terms_dict]
+    df = map_terms(terms, target_ontology, base_iris=base_iris, excl_deprecated=excl_deprecated, \
+                    max_mappings=max_mappings, min_score=min_score, mapper=mapper, output_file=output_file, \
+                    save_graphs=save_graphs, source_terms_ids=source_terms_ids, use_cache=use_cache)
+
+    # For each term in dict, add tags to corresponding mappings row in "Tags" Column
+    if tagged_terms_dict is dict:
+        for key, value in tagged_terms_dict.items():
+            if value is list:
+                to_store = ','.join(value)
+            else:
+                to_store = str(value)
+            df.loc[df['Source Term'] == key, "Tags"] = to_store
+    else: 
+        for term in tagged_terms_dict:
+            to_store = ','.join(term.get_tags())
+            df.loc[df['Source Term'] == term.get_term(), "Tags"] = to_store
+
+    if save_mappings:
+        _save_mappings(df, output_file)
+    return df
+
 def map_terms(source_terms, target_ontology, base_iris=(), excl_deprecated=False, max_mappings=3, min_score=0.3,
         mapper=Mapper.TFIDF, output_file='', save_graphs=False, save_mappings=False, source_terms_ids=(), use_cache=False):
     """

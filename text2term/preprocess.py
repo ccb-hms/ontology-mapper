@@ -1,15 +1,10 @@
 import re
 import os
 from enum import Enum
-
-class DupSetting(Enum):
-	NO_REM = 0
-	REM_BEFORE = 1
-	REM_AFTER = 2
-	REM_BOTH = 3
+from .tagged_terms import TaggedTerm
 
 def preprocess_file(file_path, template_path, output_file="", blacklist_path="", \
-	                blacklist_char='', rem_duplicates=DupSetting.NO_REM):
+	                blacklist_char='', rem_duplicates=False):
 	terms = _get_values(file_path)
 	processed_terms = preprocess_terms(terms, template_path, output_file=output_file, \
 					blacklist_path=blacklist_path, blacklist_char=blacklist_char, \
@@ -17,14 +12,67 @@ def preprocess_file(file_path, template_path, output_file="", blacklist_path="",
 
 	return processed_terms
 
-def preprocess_terms(terms, template_path, output_file="", blacklist_path="", \
-	                 blacklist_char='', rem_duplicates=DupSetting.NO_REM):
-	# Remove duplicate terms, if settings indicate
-	if rem_duplicates == DupSetting.REM_BEFORE or rem_duplicates == DupSetting.REM_BOTH:
-		terms = _remove_duplicates(terms)
+## Tags should be stored with their terms in the same line, delineated by ";:;" 
+##		ex: Age when diagnosed with (.*) ;:; age,diagnosis
+##		"Age when diagnosed with cancer" becomes: {"cancer", ["age", "diagnosis"]}
+def preprocess_tagged_terms(file_path, template_path="", blacklist_path="", \
+	                		blacklist_char='', rem_duplicates=False, separator=";:;"):
+	# Seperate tags from the terms, put in TaggedTerm and add to list
+	raw_terms = _get_values(file_path)
+	terms = []
+	for raw_term in raw_terms:
+		seperated = raw_term.split(separator)
+		try:
+			tags = seperated[1].split(",")
+			term = TaggedTerm(original_term=seperated[0], tags=tags)
+		except IndexError:
+			term = TaggedTerm(original_term=raw_term)
+		terms.append(term)
 
+	# Seperate tags from templates, store together in dictionary
+	templates = {}
+	if template_path != "":
+		raw_templates = _get_values(template_path)
+		for raw_template in raw_templates:
+			seperated = raw_template.split(separator)
+			try:
+				tags = seperated[1].split(",")
+				regex_term = re.compile(seperated[0])
+				templates[regex_term] = tags
+			except IndexError:
+				regex_term = re.compile(raw_template)
+				templates[regex_term] = []
+	templates[re.compile("(.*)")] = []
+
+	# Create the blacklist, if it exists
+	blacklist = []
+	if blacklist_path != "":
+		blacklist_strings = _get_values(blacklist_path)
+		blacklist = _make_regex_list(blacklist_strings)
+
+	processed_terms = []
+	for term in terms:
+		if _blacklist_term(processed_terms, term, blacklist, blacklist_char, tagged=True):
+			continue
+		for template, tem_tags in templates.items():
+			match = template.fullmatch(term.get_original_term())
+			if match:
+				combined_matches = ' '.join(map(str, match.groups()))
+				if combined_matches:
+					_update_tagged_term(processed_terms, term, combined_matches, tem_tags)
+					break
+
+	if rem_duplicates:
+		processed_terms = _remove_duplicates(processed_terms)
+
+	return processed_terms
+
+def preprocess_terms(terms, template_path, output_file="", blacklist_path="", \
+	                 blacklist_char='', rem_duplicates=False):
 	# Form the templates as regular expressions
-	template_strings = _get_values(template_path)
+	template_strings = []
+	if template_path != "":
+		template_strings = _get_values(template_path)
 	template_strings.append("(.*)")
 	templates = _make_regex_list(template_strings)
 
@@ -35,33 +83,44 @@ def preprocess_terms(terms, template_path, output_file="", blacklist_path="", \
 		blacklist = _make_regex_list(blacklist_strings)
 
 	# Checks all terms against each blacklist then template
-	processed_terms = []
+	processed_terms = {}
 	for term in terms:
-		blacklisted = False
-		for banned in blacklist:
-			match = banned.fullmatch(term)
-			if match:
-				if blacklist_char != '':
-					processed_terms.append(blacklist_char)
-				blacklisted = True
-				break
-		if blacklisted:
+		if _blacklist_term(processed_terms, term, blacklist, blacklist_char):
 			continue
 		for template in templates:
 			match = template.fullmatch(term)
 			if match:
 				combined_matches = ' '.join(map(str, match.groups()))
 				if combined_matches:
-					processed_terms.append(combined_matches)
+					processed_terms[term] = combined_matches
 					break
 
-	if rem_duplicates == DupSetting.REM_AFTER or rem_duplicates == DupSetting.REM_BOTH:
+	if rem_duplicates:
 		processed_terms = _remove_duplicates(processed_terms)
 
 	if output_file != "":
 		with open(output_file, 'w') as fp:
-			fp.write('\n'.join(processed_terms))
+			fp.write('\n'.join(processed_terms.values()))
 	return processed_terms
+
+## Note: Because Python Dictionaries and Lists are passed by reference (sort of), updating the
+##			dictionary/list here will update the dictionary in the caller
+def _blacklist_term(processed_terms, term, blacklist, blacklist_char, tagged=False):
+	for banned in blacklist:
+		match = banned.fullmatch(term if type(term) is not TaggedTerm else term.get_original_term())
+		if match:
+			if blacklist_char != '':
+				if tagged:
+					_update_tagged_term(processed_terms, term, blacklist_char)
+				else:
+					processed_terms[term] = blacklist_char
+			return True
+	return False
+
+def _update_tagged_term(processed_terms, term, new_term, tags=[]):
+	term.update_term(new_term)
+	term.add_tags(tags)
+	processed_terms.append(term)
 
 def _get_values(path):
 	return open(path).read().splitlines()
@@ -72,5 +131,15 @@ def _make_regex_list(strings):
 		regexes.append(re.compile(string))
 	return regexes
 
-def _remove_duplicates(list):
-	return [*set(list)]
+def _remove_duplicates(terms):
+	if type(terms) is dict:
+		temp = {val : key for key, val in terms.items()}
+		final = {val : key for key, val in temp.items()}
+	else:
+		temp = []
+		final = []
+		for term in terms:
+			if term.get_term() not in temp:
+				temp.append(term.get_term())
+				final.append(term)
+	return final
