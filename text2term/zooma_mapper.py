@@ -33,9 +33,10 @@ class ZoomaMapper:
 
     def _map_term(self, source_term, source_term_id, ontologies, max_mappings, api_params):
         # see https://www.ebi.ac.uk/spot/zooma/docs/api for details of API parameters
+        #   If 'required:[none]' is specified, Zooma will search the OLS without looking into the datasources.
         params = {
             "propertyValue": onto_utils.normalize(source_term),
-            "filter": "required:[gwas,cttv,atlas,eva-clinvar,sysmicro],ontologies:[" + ontologies + "]"
+            "filter": "required:[none],ontologies:[" + ontologies + "]"
         }
         if len(api_params) > 0:
             params.update(api_params)

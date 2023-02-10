@@ -39,7 +39,7 @@ class SyntacticMapper:
     def _map(self, source_term, source_term_id, mapper, max_matches=3):
         self.logger.debug("Matching %s...", source_term)
         term_matches = []
-        for term in self.target_ontology_terms:
+        for term in self.target_ontology_terms.values():
             highest_similarity = 0.0
             for target_name in self._term_names(term):
                 similarity = self.compare(source_term, target_name, mapper)
