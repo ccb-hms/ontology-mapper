@@ -74,7 +74,7 @@ def map_tagged_terms(tagged_terms_dict, target_ontology, base_iris=(), excl_depr
         The dataframe returned is the same but contains a tags column
     """
     # If the input is a dict, use keys. If it is a list, it is a list of TaggedTerms
-    if tagged_terms_dict is dict:
+    if isinstance(tagged_terms_dict, dict):
         terms = list(tagged_terms_dict.keys())
     else:
         terms = [tagged_term.get_term() for tagged_term in tagged_terms_dict]
@@ -83,9 +83,9 @@ def map_tagged_terms(tagged_terms_dict, target_ontology, base_iris=(), excl_depr
                     save_graphs=save_graphs, source_terms_ids=source_terms_ids, use_cache=use_cache)
 
     # For each term in dict, add tags to corresponding mappings row in "Tags" Column
-    if tagged_terms_dict is dict:
+    if isinstance(tagged_terms_dict, dict):
         for key, value in tagged_terms_dict.items():
-            if value is list:
+            if isinstance(value, list):
                 to_store = ','.join(value)
             else:
                 to_store = str(value)
