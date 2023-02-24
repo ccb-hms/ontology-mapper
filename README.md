@@ -74,6 +74,7 @@ All other arguments are the same, and have the same functionality:
 
 `source_terms_ids` : tuple
     Collection of identifiers for the given source terms
+    WARNING: While this is still available for the tagged term function, it is worth noting that dictionaries do not necessarily preserve order, so it is not recommended. If using the TaggedTerm object, the source terms can be attached there to guarantee order.
 
 `excl_deprecated` : bool
     Exclude ontology terms stated as deprecated via `owl:deprecated true`
@@ -145,12 +146,14 @@ WARNING: Removing duplicates at any point does not guarantee which original term
 The non-tagged functions both return a dictionary where the keys are the original terms and the values are the preprocessed terms.
 The tagged function returns a list of TaggedTerm items with the following function contracts:
 ```python
-def __init__(self, term=None, tags=[], original_term=None)
+def __init__(self, term=None, tags=[], original_term=None, source_term_id=None)
 def add_tags(self, new_tags)
 def update_term(self, term)
+def update_source_term_id(self, source_term_id)
 def get_original_term(self)
 def get_term(self)
 def get_tags(self)
+def get_source_term_id(self)
 ```
 As mentioned in the mapping section above, this can then be passed directly to map_tagged_terms(), allowing for easy prgorammatic usage. Note that this allows multiple of the same preprocessed term with different tags. 
 
