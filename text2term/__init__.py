@@ -9,3 +9,4 @@ from .mapper import Mapper
 from .preprocess import preprocess_file
 from .preprocess import preprocess_terms
 from .preprocess import preprocess_tagged_terms
+from .tagged_terms import TaggedTerm

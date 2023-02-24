@@ -77,7 +77,16 @@ def map_tagged_terms(tagged_terms_dict, target_ontology, base_iris=(), excl_depr
     if isinstance(tagged_terms_dict, dict):
         terms = list(tagged_terms_dict.keys())
     else:
-        terms = [tagged_term.get_term() for tagged_term in tagged_terms_dict]
+        terms = []
+        source_terms_id_list = []
+        for tagged_term in tagged_terms_dict:
+            terms.append(tagged_term.get_term())
+            if tagged_term.get_source_term_id() != None:
+                source_terms_id_list.append(tagged_term.get_source_term_id())
+        if len(source_terms_id_list) > 0:
+            source_terms_ids = tuple(source_terms_id_list)
+
+    # Run the mapper
     df = map_terms(terms, target_ontology, base_iris=base_iris, excl_deprecated=excl_deprecated, \
                     max_mappings=max_mappings, min_score=min_score, mapper=mapper, output_file=output_file, \
                     save_graphs=save_graphs, source_terms_ids=source_terms_ids, use_cache=use_cache)
@@ -138,6 +147,8 @@ def map_terms(source_terms, target_ontology, base_iris=(), excl_deprecated=False
         Data frame containing the generated ontology mappings
     """
     if len(source_terms_ids) != len(source_terms):
+        if len(source_terms_ids) > 0:
+            sys.stderr.write("Warning: Source Term Ids are non-zero, but will not be used.")
         source_terms_ids = onto_utils.generate_iris(len(source_terms))
     if output_file == '':
         timestamp = datetime.datetime.now().strftime("%d-%m-%YT%H-%M-%S")
