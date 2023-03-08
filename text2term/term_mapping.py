@@ -5,7 +5,7 @@ import pandas as pd
 
 class TermMapping:
     SRC_TERM = "Source Term"
-    SRC_TERM_ID = "Source Term Id"
+    SRC_TERM_ID = "Source Term ID"
     TGT_TERM_LBL = "Mapped Term Label"
     TGT_TERM_IRI = "Mapped Term IRI"
     MAPPING_SCORE = "Mapping Score"
