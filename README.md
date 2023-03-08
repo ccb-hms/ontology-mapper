@@ -1,5 +1,5 @@
 # *text2term* ontology mapper
-A tool for mapping free-text descriptions of (biomedical) entities to controlled terms in an ontology. 
+A tool for mapping free-text descriptions of (biomedical) entities to controlled terms in ontologies. 
 
 ## Installation
 Install package using **pip**:

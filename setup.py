@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 
-version = '2.0.2'
-description = 'A tool for mapping free-text descriptions of (biomedical) entities to controlled terms in an ontology'
+version = '2.0.3'
+description = 'A tool for mapping free-text descriptions of (biomedical) entities to controlled terms in ontologies'
 long_description = open('README.md').read()
 
 with open('requirements.txt') as f:
