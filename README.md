@@ -105,16 +105,20 @@ Both functions return the same value:
 
 `df` : Data frame containing the generated ontology mappings
 
-### Caching
-As of version 1.1.0, users can now cache ontologies that they want to use regularly or quickly. Programatically, there are two steps to using the cache: creating the cache, then accessing it. First, the user can cache ontologies using either of two functions:
+### Ontology Caching
+As of version 1.1.0, users can cache ontologies that they want to use regularly or quickly. Programmatically, there are two steps to using the cache: creating the cache, then accessing it. First, the user can cache ontologies using either of two functions:
 
-`cache_ontology(ontology_url, ontology_acronym, base_iris=())`
-Or
-`cache_ontology_set(ontology_registry_path)`
+```python
+cache_ontology(ontology_url, ontology_acronym, base_iris=())
+```
+
+```python
+cache_ontology_set(ontology_registry_path)
+```
 
 The first of these will cache a single ontology from a URL or file path, with it being referenced by an acronym that will be used to reference it later. An example can be found below.
 The second function allows the user to cache several ontologies at once by referencing a CSV file of the format:
-`acronym,name,version,date,url,comments`
+`acronym,name,version,date,url,comments`. An example is provided in `resources/ontologies.csv`
 
 Once an ontology has been cached by either function, it is stored in a cache folder locally, and thus can be referenced even in different Python instances.
 
@@ -124,27 +128,31 @@ After an ontology is cached, the user can access the cache by using the assigned
 To clear the cache, one can call:
 `clear_cache(ontology_acronym='')`
 If no arguments are specified, the entire cache will be cleared. Otherwise, only the ontology with the given acronym will be cleared.
-Finally, `cache_exists(ontology_acronym)` is a simple program that returns `True` if the given acronym exists in the cache, and `False` otherwise. It is worth noting that while ontology URLs can repeat, acronyms must be distinct in a given environment.
+Finally, `cache_exists(ontology_acronym)` is a simple function that returns `True` if the given acronym exists in the cache, and `False` otherwise. It is worth noting that while ontology URLs can repeat, acronyms must be distinct in a given environment.
 
-### Preprocessing
-As of version 1.2.0, text2term now includes a simple preprocessing functionality for input. Specifically, these functions take the original input text and Regex expressions, then match each text to a regular expression to simplify the input.
+### Input Preprocessing
+As of version 1.2.0, text2term includes regex-based preprocessing functionality for input terms. Specifically, these functions take the input terms and a collection of (user-defined) regular expressions, then match each term to each regular expression to simplify the input term.
 
-Like the "map" functions above, the two functions differ on whether is input is a file or a list of strings:
-`preprocess_file(file_path, template_path, output_file="", blacklist_path="", blacklist_char='', rem_duplicates=DupSetting.NO_REM)`
-or
-`preprocess_terms(terms, template_path, output_file="", blacklist_path="", blacklist_char='', rem_duplicates=DupSetting.NO_REM)`
-or 
-`preprocess_tagged_terms(file_path, template_path="", blacklist_path="", blacklist_char='', rem_duplicates=False, separator=";:;")`
+Like the "map" functions above, the two functions differ on whether the input is a file or a list of strings:
+```python
+preprocess_file(file_path, template_path, output_file='', blacklist_path='', blacklist_char='', rem_duplicates=False)
+```
+```python
+preprocess_terms(terms, template_path, output_file='', blacklist_path='', blacklist_char='', rem_duplicates=False)
+``` 
+```python
+preprocess_tagged_terms(file_path, template_path='', blacklist_path='', blacklist_char='', rem_duplicates=False, separator=';:;')
+```
 
-In all cases, the templates and the blacklist must be stored in a newline seperated file. If an output file is specified, the preprocessed strings are written to that file and the list is passed back regardless.
+In all cases, the regex templates and blacklist must be stored in a newline-separated file. If an output file is specified, the preprocessed strings are written to that file and the list of preprocessed strings is returned.
 
 The blacklist functionality allows the user to specify another regex file. If any terms match any regex in blacklist, they are removed from the terms, or, if a blacklist character is specified, replaced with that character for placeholding.
 
-The Remove Duplicates functionality will remove all duplicate terms after processing, if true. 
+The Remove Duplicates `rem_duplicates` functionality will remove all duplicate terms after processing, if set to `True`. 
 WARNING: Removing duplicates at any point does not guarantee which original term is kept. This is particularly important if original terms have different tags, so user caution is advised.
 
-The non-tagged functions both return a dictionary where the keys are the original terms and the values are the preprocessed terms.
-The tagged function returns a list of TaggedTerm items with the following function contracts:
+The functions `preprocess_file()` and `preprocess_terms()` both return a dictionary where the keys are the original terms and the values are the preprocessed terms.
+The `preprocess_tagged_terms()` function returns a list of TaggedTerm items with the following function contracts:
 ```python
 def __init__(self, term=None, tags=[], original_term=None, source_term_id=None)
 def add_tags(self, new_tags)
@@ -155,7 +163,9 @@ def get_term(self)
 def get_tags(self)
 def get_source_term_id(self)
 ```
-As mentioned in the mapping section above, this can then be passed directly to map_tagged_terms(), allowing for easy prgorammatic usage. Note that this allows multiple of the same preprocessed term with different tags. 
+As mentioned in the mapping section above, this can then be passed directly to map_tagged_terms(), allowing for easy programmatic usage. Note that this allows multiple of the same preprocessed term with different tags. 
+
+**Note on NA values in input**: As of v2.0.3, when the input to text2term is a table file, any rows that contain `NA` values in the specified term column, or in the term ID column (if provided), will be ignored.
 
 ## Command Line Usage
 
@@ -194,18 +204,18 @@ To display a help message with descriptions of tool arguments do:
 
 ## Examples
 ### Programmatic
-```
+```python
 import text2term
 import pandas
 
 df1 = text2term.map_file(unstruct_terms.txt, "http://www.ebi.ac.uk/efo/efo.owl")
-df2 = text2term.map_terms(["asthma", "colon cancer"], "http://www.ebi.ac.uk/efo/efo.owl")
+df2 = text2term.map_terms(["asthma", "acute bronchitis"], "http://www.ebi.ac.uk/efo/efo.owl")
 ```
 Below is an example of caching, assuming the same imports as above:
-```
+```python
 text2term.cache_ontology("http://www.ebi.ac.uk/efo/efo.owl", "EFO")
 df1 = text2term.map_file(unstruct_terms.txt, "EFO", use_cache=True)
-df2 = text2term.map_terms(["asthma", "colon cancer"], "EFO", use_cache=True)
+df2 = text2term.map_terms(["asthma", "acute bronchitis"], "EFO", use_cache=True)
 text2term.clear_cache("EFO")
 ```
 
