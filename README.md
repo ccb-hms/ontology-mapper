@@ -118,7 +118,7 @@ cache_ontology_set(ontology_registry_path)
 
 The first of these will cache a single ontology from a URL or file path, with it being referenced by an acronym that will be used to reference it later. An example can be found below.
 The second function allows the user to cache several ontologies at once by referencing a CSV file of the format:
-`acronym,name,version,date,url,comments`. An example is provided in `resources/ontologies.csv`
+`acronym,version,url`. An example is provided in `resources/ontologies.csv`
 
 Once an ontology has been cached by either function, it is stored in a cache folder locally, and thus can be referenced even in different Python instances.
 
