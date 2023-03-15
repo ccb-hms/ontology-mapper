@@ -1,12 +1,14 @@
 """Provides TermMapping and TermMappingCollection classes"""
 
 import pandas as pd
+import onto_utils
 
 
 class TermMapping:
     SRC_TERM = "Source Term"
     SRC_TERM_ID = "Source Term ID"
     TGT_TERM_LBL = "Mapped Term Label"
+    TGT_TERM_CURIE = "Mapped Term CURIE"
     TGT_TERM_IRI = "Mapped Term IRI"
     MAPPING_SCORE = "Mapping Score"
 
@@ -42,6 +44,7 @@ class TermMapping:
             self.SRC_TERM_ID: self.source_term_id,
             self.SRC_TERM: self.source_term,
             self.TGT_TERM_LBL: self.mapped_term_label,
+            self.TGT_TERM_CURIE: onto_utils.curie_from_iri(self.mapped_term_iri),
             self.TGT_TERM_IRI: self.mapped_term_iri,
             self.MAPPING_SCORE: self.mapping_score
         }

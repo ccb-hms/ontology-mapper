@@ -56,7 +56,12 @@ def remove_whitespace(string):
 
 
 def curie_from_iri(iri):
-    return bioregistry.curie_from_iri(iri)
+    curie = bioregistry.curie_from_iri(iri)
+    if curie is None:
+        sys.stderr.write("Error obtaining CURIE for IRI: " + iri)
+        return ""
+    else:
+        return curie.upper()
 
 
 def label_from_iri(iri):
