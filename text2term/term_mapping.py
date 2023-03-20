@@ -1,7 +1,7 @@
 """Provides TermMapping and TermMappingCollection classes"""
 
 import pandas as pd
-import onto_utils
+from text2term import onto_utils
 
 
 class TermMapping:
