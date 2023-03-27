@@ -1,11 +1,11 @@
-acronym,name,version,date,url,comments
-CLO,Cell Line Ontology,2.1.178,3/20/22,http://purl.obolibrary.org/obo/clo.owl,non-versioned IRI
-CL,Cell Ontology,9/15/22,9/15/22,http://purl.obolibrary.org/obo/cl/releases/2022-09-15/cl.owl,
-EFO,Experimental Factor Ontology,3.46.0,9/15/22,https://github.com/EBISPOT/efo/releases/download/v3.46.0/efo.owl,
-GO,Gene Ontology,9/19/22,9/19/22,http://purl.obolibrary.org/obo/go/releases/2022-09-19/go.owl,
-HPO,Human Phenotype Ontology,6/11/22,6/11/22,http://purl.obolibrary.org/obo/hp/releases/2022-06-11/hp.owl,
-MONDO,Monarch Disease Ontology,8/1/22,8/1/22,http://purl.obolibrary.org/obo/mondo/releases/2022-08-01/mondo.owl,
-NCIT,NCI Thesaurus,22.07d,8/19/22,http://purl.obolibrary.org/obo/ncit/releases/2022-08-19/ncit.owl,
-PRO,Protein Ontology,67,8/8/22,http://purl.obolibrary.org/obo/pr/67.0/pr.owl,
-UBERON,Uber-anatomy ontology,8/19/22,8/19/22,http://purl.obolibrary.org/obo/uberon/releases/2022-08-19/uberon.owl,
-MP,Mammalian Phenotype Ontology,8/4/22,8/4/22,http://purl.obolibrary.org/obo/mp/releases/2022-08-04/mp.owl,
+acronym,version,url
+CLO,2.1.178,http://purl.obolibrary.org/obo/clo.owl
+CL,9/15/22,http://purl.obolibrary.org/obo/cl/releases/2022-09-15/cl.owl
+EFO,3.46.0,https://github.com/EBISPOT/efo/releases/download/v3.46.0/efo.owl
+GO,9/19/22,http://purl.obolibrary.org/obo/go/releases/2022-09-19/go.owl
+HPO,6/11/22,http://purl.obolibrary.org/obo/hp/releases/2022-06-11/hp.owl
+MONDO,8/1/22,http://purl.obolibrary.org/obo/mondo/releases/2022-08-01/mondo.owl
+NCIT,22.07d,http://purl.obolibrary.org/obo/ncit/releases/2022-08-19/ncit.owl
+PRO,67,http://purl.obolibrary.org/obo/pr/67.0/pr.owl
+UBERON,8/19/22,http://purl.obolibrary.org/obo/uberon/releases/2022-08-19/uberon.owl
+MP,8/4/22,http://purl.obolibrary.org/obo/mp/releases/2022-08-04/mp.owl

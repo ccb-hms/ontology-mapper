@@ -56,7 +56,12 @@ def remove_whitespace(string):
 
 
 def curie_from_iri(iri):
-    return bioregistry.curie_from_iri(iri)
+    curie = bioregistry.curie_from_iri(iri)
+    if curie is None:
+        sys.stderr.write("Error obtaining CURIE for IRI: " + iri)
+        return ""
+    else:
+        return curie.upper()
 
 
 def label_from_iri(iri):
@@ -115,6 +120,7 @@ def parse_list_file(file_path):
 
 def parse_csv_file(file_path, term_column_name, term_id_column_name, separator=','):
     data = pd.read_csv(file_path, sep=separator, engine='python')
+    data = data.dropna(subset=[term_column_name, term_id_column_name])
     if term_column_name not in data.columns:
         raise ValueError("Could not find specified column name for input terms: " + term_column_name)
     terms = data[term_column_name].values
