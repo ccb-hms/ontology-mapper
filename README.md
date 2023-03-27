@@ -135,18 +135,19 @@ As of version 1.2.0, text2term includes regex-based preprocessing functionality 
 
 Like the "map" functions above, the two functions differ on whether the input is a file or a list of strings:
 ```python
-preprocess_file(file_path, template_path, output_file='', blacklist_path='', blacklist_char='', rem_duplicates=False)
+preprocess_file(file_path, template_path, output_file='', blocklist_path='', blocklist_char='', rem_duplicates=False)
 ```
 ```python
-preprocess_terms(terms, template_path, output_file='', blacklist_path='', blacklist_char='', rem_duplicates=False)
+preprocess_terms(terms, template_path, output_file='', blocklist_path='', blocklist_char='', rem_duplicates=False)
 ``` 
 ```python
-preprocess_tagged_terms(file_path, template_path='', blacklist_path='', blacklist_char='', rem_duplicates=False, separator=';:;')
+preprocess_tagged_terms(file_path, template_path='', blocklist_path='', blocklist_char='', rem_duplicates=False, separator=';:;')
 ```
 
-In all cases, the regex templates and blacklist must be stored in a newline-separated file. If an output file is specified, the preprocessed strings are written to that file and the list of preprocessed strings is returned.
+In all cases, the regex templates and blocklist must be stored in a newline-separated file. If an output file is specified, the preprocessed strings are written to that file and the list of preprocessed strings is returned.
 
-The blacklist functionality allows the user to specify another regex file. If any terms match any regex in blacklist, they are removed from the terms, or, if a blacklist character is specified, replaced with that character for placeholding.
+The blocklist functionality allows the user to specify another regex file. If any terms match any regex in blocklist, they are removed from the terms, or, if a blocklist character is specified, replaced with that character for placeholding. 
+NOTE: As of version 2.1.0, the arguments were changed to "blocklist" from "blacklist". Backwards compatibility is currently supported, but will likely be discontinued at the next major release.
 
 The Remove Duplicates `rem_duplicates` functionality will remove all duplicate terms after processing, if set to `True`. 
 WARNING: Removing duplicates at any point does not guarantee which original term is kept. This is particularly important if original terms have different tags, so user caution is advised.

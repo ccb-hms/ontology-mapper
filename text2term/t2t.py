@@ -1,5 +1,4 @@
 """Provides Text2Term class"""
-
 import os
 import sys
 import json
@@ -17,62 +16,63 @@ from text2term.bioportal_mapper import BioPortalAnnotatorMapper
 from text2term.syntactic_mapper import SyntacticMapper
 from text2term.tfidf_mapper import TFIDFMapper
 from text2term.zooma_mapper import ZoomaMapper
+from text2term.config import VERSION
 
+"""
+Maps the terms in the given input file to the specified target ontology.
+
+Parameters
+----------
+input_file : str
+    Path to input file containing 'source' terms to map to ontology terms (list of terms or CSV file)
+target_ontology : str
+    Path or URL of 'target' ontology to map the source terms to. When the chosen mapper is BioPortal or Zooma,
+    provide a comma-separated list of ontology acronyms (eg 'EFO,HPO') or write 'all' to search all ontologies
+base_iris : tuple
+    Map only to ontology terms whose IRIs start with one of the strings given in this tuple, for example:
+    ('http://www.ebi.ac.uk/efo','http://purl.obolibrary.org/obo/HP')
+csv_columns : tuple
+    Name of the column that contains the terms to map, optionally followed by the name of the column that
+    contains identifiers for the terms (eg 'my_terms,my_term_ids')
+separator : str
+    Specifies the cell separator to be used when reading a non-comma-separated tabular file
+excl_deprecated : bool
+    Exclude ontology terms stated as deprecated via `owl:deprecated true`
+mapper : mapper.Mapper
+    Method used to compare source terms with ontology terms. One of: levenshtein, jaro, jarowinkler, jaccard,
+    fuzzy, tfidf, zooma, bioportal
+max_mappings : int
+    Maximum number of top-ranked mappings returned per source term
+min_score : float
+    Minimum similarity score [0,1] for the mappings (1=exact match)
+output_file : str
+    Path to desired output file for the mappings
+save_graphs : bool
+    Save vis.js graphs representing the neighborhood of each ontology term
+save_mappings : bool
+    Save the generated mappings to a file (specified by `output_file`)
+
+Returns
+----------
+df
+    Data frame containing the generated ontology mappings
+"""
 def map_file(input_file, target_ontology, base_iris=(), csv_columns=(), excl_deprecated=False, max_mappings=3,
              mapper=Mapper.TFIDF, min_score=0.3, output_file='', save_graphs=False, save_mappings=False,
              separator=',', use_cache=False):
-    """
-    Maps the terms in the given input file to the specified target ontology.
-
-    Parameters
-    ----------
-    input_file : str
-        Path to input file containing 'source' terms to map to ontology terms (list of terms or CSV file)
-    target_ontology : str
-        Path or URL of 'target' ontology to map the source terms to. When the chosen mapper is BioPortal or Zooma,
-        provide a comma-separated list of ontology acronyms (eg 'EFO,HPO') or write 'all' to search all ontologies
-    base_iris : tuple
-        Map only to ontology terms whose IRIs start with one of the strings given in this tuple, for example:
-        ('http://www.ebi.ac.uk/efo','http://purl.obolibrary.org/obo/HP')
-    csv_columns : tuple
-        Name of the column that contains the terms to map, optionally followed by the name of the column that
-        contains identifiers for the terms (eg 'my_terms,my_term_ids')
-    separator : str
-        Specifies the cell separator to be used when reading a non-comma-separated tabular file
-    excl_deprecated : bool
-        Exclude ontology terms stated as deprecated via `owl:deprecated true`
-    mapper : mapper.Mapper
-        Method used to compare source terms with ontology terms. One of: levenshtein, jaro, jarowinkler, jaccard,
-        fuzzy, tfidf, zooma, bioportal
-    max_mappings : int
-        Maximum number of top-ranked mappings returned per source term
-    min_score : float
-        Minimum similarity score [0,1] for the mappings (1=exact match)
-    output_file : str
-        Path to desired output file for the mappings
-    save_graphs : bool
-        Save vis.js graphs representing the neighborhood of each ontology term
-    save_mappings : bool
-        Save the generated mappings to a file (specified by `output_file`)
-
-    Returns
-    ----------
-    df
-        Data frame containing the generated ontology mappings
-    """
     source_terms, source_terms_ids = _load_data(input_file, csv_columns, separator)
     return map_terms(source_terms, target_ontology, source_terms_ids=source_terms_ids, base_iris=base_iris,
                     excl_deprecated=excl_deprecated, max_mappings=max_mappings, mapper=mapper, min_score=min_score,
                     output_file=output_file, save_graphs=save_graphs, save_mappings=save_mappings, use_cache=use_cache)
 
+"""
+All parameters are the same as below, but tagged_terms_dict is a dictionary where the 
+    key is the source term and the value is a list of all tags (or a single string for 
+    one tag). It can also be a list of TaggedTerm objects. 
+    The dataframe returned is the same but contains a tags column
+"""
 def map_tagged_terms(tagged_terms_dict, target_ontology, base_iris=(), excl_deprecated=False, max_mappings=3, min_score=0.3,
         mapper=Mapper.TFIDF, output_file='', save_graphs=False, save_mappings=False, source_terms_ids=(), use_cache=False):
-    """
-    All parameters are the same as below, but tagged_terms_dict is a dictionary where the 
-        key is the source term and the value is a list of all tags (or a single string for 
-        one tag). It can also be a list of TaggedTerm objects. 
-        The dataframe returned is the same but contains a tags column
-    """
     # If the input is a dict, use keys. If it is a list, it is a list of TaggedTerms
     if isinstance(tagged_terms_dict, dict):
         terms = list(tagged_terms_dict.keys())
@@ -105,47 +105,47 @@ def map_tagged_terms(tagged_terms_dict, target_ontology, base_iris=(), excl_depr
             df.loc[df['Source Term'] == term.get_term(), "Tags"] = to_store
 
     if save_mappings:
-        _save_mappings(df, output_file)
+        _save_mappings(df, output_file, min_score, mapper, target_ontology, base_iris, excl_deprecated, max_mappings)
     return df
 
+"""
+Maps the terms in the given list to the specified target ontology.
+
+Parameters
+----------
+source_terms : list
+    List of 'source' terms to map to ontology terms
+target_ontology : str
+    Path or URL of 'target' ontology to map the source terms to. When the chosen mapper is BioPortal or Zooma,
+    provide a comma-separated list of ontology acronyms (eg 'EFO,HPO') or write 'all' to search all ontologies
+base_iris : tuple
+    Map only to ontology terms whose IRIs start with one of the strings given in this tuple, for example:
+    ('http://www.ebi.ac.uk/efo','http://purl.obolibrary.org/obo/HP')
+source_terms_ids : tuple
+    Collection of identifiers for the given source terms
+excl_deprecated : bool
+    Exclude ontology terms stated as deprecated via `owl:deprecated true`
+mapper : mapper.Mapper
+    Method used to compare source terms with ontology terms. One of: levenshtein, jaro, jarowinkler, jaccard,
+    fuzzy, tfidf, zooma, bioportal
+max_mappings : int
+    Maximum number of top-ranked mappings returned per source term
+min_score : float
+    Minimum similarity score [0,1] for the mappings (1=exact match)
+output_file : str
+    Path to desired output file for the mappings
+save_graphs : bool
+    Save vis.js graphs representing the neighborhood of each ontology term
+save_mappings : bool
+    Save the generated mappings to a file (specified by `output_file`)
+
+Returns
+----------
+df
+    Data frame containing the generated ontology mappings
+"""
 def map_terms(source_terms, target_ontology, base_iris=(), excl_deprecated=False, max_mappings=3, min_score=0.3,
         mapper=Mapper.TFIDF, output_file='', save_graphs=False, save_mappings=False, source_terms_ids=(), use_cache=False):
-    """
-    Maps the terms in the given list to the specified target ontology.
-
-    Parameters
-    ----------
-    source_terms : list
-        List of 'source' terms to map to ontology terms
-    target_ontology : str
-        Path or URL of 'target' ontology to map the source terms to. When the chosen mapper is BioPortal or Zooma,
-        provide a comma-separated list of ontology acronyms (eg 'EFO,HPO') or write 'all' to search all ontologies
-    base_iris : tuple
-        Map only to ontology terms whose IRIs start with one of the strings given in this tuple, for example:
-        ('http://www.ebi.ac.uk/efo','http://purl.obolibrary.org/obo/HP')
-    source_terms_ids : tuple
-        Collection of identifiers for the given source terms
-    excl_deprecated : bool
-        Exclude ontology terms stated as deprecated via `owl:deprecated true`
-    mapper : mapper.Mapper
-        Method used to compare source terms with ontology terms. One of: levenshtein, jaro, jarowinkler, jaccard,
-        fuzzy, tfidf, zooma, bioportal
-    max_mappings : int
-        Maximum number of top-ranked mappings returned per source term
-    min_score : float
-        Minimum similarity score [0,1] for the mappings (1=exact match)
-    output_file : str
-        Path to desired output file for the mappings
-    save_graphs : bool
-        Save vis.js graphs representing the neighborhood of each ontology term
-    save_mappings : bool
-        Save the generated mappings to a file (specified by `output_file`)
-
-    Returns
-    ----------
-    df
-        Data frame containing the generated ontology mappings
-    """
     if len(source_terms_ids) != len(source_terms):
         if len(source_terms_ids) > 0:
             sys.stderr.write("Warning: Source Term Ids are non-zero, but will not be used.")
@@ -159,7 +159,7 @@ def map_terms(source_terms, target_ontology, base_iris=(), excl_deprecated=False
         target_terms = _load_ontology(target_ontology, base_iris, excl_deprecated, use_cache)
     mappings_df = _do_mapping(source_terms, source_terms_ids, target_terms, mapper, max_mappings, min_score)
     if save_mappings:
-        _save_mappings(mappings_df, output_file)
+        _save_mappings(mappings_df, output_file, min_score, mapper, target_ontology, base_iris, excl_deprecated, max_mappings)
     if save_graphs:
         _save_graphs(target_terms, output_file)
     return mappings_df
@@ -255,10 +255,20 @@ def _do_mapping(source_terms, source_term_ids, ontology_terms, mapper, max_mappi
     else:
         raise ValueError("Unsupported mapper: " + mapper)
 
-def _save_mappings(mappings, output_file):
+def _save_mappings(mappings, output_file, min_score, mapper, target_ontology, base_iris, excl_deprecated, max_mappings):
     if os.path.dirname(output_file):  # create output directories if needed
         os.makedirs(os.path.dirname(output_file), exist_ok=True)
-    mappings.to_csv(output_file, index=False)
+    with open(output_file, "a") as f:
+        f.write("# Date and time run: %s\n" % datetime.datetime.now())
+        f.write("# Target Ontology: %s\n" % target_ontology)
+        f.write("# Text2term version: %s\n" % VERSION)
+        f.write("# Minimum Score: %.2f\n" % min_score)
+        f.write("# Mapper: %s\n" % mapper.value)
+        f.write("# Base IRIs: %s\n" % (base_iris,))
+        f.write("# Max Mappings: %d\n" % max_mappings)
+        f.write("# Depricated Terms ")
+        f.write("Excluded\n" if excl_deprecated else "Included\n")
+    mappings.to_csv(output_file, index=False, mode='a')
 
 def _save_graphs(terms, output_file):
     term_graphs = TermGraphGenerator(terms).graphs_dicts()

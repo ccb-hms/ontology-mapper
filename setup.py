@@ -1,6 +1,6 @@
 from setuptools import setup, find_packages
+from text2term.config import VERSION
 
-version = '2.0.3'
 description = 'A tool for mapping free-text descriptions of (biomedical) entities to controlled terms in ontologies'
 long_description = open('README.md').read()
 
@@ -9,7 +9,7 @@ with open('requirements.txt') as f:
 
 setup(
     name='text2term',
-    version=version,
+    version=VERSION,
     install_requires=requirements,
     packages=find_packages(),
     include_package_data=True,

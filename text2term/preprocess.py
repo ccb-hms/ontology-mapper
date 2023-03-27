@@ -3,11 +3,17 @@ import os
 from enum import Enum
 from .tagged_terms import TaggedTerm
 
-def preprocess_file(file_path, template_path, output_file="", blacklist_path="", \
-	                blacklist_char='', rem_duplicates=False):
+def preprocess_file(file_path, template_path, output_file="", blocklist_path="", \
+	                blocklist_char='', blacklist_path="", blacklist_char='', \
+	                rem_duplicates=False):
+	# Allows backwards compatibility to blacklist. Will eventually be deleted
+	if blocklist_char == '':
+		blocklist_char = blacklist_char
+	if blocklist_path == "":
+		blocklist_path = blacklist_path
 	terms = _get_values(file_path)
 	processed_terms = preprocess_terms(terms, template_path, output_file=output_file, \
-					blacklist_path=blacklist_path, blacklist_char=blacklist_char, \
+					blocklist_path=blocklist_path, blocklist_char=blocklist_char, \
 					rem_duplicates=rem_duplicates)
 
 	return processed_terms
@@ -15,8 +21,14 @@ def preprocess_file(file_path, template_path, output_file="", blacklist_path="",
 ## Tags should be stored with their terms in the same line, delineated by ";:;" 
 ##		ex: Age when diagnosed with (.*) ;:; age,diagnosis
 ##		"Age when diagnosed with cancer" becomes: {"cancer", ["age", "diagnosis"]}
-def preprocess_tagged_terms(file_path, template_path="", blacklist_path="", \
-	                		blacklist_char='', rem_duplicates=False, separator=";:;"):
+def preprocess_tagged_terms(file_path, template_path="", blocklist_path="", \
+	                 		blocklist_char='', blacklist_path="", blacklist_char='', \
+	                 		rem_duplicates=False, separator=";:;"):
+	# Allows backwards compatibility to blacklist. Will eventually be deleted
+	if blocklist_char == '':
+		blocklist_char = blacklist_char
+	if blocklist_path == "":
+		blocklist_path = blacklist_path
 	# Seperate tags from the terms, put in TaggedTerm and add to list
 	raw_terms = _get_values(file_path)
 	terms = []
@@ -44,15 +56,15 @@ def preprocess_tagged_terms(file_path, template_path="", blacklist_path="", \
 				templates[regex_term] = []
 	templates[re.compile("(.*)")] = []
 
-	# Create the blacklist, if it exists
-	blacklist = []
-	if blacklist_path != "":
-		blacklist_strings = _get_values(blacklist_path)
-		blacklist = _make_regex_list(blacklist_strings)
+	# Create the blocklist, if it exists
+	blocklist = []
+	if blocklist_path != "":
+		blocklist_strings = _get_values(blocklist_path)
+		blocklist = _make_regex_list(blocklist_strings)
 
 	processed_terms = []
 	for term in terms:
-		if _blacklist_term(processed_terms, term, blacklist, blacklist_char, tagged=True):
+		if _blocklist_term(processed_terms, term, blocklist, blocklist_char, tagged=True):
 			continue
 		for template, tem_tags in templates.items():
 			match = template.fullmatch(term.get_original_term())
@@ -67,8 +79,14 @@ def preprocess_tagged_terms(file_path, template_path="", blacklist_path="", \
 
 	return processed_terms
 
-def preprocess_terms(terms, template_path, output_file="", blacklist_path="", \
-	                 blacklist_char='', rem_duplicates=False):
+def preprocess_terms(terms, template_path, output_file="", blocklist_path="", \
+	                 blocklist_char='', blacklist_path="", blacklist_char='', \
+	                 rem_duplicates=False):
+	# Allows backwards compatibility to blacklist. Will eventually be deleted
+	if blocklist_char == '':
+		blocklist_char = blacklist_char
+	if blocklist_path == "":
+		blocklist_path = blacklist_path
 	# Form the templates as regular expressions
 	template_strings = []
 	if template_path != "":
@@ -76,16 +94,16 @@ def preprocess_terms(terms, template_path, output_file="", blacklist_path="", \
 	template_strings.append("(.*)")
 	templates = _make_regex_list(template_strings)
 
-	# Create the blacklist, if it exists
-	blacklist = []
-	if blacklist_path != "":
-		blacklist_strings = _get_values(blacklist_path)
-		blacklist = _make_regex_list(blacklist_strings)
+	# Create the blocklist, if it exists
+	blocklist = []
+	if blocklist_path != "":
+		blocklist_strings = _get_values(blocklist_path)
+		blocklist = _make_regex_list(blocklist_strings)
 
-	# Checks all terms against each blacklist then template
+	# Checks all terms against each blocklist then template
 	processed_terms = {}
 	for term in terms:
-		if _blacklist_term(processed_terms, term, blacklist, blacklist_char):
+		if _blocklist_term(processed_terms, term, blocklist, blocklist_char):
 			continue
 		for template in templates:
 			match = template.fullmatch(term)
@@ -105,15 +123,15 @@ def preprocess_terms(terms, template_path, output_file="", blacklist_path="", \
 
 ## Note: Because Python Dictionaries and Lists are passed by reference (sort of), updating the
 ##			dictionary/list here will update the dictionary in the caller
-def _blacklist_term(processed_terms, term, blacklist, blacklist_char, tagged=False):
-	for banned in blacklist:
+def _blocklist_term(processed_terms, term, blocklist, blocklist_char, tagged=False):
+	for banned in blocklist:
 		match = banned.fullmatch(term if type(term) is not TaggedTerm else term.get_original_term())
 		if match:
-			if blacklist_char != '':
+			if blocklist_char != '':
 				if tagged:
-					_update_tagged_term(processed_terms, term, blacklist_char)
+					_update_tagged_term(processed_terms, term, blocklist_char)
 				else:
-					processed_terms[term] = blacklist_char
+					processed_terms[term] = blocklist_char
 			return True
 	return False
 
