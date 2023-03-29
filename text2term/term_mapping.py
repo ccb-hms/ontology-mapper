@@ -36,6 +36,10 @@ class TermMapping:
         return self._mapped_term_iri
 
     @property
+    def mapped_term_curie(self):
+        return onto_utils.curie_from_iri(self.mapped_term_iri)
+
+    @property
     def mapping_score(self):
         return self._mapping_score
 
@@ -44,7 +48,7 @@ class TermMapping:
             self.SRC_TERM_ID: self.source_term_id,
             self.SRC_TERM: self.source_term,
             self.TGT_TERM_LBL: self.mapped_term_label,
-            self.TGT_TERM_CURIE: onto_utils.curie_from_iri(self.mapped_term_iri),
+            self.TGT_TERM_CURIE: self.mapped_term_curie,
             self.TGT_TERM_IRI: self.mapped_term_iri,
             self.MAPPING_SCORE: self.mapping_score
         }
