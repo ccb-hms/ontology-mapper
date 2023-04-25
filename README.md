@@ -7,6 +7,45 @@ Install package using **pip**:
 ```
 pip install text2term
 ```
+## Examples
+### Programmatic
+```python
+import text2term
+import pandas
+
+df1 = text2term.map_file(unstruct_terms.txt, "http://www.ebi.ac.uk/efo/efo.owl")
+df2 = text2term.map_terms(["asthma", "acute bronchitis"], "http://www.ebi.ac.uk/efo/efo.owl")
+```
+Below is an example of caching, assuming the same imports as above:
+```python
+text2term.cache_ontology("http://www.ebi.ac.uk/efo/efo.owl", "EFO")
+df1 = text2term.map_file(unstruct_terms.txt, "EFO", use_cache=True)
+df2 = text2term.map_terms(["asthma", "acute bronchitis"], "EFO", use_cache=True)
+text2term.clear_cache("EFO")
+```
+
+### Command Line
+The basic use of the tool requires a `source` file containing a list of terms to map to the given `target` ontology:  
+`python text2term -s unstruct_terms.txt -t http://www.ebi.ac.uk/efo/efo.owl`
+
+Specify an output file where the mappings should be saved using `-o`:  
+`python text2term -s unstruct_terms.txt -t efo.owl -o /Documents/my-mappings.csv`
+
+Set the minimum acceptable similarity score for mapping each given term to an ontology term using `-min`:  
+`python text2term -s unstruct_terms.txt -t efo.owl -min 0.8`  
+The mapped terms returned will have been determined to be 0.8 similar to their source terms in a 0-1 scale.  
+
+Exclude deprecated ontology terms (declared as such via *owl:deprecated true*) using `-d`:  
+`python text2term -s unstruct_terms.txt -t efo.owl -d`
+
+Limit search to only terms whose IRIs start with any IRI given in a list specified using `-iris`:  
+`python text2term.py -s unstruct_terms.txt -t efo.owl -iris http://www.ebi.ac.uk/efo/EFO,http://purl.obolibrary.org/obo/HP`  
+Here, because EFO reuses terms from other ontologies such as HP and GO, the HP terms would be included but the GO terms would be excluded.
+
+Use the cache on the command line, first by flagging it, then in the future using the acronym:
+`python text2term -s unstruct_terms.txt -t http://www.ebi.ac.uk/efo/efo.owl -c EFO`
+Then, after running this, the following command is equivalent:
+`python text2term -s unstruct_terms.txt -t EFO`
 
 ## Programmatic Usage
 The tool can be executed in Python with any of the three following functions:
@@ -24,7 +63,8 @@ text2term.map_file(input_file='/some/file.txt',
                    save_graphs=False, 
                    save_mappings=False, 
                    separator=',', 
-                   use_cache=False)
+                   use_cache=False,
+                   term_type='classes')
 ```
 or
 ```python
@@ -39,7 +79,8 @@ text2term.map_terms(source_terms=['term one', 'term two'],
                     save_graphs=False,
                     save_mappings=False,
                     source_terms_ids=(),
-                    use_cache=False)
+                    use_cache=False,
+                    term_type='classes')
 ```
 or
 ```python
@@ -54,7 +95,8 @@ text2term.map_tagged_terms(tagged_terms_dict={'term one': ["tag 1", "tag 2"]},
                     save_graphs=False,
                     save_mappings=False,
                     source_terms_ids=(),
-                    use_cache=False)
+                    use_cache=False,
+                    term_type='classes')
 ```
 
 ### Arguments
@@ -98,6 +140,12 @@ All other arguments are the same, and have the same functionality:
 `save_mappings` : bool
     Save the generated mappings to a file (specified by `output_file`) 
 
+`use_cache` : bool
+    Use the cache for the ontology. More details are below.
+
+`term_type` : str
+    Determines whether the ontology should be parsed for its classes (ThingClass), properties (PropertyClass), or both. Possible values are ['classes', 'properties', 'both']. If it does not match one of these values, the program will throw a ValueError.
+
 All default values, if they exist, can be seen above.
 
 ### Return Value
@@ -116,7 +164,7 @@ cache_ontology(ontology_url, ontology_acronym, base_iris=())
 cache_ontology_set(ontology_registry_path)
 ```
 
-The first of these will cache a single ontology from a URL or file path, with it being referenced by an acronym that will be used to reference it later. An example can be found below.
+The first of these will cache a single ontology from a URL or file path, with it being referenced by an acronym that will be used to reference it later. An example can be found above.
 The second function allows the user to cache several ontologies at once by referencing a CSV file of the format:
 `acronym,version,url`. An example is provided in `resources/ontologies.csv`
 
@@ -128,7 +176,7 @@ After an ontology is cached, the user can access the cache by using the assigned
 To clear the cache, one can call:
 `clear_cache(ontology_acronym='')`
 If no arguments are specified, the entire cache will be cleared. Otherwise, only the ontology with the given acronym will be cleared.
-Finally, `cache_exists(ontology_acronym)` is a simple function that returns `True` if the given acronym exists in the cache, and `False` otherwise. It is worth noting that while ontology URLs can repeat, acronyms must be distinct in a given environment.
+Finally, `cache_exists(ontology_acronym='')` is a simple function that returns `True` if the given acronym exists in the cache, and `False` otherwise. It is worth noting that while ontology URLs can repeat, acronyms must be distinct in a given environment.
 
 ### Input Preprocessing
 As of version 1.2.0, text2term includes regex-based preprocessing functionality for input terms. Specifically, these functions take the input terms and a collection of (user-defined) regular expressions, then match each term to each regular expression to simplify the input term.
@@ -201,44 +249,4 @@ To display a help message with descriptions of tool arguments do:
 
 `-g SAVE_TERM_GRAPHS` Save [vis.js](https://visjs.org) graphs representing the neighborhood of each ontology term.
 
-`-c STORE_IN_CACHE` Using this flag followed by the acronym the ontology should be stored as, the program will same the target ontology to the cache. After that, referencing the acronym in `target` will reference the cache. Examples are below.
-
-## Examples
-### Programmatic
-```python
-import text2term
-import pandas
-
-df1 = text2term.map_file(unstruct_terms.txt, "http://www.ebi.ac.uk/efo/efo.owl")
-df2 = text2term.map_terms(["asthma", "acute bronchitis"], "http://www.ebi.ac.uk/efo/efo.owl")
-```
-Below is an example of caching, assuming the same imports as above:
-```python
-text2term.cache_ontology("http://www.ebi.ac.uk/efo/efo.owl", "EFO")
-df1 = text2term.map_file(unstruct_terms.txt, "EFO", use_cache=True)
-df2 = text2term.map_terms(["asthma", "acute bronchitis"], "EFO", use_cache=True)
-text2term.clear_cache("EFO")
-```
-
-### Command Line
-The basic use of the tool requires a `source` file containing a list of terms to map to the given `target` ontology:  
-`python text2term -s unstruct_terms.txt -t http://www.ebi.ac.uk/efo/efo.owl`
-
-Specify an output file where the mappings should be saved using `-o`:  
-`python text2term -s unstruct_terms.txt -t efo.owl -o /Documents/my-mappings.csv`
-
-Set the minimum acceptable similarity score for mapping each given term to an ontology term using `-min`:  
-`python text2term -s unstruct_terms.txt -t efo.owl -min 0.8`  
-The mapped terms returned will have been determined to be 0.8 similar to their source terms in a 0-1 scale.  
-
-Exclude deprecated ontology terms (declared as such via *owl:deprecated true*) using `-d`:  
-`python text2term -s unstruct_terms.txt -t efo.owl -d`
-
-Limit search to only terms whose IRIs start with any IRI given in a list specified using `-iris`:  
-`python text2term.py -s unstruct_terms.txt -t efo.owl -iris http://www.ebi.ac.uk/efo/EFO,http://purl.obolibrary.org/obo/HP`  
-Here, because EFO reuses terms from other ontologies such as HP and GO, the HP terms would be included but the GO terms would be excluded.
-
-Use the cache on the command line, first by flagging it, then in the future using the acronym:
-`python text2term -s unstruct_terms.txt -t http://www.ebi.ac.uk/efo/efo.owl -c EFO`
-Then, after running this, the following command is equivalent:
-`python text2term -s unstruct_terms.txt -t EFO`
+`-c STORE_IN_CACHE` Using this flag followed by the acronym the ontology should be stored as, the program will same the target ontology to the cache. After that, referencing the acronym in `target` will reference the cache. Examples are above.
