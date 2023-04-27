@@ -3,7 +3,7 @@
 
 class OntologyTerm:
 
-    def __init__(self, iri, labels, definitions=(), synonyms=(), parents=(), children=(), instances=(), deprecated=False):
+    def __init__(self, iri, labels, definitions=(), synonyms=(), parents=(), children=(), instances=(), deprecated=False, termtype='class'):
         """
         Constructor for a succinct representation of an ontology term
         :param iri: IRI of the ontology term
@@ -22,6 +22,7 @@ class OntologyTerm:
         self._children = children
         self._instances = instances
         self._deprecated = deprecated
+        self._termtype = termtype
 
     @property
     def iri(self):
@@ -59,6 +60,10 @@ class OntologyTerm:
     @property
     def deprecated(self):
         return self._deprecated
+
+    @property
+    def termtype(self):
+        return self._termtype
 
     def __eq__(self, other):
         if isinstance(other, OntologyTerm):

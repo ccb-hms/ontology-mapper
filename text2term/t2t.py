@@ -59,11 +59,12 @@ df
 """
 def map_file(input_file, target_ontology, base_iris=(), csv_columns=(), excl_deprecated=False, max_mappings=3,
              mapper=Mapper.TFIDF, min_score=0.3, output_file='', save_graphs=False, save_mappings=False,
-             separator=',', use_cache=False):
+             separator=',', use_cache=False, term_type='classes'):
     source_terms, source_terms_ids = _load_data(input_file, csv_columns, separator)
     return map_terms(source_terms, target_ontology, source_terms_ids=source_terms_ids, base_iris=base_iris,
                     excl_deprecated=excl_deprecated, max_mappings=max_mappings, mapper=mapper, min_score=min_score,
-                    output_file=output_file, save_graphs=save_graphs, save_mappings=save_mappings, use_cache=use_cache)
+                    output_file=output_file, save_graphs=save_graphs, save_mappings=save_mappings, 
+                    use_cache=use_cache, term_type=term_type)
 
 """
 All parameters are the same as below, but tagged_terms_dict is a dictionary where the 
@@ -72,7 +73,8 @@ All parameters are the same as below, but tagged_terms_dict is a dictionary wher
     The dataframe returned is the same but contains a tags column
 """
 def map_tagged_terms(tagged_terms_dict, target_ontology, base_iris=(), excl_deprecated=False, max_mappings=3, min_score=0.3,
-        mapper=Mapper.TFIDF, output_file='', save_graphs=False, save_mappings=False, source_terms_ids=(), use_cache=False):
+        mapper=Mapper.TFIDF, output_file='', save_graphs=False, save_mappings=False, source_terms_ids=(), use_cache=False,
+        term_type='classes'):
     # If the input is a dict, use keys. If it is a list, it is a list of TaggedTerms
     if isinstance(tagged_terms_dict, dict):
         terms = list(tagged_terms_dict.keys())
@@ -89,7 +91,8 @@ def map_tagged_terms(tagged_terms_dict, target_ontology, base_iris=(), excl_depr
     # Run the mapper
     df = map_terms(terms, target_ontology, base_iris=base_iris, excl_deprecated=excl_deprecated, \
                     max_mappings=max_mappings, min_score=min_score, mapper=mapper, output_file=output_file, \
-                    save_graphs=save_graphs, source_terms_ids=source_terms_ids, use_cache=use_cache)
+                    save_graphs=save_graphs, source_terms_ids=source_terms_ids, use_cache=use_cache, \
+                    term_type=term_type)
 
     # For each term in dict, add tags to corresponding mappings row in "Tags" Column
     if isinstance(tagged_terms_dict, dict):
@@ -145,7 +148,8 @@ df
     Data frame containing the generated ontology mappings
 """
 def map_terms(source_terms, target_ontology, base_iris=(), excl_deprecated=False, max_mappings=3, min_score=0.3,
-        mapper=Mapper.TFIDF, output_file='', save_graphs=False, save_mappings=False, source_terms_ids=(), use_cache=False):
+        mapper=Mapper.TFIDF, output_file='', save_graphs=False, save_mappings=False, source_terms_ids=(), 
+        use_cache=False, term_type='classes'):
     if len(source_terms_ids) != len(source_terms):
         if len(source_terms_ids) > 0:
             sys.stderr.write("Warning: Source Term Ids are non-zero, but will not be used.")
@@ -156,7 +160,7 @@ def map_terms(source_terms, target_ontology, base_iris=(), excl_deprecated=False
     if mapper in {Mapper.ZOOMA, Mapper.BIOPORTAL}:
         target_terms = '' if target_ontology.lower() == 'all' else target_ontology
     else:
-        target_terms = _load_ontology(target_ontology, base_iris, excl_deprecated, use_cache)
+        target_terms = _load_ontology(target_ontology, base_iris, excl_deprecated, use_cache, term_type)
     mappings_df = _do_mapping(source_terms, source_terms_ids, target_terms, mapper, max_mappings, min_score)
     if save_mappings:
         _save_mappings(mappings_df, output_file, min_score, mapper, target_ontology, base_iris, excl_deprecated, max_mappings)
@@ -179,7 +183,7 @@ def cache_ontology_set(ontology_registry_path):
 
 # Caches a single ontology
 def cache_ontology(ontology_url, ontology_acronym, base_iris=()):
-    ontology_terms = _load_ontology(ontology_url, base_iris, exclude_deprecated=False)
+    ontology_terms = _load_ontology(ontology_url, base_iris, exclude_deprecated=False, term_type='both')
     cache_dir = "cache/" + ontology_acronym + "/"
     if not os.path.exists(cache_dir):
         os.makedirs(cache_dir)
@@ -189,7 +193,7 @@ def cache_ontology(ontology_url, ontology_acronym, base_iris=()):
     ontology_terms.clear()
 
 # Will check if an acronym exists in the cache
-def cache_exists(ontology_acronym):
+def cache_exists(ontology_acronym=''):
     return os.path.exists("cache/" + ontology_acronym)
 
 # Clears the cache
@@ -227,14 +231,15 @@ def _load_data(input_file_path, csv_column_names, separator):
         term_ids = onto_utils.generate_iris(len(terms))
     return terms, term_ids
 
-def _load_ontology(ontology, iris, exclude_deprecated, use_cache=False):
+def _load_ontology(ontology, iris, exclude_deprecated, use_cache=False, term_type='classes'):
     term_collector = OntologyTermCollector()
     if use_cache:
         pickle_file = "cache/" + ontology + "/" + ontology + "-term-details.pickle"
         onto_terms_unfiltered = pickle.load(open(pickle_file, "rb"))
-        onto_terms = term_collector.filter_terms(onto_terms_unfiltered, iris, exclude_deprecated)
+        onto_terms = term_collector.filter_terms(onto_terms_unfiltered, iris, exclude_deprecated, term_type)
     else:
-        onto_terms = term_collector.get_ontology_terms(ontology, base_iris=iris, exclude_deprecated=exclude_deprecated)
+
+        onto_terms = term_collector.get_ontology_terms(ontology, base_iris=iris, exclude_deprecated=exclude_deprecated, term_type=term_type)
     if len(onto_terms) == 0:
         raise RuntimeError("Could not find any terms in the given ontology.")
     return onto_terms

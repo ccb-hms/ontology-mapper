@@ -5,13 +5,14 @@ from text2term import onto_utils
 from text2term.term import OntologyTerm
 import logging
 
+options = ['classes', 'properties', 'both']
 
 class OntologyTermCollector:
 
     def __init__(self, log_level=logging.INFO):
         self.logger = onto_utils.get_logger(__name__, level=log_level)
 
-    def get_ontology_terms(self, ontology_iri, base_iris=(), use_reasoning=False, exclude_deprecated=False):
+    def get_ontology_terms(self, ontology_iri, base_iris=(), use_reasoning=False, exclude_deprecated=False, term_type="classes"):
         """
         Collect the terms described in the ontology at the specified IRI
         :param ontology_iri: IRI of the ontology (e.g., path of ontology document in the local file system, URL)
@@ -32,10 +33,10 @@ class OntologyTermCollector:
                 query = iri + "*"
                 self.logger.info("...collecting terms with IRIs starting in: " + iri)
                 iris = list(default_world.search(iri=query))
-                ontology_terms = ontology_terms | self._get_ontology_terms(iris, ontology, exclude_deprecated)
+                ontology_terms = ontology_terms | self._get_ontology_terms(iris, ontology, exclude_deprecated, term_type)
         else:
             ontology_signature = self._get_ontology_signature(ontology)
-            ontology_terms = self._get_ontology_terms(ontology_signature, ontology, exclude_deprecated)
+            ontology_terms = self._get_ontology_terms(ontology_signature, ontology, exclude_deprecated, term_type)
         end = time.time()
         self.logger.info("...done: collected %i ontology terms (collection time: %.2fs)", len(ontology_terms),
                          end - start)
@@ -47,7 +48,7 @@ class OntologyTermCollector:
             self.logger.debug("Unable to destroy ontology: ", err)
         return ontology_terms
 
-    def filter_terms(self, onto_terms, iris=(), excl_deprecated=False):
+    def filter_terms(self, onto_terms, iris=(), excl_deprecated=False, term_type='classes'):
         filtered_onto_terms = {}
         for base_iri, term in onto_terms.items():
             if type(iris) == str:
@@ -55,22 +56,26 @@ class OntologyTermCollector:
             else:
                 begins_with_iri = (iris == ()) or any(base_iri.startswith(iri) for iri in iris)
             is_not_deprecated = (not excl_deprecated) or (not term.deprecated)
-            if begins_with_iri and is_not_deprecated:
+            include = self._filter_term_type(term, term_type, True) 
+            if begins_with_iri and is_not_deprecated and include:
                 filtered_onto_terms.update({base_iri: term})
         return filtered_onto_terms
 
-    def _get_ontology_signature(self, ontology):
+    def _get_ontology_signature(self, ontology, term_type='classes'):
         signature = list(ontology.classes())
+        signature.extend(list(ontology.properties()))
         # ontology.classes() does not include classes in imported ontologies; we need to explicitly add them to our list
         for imported_ontology in ontology.imported_ontologies:
             signature.extend(list(imported_ontology.classes()))
+            signature.extend(list(imported_ontology.properties()))
         return signature
 
-    def _get_ontology_terms(self, term_list, ontology, exclude_deprecated):
+    def _get_ontology_terms(self, term_list, ontology, exclude_deprecated, term_type):
         ontology_terms = dict()
         for ontology_term in term_list:
-            if not isinstance(ontology_term, PropertyClass) and ontology_term is not Thing \
-                    and ontology_term is not Nothing:
+            # Parse if should include ontology classes, properties, or both
+            include = self._filter_term_type(ontology_term, term_type, False)
+            if include and ontology_term is not Thing and ontology_term is not Nothing:
                 if (exclude_deprecated and not deprecated[ontology_term]) or (not exclude_deprecated):
                     iri = ontology_term.iri
                     labels = self._get_labels(ontology_term)
@@ -80,13 +85,35 @@ class OntologyTermCollector:
                     instances = self._get_instances(ontology_term, ontology)
                     definitions = self._get_definitions(ontology_term)
                     is_deprecated = deprecated[ontology_term] == [True]
+                    if self._filter_term_type(ontology_term, "classes", False):
+                        termtype = 'class'
+                    elif self._filter_term_type(ontology_term, "properties", False):
+                        termtype = 'property'
+                    else:
+                        termtype = None
                     term_details = OntologyTerm(iri, labels, definitions=definitions, synonyms=synonyms,
                                                 parents=parents, children=children, instances=instances,
-                                                deprecated=is_deprecated)
+                                                deprecated=is_deprecated, termtype=termtype)
                     ontology_terms[iri] = term_details
                 else:
                     self.logger.debug("Excluding deprecated ontology term: %s", ontology_term.iri)
         return ontology_terms
+
+    def _filter_term_type(self, ontology_term, term_type, cached):
+        if term_type == 'classes':
+            if cached:
+                return ontology_term.termtype == 'class'
+            else:
+                return not isinstance(ontology_term, PropertyClass)
+        elif term_type == 'properties':
+            if cached:
+                return ontology_term.termtype == 'property'
+            else:
+                return isinstance(ontology_term, PropertyClass)
+        elif term_type == 'both':
+            return True 
+        else:
+            raise ValueError("Option to include Properties or Classes is not valid")
 
     def _get_parents(self, ontology_term):
         parents = dict()  # named/atomic superclasses except owl:Thing
