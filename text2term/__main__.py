@@ -59,4 +59,4 @@ if __name__ == "__main__":
     map_file(arguments.source, target, output_file=arguments.output, csv_columns=csv_columns,
                          excl_deprecated=arguments.excl_deprecated, mapper=mapper, max_mappings=arguments.top_mappings,
                          min_score=arguments.min_score, base_iris=iris, save_graphs=arguments.save_term_graphs,
-                         save_mappings=True, separator=arguments.separator, use_cache=cache_exists(target), term_types=arguments.term_type)
+                         save_mappings=True, separator=arguments.separator, use_cache=cache_exists(target), term_type=arguments.term_type)
