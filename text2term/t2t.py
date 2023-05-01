@@ -1,4 +1,3 @@
-"""Provides Text2Term class"""
 import os
 import sys
 import json
@@ -271,7 +270,7 @@ def _save_mappings(mappings, output_file, min_score, mapper, target_ontology, ba
         f.write("# Mapper: %s\n" % mapper.value)
         f.write("# Base IRIs: %s\n" % (base_iris,))
         f.write("# Max Mappings: %d\n" % max_mappings)
-        f.write("# Depricated Terms ")
+        f.write("# Deprecated Terms ")
         f.write("Excluded\n" if excl_deprecated else "Included\n")
     mappings.to_csv(output_file, index=False, mode='a')
 
