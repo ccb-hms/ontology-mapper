@@ -109,6 +109,7 @@ All other arguments are the same, and have the same functionality:
 `target_ontology` : str
     Path or URL of 'target' ontology to map the source terms to. When the chosen mapper is BioPortal or Zooma,
     provide a comma-separated list of ontology acronyms (eg 'EFO,HPO') or write 'all' to search all ontologies
+    As of version 2.3.0, passing a recognized acronym to `target_ontology` will generate the download link automatically. This is done using the `bioregistry` python package.
 
 `base_iris` : tuple
     Map only to ontology terms whose IRIs start with one of the strings given in this tuple, for example:
@@ -157,18 +158,19 @@ Both functions return the same value:
 As of version 1.1.0, users can cache ontologies that they want to use regularly or quickly. Programmatically, there are two steps to using the cache: creating the cache, then accessing it. First, the user can cache ontologies using either of two functions:
 
 ```python
-cache_ontology(ontology_url, ontology_acronym, base_iris=())
+cache_ontology(ontology_url, ontology_acronym="", base_iris=())
 ```
 
 ```python
 cache_ontology_set(ontology_registry_path)
 ```
 
-The first of these will cache a single ontology from a URL or file path, with it being referenced by an acronym that will be used to reference it later. An example can be found above.
+The first of these will cache a single ontology from a URL or file path, with it being referenced by an acronym that will be used to reference it later. If no acronym is given, it will use the URL as the cache name. An example can be found above.
 The second function allows the user to cache several ontologies at once by referencing a CSV file of the format:
 `acronym,version,url`. An example is provided in `resources/ontologies.csv`
 
 Once an ontology has been cached by either function, it is stored in a cache folder locally, and thus can be referenced even in different Python instances.
+As of version 2.3.0, the `cache_ontology` function also returns an object that can be used to call any of the `map` functions, as well as `clear_cache` and `cache_exists`. These have the same arguments, except `ontology_target` is not specified and there is no `use_cache` option, as it is always True.
 
 NOTE: Due to how ontologies are processed in memory, `cache_ontology_set` must be used to cache multiple ontologies in a single Python instance. If `cache_ontology` is used multiple times in one instance, the behavior is undefined and may cause visible or invisible errors.
 

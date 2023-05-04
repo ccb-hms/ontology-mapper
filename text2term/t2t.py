@@ -1,4 +1,3 @@
-"""Provides Text2Term class"""
 import os
 import sys
 import json
@@ -7,9 +6,9 @@ import time
 import datetime
 import owlready2
 import pandas as pd
-from shutil import rmtree
 from text2term import onto_utils
 from text2term.mapper import Mapper
+from text2term import onto_cache
 from text2term.term_collector import OntologyTermCollector
 from text2term.term_graph_generator import TermGraphGenerator
 from text2term.bioportal_mapper import BioPortalAnnotatorMapper
@@ -108,7 +107,7 @@ def map_tagged_terms(tagged_terms_dict, target_ontology, base_iris=(), excl_depr
             df.loc[df['Source Term'] == term.get_term(), "Tags"] = to_store
 
     if save_mappings:
-        _save_mappings(df, output_file, min_score, mapper, target_ontology, base_iris, excl_deprecated, max_mappings)
+        _save_mappings(df, output_file, min_score, mapper, target_ontology, base_iris, excl_deprecated, max_mappings, term_type)
     return df
 
 """
@@ -163,26 +162,15 @@ def map_terms(source_terms, target_ontology, base_iris=(), excl_deprecated=False
         target_terms = _load_ontology(target_ontology, base_iris, excl_deprecated, use_cache, term_type)
     mappings_df = _do_mapping(source_terms, source_terms_ids, target_terms, mapper, max_mappings, min_score)
     if save_mappings:
-        _save_mappings(mappings_df, output_file, min_score, mapper, target_ontology, base_iris, excl_deprecated, max_mappings)
+        _save_mappings(mappings_df, output_file, min_score, mapper, target_ontology, base_iris, excl_deprecated, max_mappings, term_type)
     if save_graphs:
         _save_graphs(target_terms, output_file)
     return mappings_df
 
-"""
-CACHING FUNCTIONS -- Public
-"""
-# Caches many ontologies from a csv
-def cache_ontology_set(ontology_registry_path):
-    registry = pd.read_csv(ontology_registry_path)
-    for index, row in registry.iterrows():
-        try:
-            cache_ontology(row.url, row.acronym)
-        except Exception as err:
-            sys.stderr.write("Could not cache ontology", row.acronym, "due to error:", err)
-        owlready2.default_world.ontologies.clear()
-
 # Caches a single ontology
-def cache_ontology(ontology_url, ontology_acronym, base_iris=()):
+def cache_ontology(ontology_url, ontology_acronym="", base_iris=()):
+    if ontology_acronym == "":
+        ontology_acronym = ontology_url
     ontology_terms = _load_ontology(ontology_url, base_iris, exclude_deprecated=False, term_type='both')
     cache_dir = "cache/" + ontology_acronym + "/"
     if not os.path.exists(cache_dir):
@@ -191,23 +179,7 @@ def cache_ontology(ontology_url, ontology_acronym, base_iris=()):
     _serialize_ontology(ontology_terms, ontology_acronym, cache_dir)
     _save_graphs(ontology_terms, output_file=cache_dir + ontology_acronym)
     ontology_terms.clear()
-
-# Will check if an acronym exists in the cache
-def cache_exists(ontology_acronym=''):
-    return os.path.exists("cache/" + ontology_acronym)
-
-# Clears the cache
-def clear_cache(ontology_acronym=''):
-    cache_dir = "cache/" 
-    if ontology_acronym != '':
-        cache_dir = os.path.join(cache_dir, ontology_acronym)
-    # Is equivalent to: rm -r cache_dir
-    try:
-        rmtree(cache_dir)
-        sys.stderr.write("Cache has been cleared successfully")
-    except OSError as error:
-        sys.stderr.write("Cache cannot be removed:")
-        sys.stderr.write(error)
+    return onto_cache.OntologyCache(ontology_acronym)
 
 """
 PRIVATE/HELPER FUNCTIONS
@@ -260,7 +232,7 @@ def _do_mapping(source_terms, source_term_ids, ontology_terms, mapper, max_mappi
     else:
         raise ValueError("Unsupported mapper: " + mapper)
 
-def _save_mappings(mappings, output_file, min_score, mapper, target_ontology, base_iris, excl_deprecated, max_mappings):
+def _save_mappings(mappings, output_file, min_score, mapper, target_ontology, base_iris, excl_deprecated, max_mappings, term_type):
     if os.path.dirname(output_file):  # create output directories if needed
         os.makedirs(os.path.dirname(output_file), exist_ok=True)
     with open(output_file, "a") as f:
@@ -271,7 +243,8 @@ def _save_mappings(mappings, output_file, min_score, mapper, target_ontology, ba
         f.write("# Mapper: %s\n" % mapper.value)
         f.write("# Base IRIs: %s\n" % (base_iris,))
         f.write("# Max Mappings: %d\n" % max_mappings)
-        f.write("# Depricated Terms ")
+        f.write("# Term Type: %s\n" % term_type)
+        f.write("# Deprecated Terms ")
         f.write("Excluded\n" if excl_deprecated else "Included\n")
     mappings.to_csv(output_file, index=False, mode='a')
 

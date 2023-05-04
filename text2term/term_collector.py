@@ -4,8 +4,8 @@ from owlready2 import *
 from text2term import onto_utils
 from text2term.term import OntologyTerm
 import logging
+import bioregistry
 
-options = ['classes', 'properties', 'both']
 
 class OntologyTermCollector:
 
@@ -175,10 +175,11 @@ class OntologyTermCollector:
         self.logger.debug("...collected %i labels and synonyms for %s", len(labels), ontology_term)
         return labels
 
-    def _get_synonyms(self, ontology_term):
+    def _get_synonyms(self, ontology_term, include_broad_synonyms=False):
         """
         Collect the synonyms of the given ontology term
         :param ontology_term: Ontology term
+        :param include_broad_synonyms: true if broad (i.e. more generic) synonyms should be included, false otherwise
         :return: Collection of synonyms of the ontology term
         """
         synonyms = set()
@@ -186,12 +187,13 @@ class OntologyTermCollector:
             synonyms.add(synonym)
         for synonym in self._get_obo_related_synonyms(ontology_term):
             synonyms.add(synonym)
-        for synonym in self._get_obo_broad_synonyms(ontology_term):
-            synonyms.add(synonym)
         for nci_synonym in self._get_nci_synonyms(ontology_term):
             synonyms.add(nci_synonym)
         for efo_alt_term in self._get_efo_alt_terms(ontology_term):
             synonyms.add(efo_alt_term)
+        if include_broad_synonyms:
+            for synonym in self._get_obo_broad_synonyms(ontology_term):
+                synonyms.add(synonym)
         self.logger.debug("...collected %i synonyms for %s", len(synonyms), ontology_term)
         return synonyms
 
@@ -336,6 +338,9 @@ class OntologyTermCollector:
         """
         self.logger.info("Loading ontology %s...", ontology_iri)
         start = time.time()
+        owl_link = bioregistry.get_owl_download(ontology_iri)
+        if owl_link != None:
+            ontology_iri = owl_link
         ontology = get_ontology(ontology_iri).load()
         end = time.time()
         self._log_ontology_metrics(ontology)
