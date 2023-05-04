@@ -4,6 +4,7 @@ from owlready2 import *
 from text2term import onto_utils
 from text2term.term import OntologyTerm
 import logging
+import bioregistry
 
 
 class OntologyTermCollector:
@@ -337,6 +338,9 @@ class OntologyTermCollector:
         """
         self.logger.info("Loading ontology %s...", ontology_iri)
         start = time.time()
+        owl_link = bioregistry.get_owl_download(ontology_iri)
+        if owl_link != None:
+            ontology_iri = owl_link
         ontology = get_ontology(ontology_iri).load()
         end = time.time()
         self._log_ontology_metrics(ontology)
