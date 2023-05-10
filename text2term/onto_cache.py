@@ -3,6 +3,8 @@ from .mapper import Mapper
 import os
 from shutil import rmtree
 import sys
+import pandas as pd
+import owlready2
 
 """
 CACHING FUNCTIONS -- Public
@@ -16,7 +18,8 @@ def cache_ontology_set(ontology_registry_path):
             cache = text2term.cache_ontology(row.url, row.acronym)
             cache_set.update({row.acronym : cache})
         except Exception as err:
-            sys.stderr.write("Could not cache ontology", row.acronym, "due to error:", err)
+            err_message = "Could not cache ontology " + row.acronym + " due to error: " + str(err)
+            sys.stderr.write(err_message)
         owlready2.default_world.ontologies.clear()
     return cache_set
 

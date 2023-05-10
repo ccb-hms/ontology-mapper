@@ -10,8 +10,9 @@ def main():
 	# 	cached_onto = text2term.cache_ontology("EFO")
 	# 	# df = cached_onto.map_terms(["asthma", "disease location", "obsolete food allergy"], excl_deprecated=True, term_type="classes")
 	# 	print("Cache exists:", cached_onto.cache_exists())
-	# df = text2term.map_terms(["asthma", "disease location", "obsolete food allergy"], "EFO", excl_deprecated=True, use_cache=True, term_type="classes")
-	df = text2term.map_terms(["contains", "asthma"], "EFO", term_type="classes")
+	caches = text2term.cache_ontology_set("text2term/resources/ontologies.csv")
+	df = text2term.map_terms(["asthma", "disease location", "obsolete food allergy"], "EFO", excl_deprecated=True, use_cache=True, term_type="classes")
+	# df = text2term.map_terms(["contains", "asthma"], "EFO", term_type="classes")
 	print(df.to_string())
 
 if __name__ == '__main__':
