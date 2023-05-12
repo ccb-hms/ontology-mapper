@@ -6,12 +6,12 @@ def main():
 	pizza = "https://protege.stanford.edu/ontologies/pizza/pizza.owl"
 	ncit = "http://purl.obolibrary.org/obo/ncit/releases/2022-08-19/ncit.owl"
 	# print(bioregistry.get_owl_download("eFo"))
-	# if not text2term.cache_exists("EFO"):
-	# 	cached_onto = text2term.cache_ontology("EFO")
-	# 	# df = cached_onto.map_terms(["asthma", "disease location", "obsolete food allergy"], excl_deprecated=True, term_type="classes")
-	# 	print("Cache exists:", cached_onto.cache_exists())
-	caches = text2term.cache_ontology_set("text2term/resources/ontologies.csv")
-	df = text2term.map_terms(["asthma", "disease location", "obsolete food allergy"], "EFO", excl_deprecated=True, use_cache=True, term_type="classes")
+	if not text2term.cache_exists("EFO"):
+		cached_onto = text2term.cache_ontology("EFO")
+		# df = cached_onto.map_terms(["asthma", "disease location", "obsolete food allergy"], excl_deprecated=True, term_type="classes")
+		print("Cache exists:", cached_onto.cache_exists())
+	# caches = text2term.cache_ontology_set("text2term/resources/ontologies.csv")
+	df = text2term.map_terms(["asthma", "disease location", "obsolete food allergy"], "EFO", min_score=.8, mapper=text2term.Mapper.JARO_WINKLER, excl_deprecated=True, use_cache=True, term_type="classes")
 	# df = text2term.map_terms(["contains", "asthma"], "EFO", term_type="classes")
 	print(df.to_string())
 
