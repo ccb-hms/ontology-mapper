@@ -219,18 +219,27 @@ def _load_ontology(ontology, iris, exclude_deprecated, use_cache=False, term_typ
 def _do_mapping(source_terms, source_term_ids, ontology_terms, mapper, max_mappings, min_score):
     if mapper == Mapper.TFIDF:
         term_mapper = TFIDFMapper(ontology_terms)
-        return term_mapper.map(source_terms, source_term_ids, max_mappings=max_mappings, min_score=min_score)
+        mappings_df = term_mapper.map(source_terms, source_term_ids, max_mappings=max_mappings, min_score=min_score)
     elif mapper == Mapper.ZOOMA:
         term_mapper = ZoomaMapper()
-        return term_mapper.map(source_terms, source_term_ids, ontologies=ontology_terms, max_mappings=max_mappings)
+        mappings_df = term_mapper.map(source_terms, source_term_ids, ontologies=ontology_terms, max_mappings=max_mappings)
     elif mapper == Mapper.BIOPORTAL:
         term_mapper = BioPortalAnnotatorMapper("8f0cbe43-2906-431a-9572-8600d3f4266e")
-        return term_mapper.map(source_terms, source_term_ids, ontologies=ontology_terms, max_mappings=max_mappings)
+        mappings_df = term_mapper.map(source_terms, source_term_ids, ontologies=ontology_terms, max_mappings=max_mappings)
     elif mapper in {Mapper.LEVENSHTEIN, Mapper.JARO, Mapper.JARO_WINKLER, Mapper.INDEL, Mapper.FUZZY, Mapper.JACCARD}:
         term_mapper = SyntacticMapper(ontology_terms)
-        return term_mapper.map(source_terms, source_term_ids, mapper, max_mappings=max_mappings)
+        mappings_df = term_mapper.map(source_terms, source_term_ids, mapper, max_mappings=max_mappings)
     else:
         raise ValueError("Unsupported mapper: " + mapper)
+    df = _filter_mappings(mappings_df, min_score)
+    return df
+
+def _filter_mappings(mappings_df, min_score):
+    new_df = pd.DataFrame(columns=mappings_df.columns)
+    for index, row in mappings_df.iterrows():
+        if row['Mapping Score'] >= min_score:
+            new_df.loc[len(new_df.index)] = row
+    return new_df
 
 def _save_mappings(mappings, output_file, min_score, mapper, target_ontology, base_iris, excl_deprecated, max_mappings, term_type):
     if os.path.dirname(output_file):  # create output directories if needed
