@@ -37,6 +37,8 @@ class TermMapping:
 
     @property
     def mapped_term_curie(self):
+        if self.mapped_term_iri == "":
+            return ""
         return onto_utils.curie_from_iri(self.mapped_term_iri)
 
     @property

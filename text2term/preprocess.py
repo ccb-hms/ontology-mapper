@@ -3,32 +3,11 @@ import os
 from enum import Enum
 from .tagged_terms import TaggedTerm
 
-def preprocess_file(file_path, template_path, output_file="", blocklist_path="", \
-	                blocklist_char='', blacklist_path="", blacklist_char='', \
-	                rem_duplicates=False):
-	# Allows backwards compatibility to blacklist. Will eventually be deleted
-	if blocklist_char == '':
-		blocklist_char = blacklist_char
-	if blocklist_path == "":
-		blocklist_path = blacklist_path
-	terms = _get_values(file_path)
-	processed_terms = preprocess_terms(terms, template_path, output_file=output_file, \
-					blocklist_path=blocklist_path, blocklist_char=blocklist_char, \
-					rem_duplicates=rem_duplicates)
-
-	return processed_terms
-
 ## Tags should be stored with their terms in the same line, delineated by ";:;" 
 ##		ex: Age when diagnosed with (.*) ;:; age,diagnosis
 ##		"Age when diagnosed with cancer" becomes: {"cancer", ["age", "diagnosis"]}
 def preprocess_tagged_terms(file_path, template_path="", blocklist_path="", \
-	                 		blocklist_char='', blacklist_path="", blacklist_char='', \
-	                 		rem_duplicates=False, separator=";:;"):
-	# Allows backwards compatibility to blacklist. Will eventually be deleted
-	if blocklist_char == '':
-		blocklist_char = blacklist_char
-	if blocklist_path == "":
-		blocklist_path = blacklist_path
+	                 		blocklist_char='', rem_duplicates=False, separator=";:;"):
 	# Seperate tags from the terms, put in TaggedTerm and add to list
 	raw_terms = _get_values(file_path)
 	terms = []
@@ -80,13 +59,9 @@ def preprocess_tagged_terms(file_path, template_path="", blocklist_path="", \
 	return processed_terms
 
 def preprocess_terms(terms, template_path, output_file="", blocklist_path="", \
-	                 blocklist_char='', blacklist_path="", blacklist_char='', \
-	                 rem_duplicates=False):
-	# Allows backwards compatibility to blacklist. Will eventually be deleted
-	if blocklist_char == '':
-		blocklist_char = blacklist_char
-	if blocklist_path == "":
-		blocklist_path = blacklist_path
+	                 blocklist_char='', rem_duplicates=False):
+	if isinstance(terms, str):
+		terms = _get_values(file_path)
 	# Form the templates as regular expressions
 	template_strings = []
 	if template_path != "":
