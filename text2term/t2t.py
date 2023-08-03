@@ -16,99 +16,11 @@ from text2term.syntactic_mapper import SyntacticMapper
 from text2term.tfidf_mapper import TFIDFMapper
 from text2term.zooma_mapper import ZoomaMapper
 from text2term.config import VERSION
+from text2term.tagged_terms import TaggedTerm
+from text2term.term_mapping import TermMapping
 
-"""
-Maps the terms in the given input file to the specified target ontology.
-
-Parameters
-----------
-input_file : str
-    Path to input file containing 'source' terms to map to ontology terms (list of terms or CSV file)
-target_ontology : str
-    Path or URL of 'target' ontology to map the source terms to. When the chosen mapper is BioPortal or Zooma,
-    provide a comma-separated list of ontology acronyms (eg 'EFO,HPO') or write 'all' to search all ontologies
-base_iris : tuple
-    Map only to ontology terms whose IRIs start with one of the strings given in this tuple, for example:
-    ('http://www.ebi.ac.uk/efo','http://purl.obolibrary.org/obo/HP')
-csv_columns : tuple
-    Name of the column that contains the terms to map, optionally followed by the name of the column that
-    contains identifiers for the terms (eg 'my_terms,my_term_ids')
-separator : str
-    Specifies the cell separator to be used when reading a non-comma-separated tabular file
-excl_deprecated : bool
-    Exclude ontology terms stated as deprecated via `owl:deprecated true`
-mapper : mapper.Mapper
-    Method used to compare source terms with ontology terms. One of: levenshtein, jaro, jarowinkler, jaccard,
-    fuzzy, tfidf, zooma, bioportal
-max_mappings : int
-    Maximum number of top-ranked mappings returned per source term
-min_score : float
-    Minimum similarity score [0,1] for the mappings (1=exact match)
-output_file : str
-    Path to desired output file for the mappings
-save_graphs : bool
-    Save vis.js graphs representing the neighborhood of each ontology term
-save_mappings : bool
-    Save the generated mappings to a file (specified by `output_file`)
-
-Returns
-----------
-df
-    Data frame containing the generated ontology mappings
-"""
-def map_file(input_file, target_ontology, base_iris=(), csv_columns=(), excl_deprecated=False, max_mappings=3,
-             mapper=Mapper.TFIDF, min_score=0.3, output_file='', save_graphs=False, save_mappings=False,
-             separator=',', use_cache=False, term_type='classes'):
-    source_terms, source_terms_ids = _load_data(input_file, csv_columns, separator)
-    return map_terms(source_terms, target_ontology, source_terms_ids=source_terms_ids, base_iris=base_iris,
-                    excl_deprecated=excl_deprecated, max_mappings=max_mappings, mapper=mapper, min_score=min_score,
-                    output_file=output_file, save_graphs=save_graphs, save_mappings=save_mappings, 
-                    use_cache=use_cache, term_type=term_type)
-
-"""
-All parameters are the same as below, but tagged_terms_dict is a dictionary where the 
-    key is the source term and the value is a list of all tags (or a single string for 
-    one tag). It can also be a list of TaggedTerm objects. 
-    The dataframe returned is the same but contains a tags column
-"""
-def map_tagged_terms(tagged_terms_dict, target_ontology, base_iris=(), excl_deprecated=False, max_mappings=3, min_score=0.3,
-        mapper=Mapper.TFIDF, output_file='', save_graphs=False, save_mappings=False, source_terms_ids=(), use_cache=False,
-        term_type='classes'):
-    # If the input is a dict, use keys. If it is a list, it is a list of TaggedTerms
-    if isinstance(tagged_terms_dict, dict):
-        terms = list(tagged_terms_dict.keys())
-    else:
-        terms = []
-        source_terms_id_list = []
-        for tagged_term in tagged_terms_dict:
-            terms.append(tagged_term.get_term())
-            if tagged_term.get_source_term_id() != None:
-                source_terms_id_list.append(tagged_term.get_source_term_id())
-        if len(source_terms_id_list) > 0:
-            source_terms_ids = tuple(source_terms_id_list)
-
-    # Run the mapper
-    df = map_terms(terms, target_ontology, base_iris=base_iris, excl_deprecated=excl_deprecated, \
-                    max_mappings=max_mappings, min_score=min_score, mapper=mapper, output_file=output_file, \
-                    save_graphs=save_graphs, source_terms_ids=source_terms_ids, use_cache=use_cache, \
-                    term_type=term_type)
-
-    # For each term in dict, add tags to corresponding mappings row in "Tags" Column
-    if isinstance(tagged_terms_dict, dict):
-        for key, value in tagged_terms_dict.items():
-            if isinstance(value, list):
-                to_store = ','.join(value)
-            else:
-                to_store = str(value)
-            df.loc[df['Source Term'] == key, "Tags"] = to_store
-    else: 
-        for term in tagged_terms_dict:
-            to_store = ','.join(term.get_tags())
-            df.loc[df['Source Term'] == term.get_term(), "Tags"] = to_store
-
-    if save_mappings:
-        _save_mappings(df, output_file, min_score, mapper, target_ontology, base_iris, excl_deprecated, max_mappings, term_type)
-    return df
+IGNORE_TAGS = ["ignore", "Ignore", "ignore ", "Ignore "]
+UNMAPPED_TAG = "unmapped"
 
 """
 Maps the terms in the given list to the specified target ontology.
@@ -146,23 +58,31 @@ Returns
 df
     Data frame containing the generated ontology mappings
 """
-def map_terms(source_terms, target_ontology, base_iris=(), excl_deprecated=False, max_mappings=3, min_score=0.3,
-        mapper=Mapper.TFIDF, output_file='', save_graphs=False, save_mappings=False, source_terms_ids=(), 
-        use_cache=False, term_type='classes'):
+def map_terms(source_terms, target_ontology, base_iris=(), csv_columns=(), excl_deprecated=False, max_mappings=3,
+        min_score=0.3, mapper=Mapper.TFIDF, output_file='', save_graphs=False, save_mappings=False, source_terms_ids=(), 
+        separator=',', use_cache=False, term_type='classes', incl_unmapped=False):
+    # Parse the possible source terms options and tags
+    source_terms, source_term_ids, tags = _parse_source_terms(source_terms, source_terms_ids, csv_columns, separator)
+    # Create Source Term Ids if they are not provided
     if len(source_terms_ids) != len(source_terms):
         if len(source_terms_ids) > 0:
             sys.stderr.write("Warning: Source Term Ids are non-zero, but will not be used.")
         source_terms_ids = onto_utils.generate_iris(len(source_terms))
+    # Create the output file
     if output_file == '':
         timestamp = datetime.datetime.now().strftime("%d-%m-%YT%H-%M-%S")
         output_file = "t2t-mappings-" + timestamp + ".csv"
+    # Load the ontology for either Zooma, Bioportal, or directly
     if mapper in {Mapper.ZOOMA, Mapper.BIOPORTAL}:
         target_terms = '' if target_ontology.lower() == 'all' else target_ontology
     else:
         target_terms = _load_ontology(target_ontology, base_iris, excl_deprecated, use_cache, term_type)
-    mappings_df = _do_mapping(source_terms, source_terms_ids, target_terms, mapper, max_mappings, min_score)
+    # Run the mapper
+    mappings_df = _do_mapping(source_terms, source_terms_ids, target_terms, mapper, max_mappings, min_score, tags, incl_unmapped)
+    mappings_df["Mapping Score"] = mappings_df["Mapping Score"].astype(float).round(decimals=3)
     if save_mappings:
-        _save_mappings(mappings_df, output_file, min_score, mapper, target_ontology, base_iris, excl_deprecated, max_mappings, term_type)
+        _save_mappings(mappings_df, output_file, min_score, mapper, target_ontology, base_iris, \
+                    excl_deprecated, max_mappings, term_type, source_terms, incl_unmapped)
     if save_graphs:
         _save_graphs(target_terms, output_file)
     return mappings_df
@@ -184,6 +104,31 @@ def cache_ontology(ontology_url, ontology_acronym="", base_iris=()):
 """
 PRIVATE/HELPER FUNCTIONS
 """
+# Parses the source terms and returns what is to be mapped, the term ids, and the tags
+def _parse_source_terms(source_terms, source_terms_ids=(), csv_columns=(), separator=','):
+    # If source_terms is a string, we assume it is a file location
+    if isinstance(source_terms, str):
+        terms, source_terms_ids = _load_data(source_terms, csv_columns, separator)
+        tags = dict.fromkeys(terms)
+    # If  source_terms is a dictionary, the keys are terms and the values are tags
+    elif isinstance(source_terms, dict):
+        terms = list(source_terms.keys())
+        tags = source_terms
+    # Otherwise, it is a list of either TaggedTerms or strings
+    elif isinstance(source_terms[0], TaggedTerm):
+        terms = []
+        source_terms_id_list = []
+        for tagged_term in source_terms:
+            terms.append(tagged_term.get_term())
+            if tagged_term.get_source_term_id() != None:
+                source_terms_id_list.append(tagged_term.get_source_term_id())
+        source_terms_ids = source_terms_id_list
+        tags = source_terms
+    else:
+        terms = source_terms
+        tags = dict.fromkeys(terms)
+    return terms, source_terms_ids, tags
+
 def _serialize_ontology(ontology_terms, ontology_acronym, cache_dir):
     start = time.time()
     with open(cache_dir + ontology_acronym + "-term-details.pickle", 'wb+') as out_file:
@@ -216,22 +161,62 @@ def _load_ontology(ontology, iris, exclude_deprecated, use_cache=False, term_typ
         raise RuntimeError("Could not find any terms in the given ontology.")
     return onto_terms
 
-def _do_mapping(source_terms, source_term_ids, ontology_terms, mapper, max_mappings, min_score):
+def _do_mapping(source_terms, source_term_ids, ontology_terms, mapper, max_mappings, min_score, tags, incl_unmapped):
+    to_map, tags = _process_tags(source_terms, tags)
     if mapper == Mapper.TFIDF:
         term_mapper = TFIDFMapper(ontology_terms)
-        mappings_df = term_mapper.map(source_terms, source_term_ids, max_mappings=max_mappings, min_score=min_score)
+        mappings_df = term_mapper.map(to_map, source_term_ids, max_mappings=max_mappings, min_score=min_score)
     elif mapper == Mapper.ZOOMA:
         term_mapper = ZoomaMapper()
-        mappings_df = term_mapper.map(source_terms, source_term_ids, ontologies=ontology_terms, max_mappings=max_mappings)
+        mappings_df = term_mapper.map(to_map, source_term_ids, ontologies=ontology_terms, max_mappings=max_mappings)
     elif mapper == Mapper.BIOPORTAL:
         term_mapper = BioPortalAnnotatorMapper("8f0cbe43-2906-431a-9572-8600d3f4266e")
-        mappings_df = term_mapper.map(source_terms, source_term_ids, ontologies=ontology_terms, max_mappings=max_mappings)
+        mappings_df = term_mapper.map(to_map, source_term_ids, ontologies=ontology_terms, max_mappings=max_mappings)
     elif mapper in {Mapper.LEVENSHTEIN, Mapper.JARO, Mapper.JARO_WINKLER, Mapper.INDEL, Mapper.FUZZY, Mapper.JACCARD}:
         term_mapper = SyntacticMapper(ontology_terms)
-        mappings_df = term_mapper.map(source_terms, source_term_ids, mapper, max_mappings=max_mappings)
+        mappings_df = term_mapper.map(to_map, source_term_ids, mapper, max_mappings=max_mappings)
     else:
         raise ValueError("Unsupported mapper: " + mapper)
+
+    # Add tags, process, and filter
     df = _filter_mappings(mappings_df, min_score)
+    if incl_unmapped:
+        df = _add_unmapped_terms(mappings_df, tags, source_terms, source_term_ids)
+    df = _add_tags_to_df(mappings_df, tags)
+    return df
+
+# Takes in the tags and source terms and processes them accordingly
+def _process_tags(source_terms, tags):
+    to_map = []
+    # IGNORE TAGS SECTION
+    for term in source_terms:
+        if isinstance(tags, dict):
+            term_tags = tags[term]
+        else:
+            for tag in tags:
+                if tag.get_term() == term:
+                    term_tags = tag.get_tags()
+                    break
+        if isinstance(term_tags, list):
+            if not any(tag in IGNORE_TAGS for tag in term_tags):
+                to_map.append(term)
+        else:
+            if term_tags not in IGNORE_TAGS:
+                to_map.append(term)
+    return to_map, tags
+
+def _add_tags_to_df(df, tags):
+    if isinstance(tags, dict):
+        for key, value in tags.items():
+            if isinstance(value, list):
+                to_store = ','.join(value)
+            else:
+                to_store = str(value)
+            df.loc[df['Source Term'] == key, "Tags"] = to_store
+    else: 
+        for term in tags:
+            to_store = ','.join(term.get_tags())
+            df.loc[df['Source Term'] == term.get_term(), "Tags"] = to_store
     return df
 
 def _filter_mappings(mappings_df, min_score):
@@ -241,7 +226,34 @@ def _filter_mappings(mappings_df, min_score):
             new_df.loc[len(new_df.index)] = row
     return new_df
 
-def _save_mappings(mappings, output_file, min_score, mapper, target_ontology, base_iris, excl_deprecated, max_mappings, term_type):
+def _add_unmapped_terms(mappings_df, tags, source_terms, source_terms_ids):
+    mapped = pd.unique(mappings_df["Source Term"])
+    for (term, term_id) in zip(source_terms, source_terms_ids):
+        if term not in mapped:
+            non_mapping = TermMapping(term, term_id, "", "", 0)
+            _add_tag(tags, term, UNMAPPED_TAG, ignore=True)
+            mappings_df.loc[len(mappings_df.index)] = non_mapping.to_dict()
+    return mappings_df
+
+def _add_tag(tags, term, to_add, ignore=False):
+    if isinstance(tags, dict):
+        new_tags = tags.get(term, [])
+        if not any(tag in IGNORE_TAGS for tag in new_tags):
+            if isinstance(new_tags, list):
+                new_tags.append(to_add)
+            elif new_tags != "":
+                new_tags = [new_tags, to_add]
+            else:
+                new_tags = [to_add]
+        tags[term] = new_tags
+    else:
+        for tagged_term in tags:
+            check_ignore = not ignore and not any(tagged_term.has_tag(tag) for tag in IGNORE_TAGS)
+            if tagged_term.get_term() == term and check_ignore:
+                tagged_term.add_tags([to_add])
+
+def _save_mappings(mappings, output_file, min_score, mapper, target_ontology, base_iris, \
+                excl_deprecated, max_mappings, term_type, source_terms, incl_unmapped):
     if os.path.dirname(output_file):  # create output directories if needed
         os.makedirs(os.path.dirname(output_file), exist_ok=True)
     with open(output_file, "a") as f:
@@ -255,6 +267,11 @@ def _save_mappings(mappings, output_file, min_score, mapper, target_ontology, ba
         f.write("# Term Type: %s\n" % term_type)
         f.write("# Deprecated Terms ")
         f.write("Excluded\n" if excl_deprecated else "Included\n")
+        f.write("# Unmapped Terms ")
+        f.write("Excluded\n" if not incl_unmapped else "Included\n")
+        writestring = "# Of " + str(len(source_terms)) + " entries, " + str(len(pd.unique(mappings["Source Term ID"])))
+        writestring += " were successfully mapped to " + str(len(pd.unique(mappings["Mapped Term IRI"]))) + " unique terms\n"
+        f.write(writestring)
     mappings.to_csv(output_file, index=False, mode='a')
 
 def _save_graphs(terms, output_file):

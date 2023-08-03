@@ -18,6 +18,9 @@ class TaggedTerm:
 	def update_source_term_id(self, source_term_id):
 		self.source_term_id = source_term_id
 
+	def has_tag(self, tag):
+		return tag in self.tags
+
 	def get_original_term(self):
 		return self.original_term
 
@@ -29,4 +32,7 @@ class TaggedTerm:
 
 	def get_source_term_id(self):
 		return self.source_term_id
+
+	def to_dict(self):
+		return {term : tags}
 		

@@ -1,0 +1,3 @@
+asthma;:;disease
+acute bronchitis;:;important,tags
+colon disease

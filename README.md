@@ -13,13 +13,14 @@ pip install text2term
 import text2term
 import pandas
 
-df1 = text2term.map_file("test/unstruct_terms.txt", "http://www.ebi.ac.uk/efo/efo.owl")
+df1 = text2term.map_terms("test/unstruct_terms.txt", "http://www.ebi.ac.uk/efo/efo.owl")
 df2 = text2term.map_terms(["asthma", "acute bronchitis"], "http://www.ebi.ac.uk/efo/efo.owl")
+df3 = text2term.map_terms({"asthma":"disease", "acute bronchitis":["disease", "lungs"]}, "http://www.ebi.ac.uk/efo/efo.owl")
 ```
 Below is an example of caching, assuming the same imports as above:
 ```python
 text2term.cache_ontology("http://www.ebi.ac.uk/efo/efo.owl", "EFO")
-df1 = text2term.map_file("test/unstruct_terms.txt", "EFO", use_cache=True)
+df1 = text2term.map_terms("test/unstruct_terms.txt", "EFO", use_cache=True)
 df2 = text2term.map_terms(["asthma", "acute bronchitis"], "EFO", use_cache=True)
 text2term.clear_cache("EFO")
 ```
@@ -48,10 +49,10 @@ Then, after running this, the following command is equivalent:
 `python text2term -s test/unstruct_terms.txt -t EFO`
 
 ## Programmatic Usage
-The tool can be executed in Python with any of the three following functions:
+The tool can be executed in Python with the `map_terms` function:
 
 ```python
-text2term.map_file(input_file='/some/file.txt', 
+text2term.map_terms(source_terms, 
                    target_ontology='http://some.ontology/v1.owl',
                    base_iris=(),
                    csv_columns=(), 
@@ -64,45 +65,15 @@ text2term.map_file(input_file='/some/file.txt',
                    save_mappings=False, 
                    separator=',', 
                    use_cache=False,
-                   term_type='classes')
+                   term_type='classes',
+                   incl_unmapped=False)
+
 ```
-or
-```python
-text2term.map_terms(source_terms=['term one', 'term two'],
-                    target_ontology='http://some.ontology/v1.owl',
-                    base_iris=(),
-                    excl_deprecated=False,
-                    max_mappings=3,
-                    min_score=0.3,
-                    mapper=Mapper.TFIDF,
-                    output_file='',
-                    save_graphs=False,
-                    save_mappings=False,
-                    source_terms_ids=(),
-                    use_cache=False,
-                    term_type='classes')
-```
-or
-```python
-text2term.map_tagged_terms(tagged_terms_dict={'term one': ["tag 1", "tag 2"]},
-                    target_ontology='http://some.ontology/v1.owl',
-                    base_iris=(),
-                    excl_deprecated=False,
-                    max_mappings=3,
-                    min_score=0.3,
-                    mapper=Mapper.TFIDF,
-                    output_file='',
-                    save_graphs=False,
-                    save_mappings=False,
-                    source_terms_ids=(),
-                    use_cache=False,
-                    term_type='classes')
-```
+NOTE: As of 3.0.0, the former three functions (`map_file`, `map_terms`, `map_tagged_terms`) have been condensed into one function. Users can now change the name of any function in old code to `map_terms` and it reads the input context to maintain the functionality of each one.
 
 ### Arguments
-For `map_file`, the first argument 'input_file' specifies a path to a file containing the terms to be mapped. It also has a `csv_column` argument that allows the user to specify a column to map if a csv is passed in as the input file. 
-For `map_terms`, the first argument 'source_terms' takes in a list of the terms to be mapped.
-For `map_tagged_terms`, everything is the same as `map_terms` except the first argument is either a dictionary of terms to a list of tags, or a list of TaggedTerm objects (see below). Currently, the tags do not affect the mapping in any way, but they are added to the output dataframe at the end of the process.
+For `map_terms`, the first argument can be any of the following: 1) a string that specifies a path to a file containing the terms to be mapped, 2) a list of the terms to be mapped, or 3)dictionary of terms to a list of tags, or a list of TaggedTerm objects (see below). 
+Currently, the tags do not affect the mapping in any way, but they are added to the output dataframe at the end of the process. The exception is the Ignore tag, which causes the term to not be mapped at all, but still be outputted in the results if the incl_unmapped argument is True (see below).
 
 All other arguments are the same, and have the same functionality:
 
@@ -114,6 +85,9 @@ All other arguments are the same, and have the same functionality:
 `base_iris` : tuple
     Map only to ontology terms whose IRIs start with one of the strings given in this tuple, for example:
     ('http://www.ebi.ac.uk/efo','http://purl.obolibrary.org/obo/HP')
+
+`csv_column` : tuple 
+    Allows the user to specify a column to map if a csv is passed in as the input file. Ignored if the input is not a file path.
 
 `source_terms_ids` : tuple
     Collection of identifiers for the given source terms
@@ -141,11 +115,17 @@ All other arguments are the same, and have the same functionality:
 `save_mappings` : bool
     Save the generated mappings to a file (specified by `output_file`) 
 
+`seperator` : str
+    Character that seperates the source term values if a file input is given. Ignored if the input is not a file path.
+
 `use_cache` : bool
     Use the cache for the ontology. More details are below.
 
 `term_type` : str
     Determines whether the ontology should be parsed for its classes (ThingClass), properties (PropertyClass), or both. Possible values are ['classes', 'properties', 'both']. If it does not match one of these values, the program will throw a ValueError.
+
+`incl_unmapped` : bool
+    Include all unmapped terms in the output. If something has been tagged Ignore (see below) or falls below the `min_score` threshold, it is included without a mapped term at the end of the output. 
 
 All default values, if they exist, can be seen above.
 
@@ -185,9 +165,6 @@ As of version 1.2.0, text2term includes regex-based preprocessing functionality 
 
 Like the "map" functions above, the two functions differ on whether the input is a file or a list of strings:
 ```python
-preprocess_file(file_path, template_path, output_file='', blocklist_path='', blocklist_char='', rem_duplicates=False)
-```
-```python
 preprocess_terms(terms, template_path, output_file='', blocklist_path='', blocklist_char='', rem_duplicates=False)
 ``` 
 ```python
@@ -202,7 +179,7 @@ NOTE: As of version 2.1.0, the arguments were changed to "blocklist" from "black
 The Remove Duplicates `rem_duplicates` functionality will remove all duplicate terms after processing, if set to `True`. 
 WARNING: Removing duplicates at any point does not guarantee which original term is kept. This is particularly important if original terms have different tags, so user caution is advised.
 
-The functions `preprocess_file()` and `preprocess_terms()` both return a dictionary where the keys are the original terms and the values are the preprocessed terms.
+The function `preprocess_terms()` returns a dictionary where the keys are the original terms and the values are the preprocessed terms.
 The `preprocess_tagged_terms()` function returns a list of TaggedTerm items with the following function contracts:
 ```python
 def __init__(self, term=None, tags=[], original_term=None, source_term_id=None)
@@ -214,9 +191,18 @@ def get_term(self)
 def get_tags(self)
 def get_source_term_id(self)
 ```
-As mentioned in the mapping section above, this can then be passed directly to map_tagged_terms(), allowing for easy programmatic usage. Note that this allows multiple of the same preprocessed term with different tags. 
+As mentioned in the mapping section above, this can then be passed directly to `map_terms`, allowing for easy programmatic usage. Note that this allows multiple of the same preprocessed term with different tags. 
 
 **Note on NA values in input**: As of v2.0.3, when the input to text2term is a table file, any rows that contain `NA` values in the specified term column, or in the term ID column (if provided), will be ignored.
+
+### Tag Usage
+As of 3.0.0, some tags have additional functionality that is added when attached to a term:
+
+IGNORE:
+    If an ignore tag is added to a term, that term will not be mapped to any terms in the ontology. It will only be included in the output if the `incl_unmapped` argument is True. Here are the following values that count as ignore tags:
+```python
+    IGNORE_TAGS = ["ignore", "Ignore", "ignore ", "Ignore "]
+```
 
 ## Command Line Usage
 
