@@ -12,7 +12,7 @@ def main():
 	# caches = text2term.cache_ontology_set("text2term/resources/ontologies.csv")
 	# df = text2term.map_terms(["asthma", "disease location", "obsolete food allergy"], "EFO", min_score=.8, mapper=text2term.Mapper.JARO_WINKLER, excl_deprecated=True, use_cache=True, term_type="classes")
 	# df = text2term.map_terms(["contains", "asthma"], "EFO", term_type="classes")
-	df = text2term.map_terms({"asthma":"disease", "allergy":["ignore", "response"], "assdhfbswif":["sent"], "isdjfnsdfwd":""}, "EFO", excl_deprecated=True, use_cache=True, incl_unmapped=True)
+	df = text2term.map_terms({"asthma":"disease", "allergy":["ignore", "response"], "assdhfbswif":["sent"], "isdjfnsdfwd":None}, "EFO", excl_deprecated=True, use_cache=True, incl_unmapped=True)
 	# taggedterms = text2term.preprocess_tagged_terms("test/simple_preprocess.txt")
 	# df = text2term.map_terms(taggedterms, "EFO", excl_deprecated=True, use_cache=True, incl_unmapped=True)
 	print(df.to_string())

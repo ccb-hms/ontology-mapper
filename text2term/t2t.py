@@ -238,7 +238,9 @@ def _add_unmapped_terms(mappings_df, tags, source_terms, source_terms_ids):
 def _add_tag(tags, term, to_add, ignore=False):
     if isinstance(tags, dict):
         new_tags = tags.get(term, [])
-        if not any(tag in IGNORE_TAGS for tag in new_tags):
+        if new_tags is None:
+            new_tags = []
+        if not (ignore and any(tag in IGNORE_TAGS for tag in new_tags)):
             if isinstance(new_tags, list):
                 new_tags.append(to_add)
             elif new_tags != "":
