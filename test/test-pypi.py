@@ -9,8 +9,8 @@ def main():
 			text2term.map_terms(["fever", "headache"], "https://github.com/EBISPOT/efo/releases/download/current/efo.owl")
 			text2term.cache_ontology("https://github.com/EBISPOT/efo/releases/download/current/efo.owl", "EFO")
 			text2term.map_terms(["fever", "headache"], "EFO", use_cache=True)
-			text2term.map_terms(["fever", "headache"], "EFO", base_iris=("www."), mapper=text2term.mapper.Mapper.levenshtein, max_mappings=4, use_cache=True)
-			
+			text2term.map_terms(["fever", "headache"], "EFO", base_iris=("http://www.ebi.ac.uk/efo",), mapper=text2term.mapper.Mapper.LEVENSHTEIN, max_mappings=4, use_cache=True)
+
 			# Properties and classes tests
 			text2term.map_terms(["fever", "headache"], "EFO", term_type="classes", use_cache=True)
 			text2term.map_terms(["contains", "location"], "EFO", term_type="properties", use_cache=True)
