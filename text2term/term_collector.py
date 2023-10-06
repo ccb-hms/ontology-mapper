@@ -2,7 +2,7 @@
 
 from owlready2 import *
 from text2term import onto_utils
-from text2term.term import OntologyTerm
+from text2term.term import OntologyTerm, OntologyTermType
 import logging
 import bioregistry
 
@@ -12,13 +12,15 @@ class OntologyTermCollector:
     def __init__(self, log_level=logging.INFO):
         self.logger = onto_utils.get_logger(__name__, level=log_level)
 
-    def get_ontology_terms(self, ontology_iri, base_iris=(), use_reasoning=False, exclude_deprecated=False, term_type="classes"):
+    def get_ontology_terms(self, ontology_iri, base_iris=(), use_reasoning=False, exclude_deprecated=False,
+                           term_type=OntologyTermType.ANY):
         """
         Collect the terms described in the ontology at the specified IRI
         :param ontology_iri: IRI of the ontology (e.g., path of ontology document in the local file system, URL)
         :param base_iris: Limit ontology term collection to terms whose IRIs start with any IRI given in this tuple
         :param use_reasoning: Use a reasoner to compute inferred class hierarchy
         :param exclude_deprecated: Exclude ontology terms stated as deprecated using owl:deprecated 'true'
+        :param term_type: Type of term--can be 'class' or 'property' or 'any' (individuals may be added in the future)
         :return: Dictionary of ontology term IRIs and their respective details in the specified ontology
         """
         ontology = self._load_ontology(ontology_iri)
@@ -48,7 +50,7 @@ class OntologyTermCollector:
             self.logger.debug("Unable to destroy ontology: ", err)
         return ontology_terms
 
-    def filter_terms(self, onto_terms, iris=(), excl_deprecated=False, term_type='classes'):
+    def filter_terms(self, onto_terms, iris=(), excl_deprecated=False, term_type=OntologyTermType.ANY):
         filtered_onto_terms = {}
         for base_iri, term in onto_terms.items():
             if type(iris) == str:
@@ -61,10 +63,10 @@ class OntologyTermCollector:
                 filtered_onto_terms.update({base_iri: term})
         return filtered_onto_terms
 
-    def _get_ontology_signature(self, ontology, term_type='classes'):
+    def _get_ontology_signature(self, ontology):
         signature = list(ontology.classes())
         signature.extend(list(ontology.properties()))
-        # ontology.classes() does not include classes in imported ontologies; we need to explicitly add them to our list
+        # owlready2::ontology.classes() does not include classes in imported ontologies; we need to explicitly add them
         for imported_ontology in ontology.imported_ontologies:
             signature.extend(list(imported_ontology.classes()))
             signature.extend(list(imported_ontology.properties()))
@@ -80,55 +82,79 @@ class OntologyTermCollector:
                     iri = ontology_term.iri
                     labels = self._get_labels(ontology_term)
                     synonyms = self._get_synonyms(ontology_term)
-                    parents = self._get_parents(ontology_term)
+                    named_parents, complex_parents = self._get_parents(ontology_term)
                     children = self._get_children(ontology_term, ontology)
                     instances = self._get_instances(ontology_term, ontology)
                     definitions = self._get_definitions(ontology_term)
                     is_deprecated = deprecated[ontology_term] == [True]
-                    if self._filter_term_type(ontology_term, "classes", False):
-                        termtype = 'class'
-                    elif self._filter_term_type(ontology_term, "properties", False):
-                        termtype = 'property'
-                    else:
-                        termtype = None
+                    if self._filter_term_type(ontology_term, OntologyTermType.CLASS, False):
+                        term_type = OntologyTermType.CLASS
+                    elif self._filter_term_type(ontology_term, OntologyTermType.PROPERTY, False):
+                        term_type = OntologyTermType.PROPERTY
                     term_details = OntologyTerm(iri, labels, definitions=definitions, synonyms=synonyms,
-                                                parents=parents, children=children, instances=instances,
-                                                deprecated=is_deprecated, termtype=termtype)
+                                                parents=named_parents, children=children, instances=instances,
+                                                restrictions=complex_parents, deprecated=is_deprecated, term_type=term_type)
                     ontology_terms[iri] = term_details
                 else:
                     self.logger.debug("Excluding deprecated ontology term: %s", ontology_term.iri)
         return ontology_terms
 
     def _filter_term_type(self, ontology_term, term_type, cached):
-        if term_type == 'classes':
+        if term_type == OntologyTermType.CLASS:
             if cached:
-                return ontology_term.termtype == 'class'
+                return ontology_term.term_type == OntologyTermType.CLASS
             else:
-                return not isinstance(ontology_term, PropertyClass)
-        elif term_type == 'properties':
+                return isinstance(ontology_term, ThingClass)
+        elif term_type == OntologyTermType.PROPERTY:
             if cached:
-                return ontology_term.termtype == 'property'
+                return ontology_term.term_type == OntologyTermType.PROPERTY
             else:
                 return isinstance(ontology_term, PropertyClass)
-        elif term_type == 'both':
+        elif term_type == OntologyTermType.ANY:
             return True 
         else:
-            raise ValueError("Option to include Properties or Classes is not valid")
+            raise ValueError("Invalid term-type option. Acceptable term types are: 'class' or 'property' or 'any'")
 
     def _get_parents(self, ontology_term):
         parents = dict()  # named/atomic superclasses except owl:Thing
+        restrictions = dict()  # restrictions are class expressions such as 'pancreatitis disease_has_location pancreas'
         try:
             all_parents = ontology_term.is_a  # obtain direct parents of this entity
             for parent in all_parents:
-                # exclude OWL restrictions and owl:Thing and Self
-                if isinstance(parent, ThingClass) and parent is not Thing and parent is not ontology_term:
-                    if len(parent.label) > 0:
-                        parents.update({parent.iri: parent.label[0]})
-                    else:
-                        parents.update({parent.iri: onto_utils.label_from_iri(parent.iri)})
+                # exclude owl:Thing and Self
+                if parent is not Thing and parent is not ontology_term:
+                    if isinstance(parent, ThingClass):  # get named parents (i.e. classes with IRIs)
+                        self._add_named_parent(parent, parents)
+                    elif isinstance(parent, And):  # get conjuncts and add them to the respective structures
+                        for conjunct in parent.Classes:
+                            if isinstance(conjunct, ThingClass):  # if conjunct is a named class, add it to parents dict
+                                self._add_named_parent(conjunct, parents)
+                            else:
+                                self._add_complex_parent(conjunct, restrictions)
+                    elif isinstance(parent, Restriction):  # get complex parents, i.e. restrictions or class expressions
+                        self._add_complex_parent(parent, restrictions)
         except (AttributeError, ValueError) as err:
             self.logger.debug(err)
-        return parents
+        return parents, restrictions
+
+    def _add_named_parent(self, parent, parents):
+        if len(parent.label) > 0:
+            parents.update({parent.iri: parent.label[0]})
+        else:
+            parents.update({parent.iri: onto_utils.label_from_iri(parent.iri)})
+
+    def _add_complex_parent(self, parent, restrictions):
+        property_iri = parent.property.iri
+        if isinstance(parent.value, ThingClass):  # the filler is a named term (i.e., it has an IRI)
+            value = parent.value.iri
+        else:  # the filler is another complex class expression
+            value = parent.value
+        if property_iri in restrictions.keys():
+            current_restrictions = restrictions[property_iri]
+            current_restrictions.add(value)
+            restrictions.update({property_iri: current_restrictions})
+        else:
+            restrictions.update({property_iri: str(value)})
 
     def _get_children(self, ontology_term, ontology):
         children = dict()
@@ -175,7 +201,7 @@ class OntologyTermCollector:
         self.logger.debug("...collected %i labels and synonyms for %s", len(labels), ontology_term)
         return labels
 
-    def _get_synonyms(self, ontology_term, include_broad_synonyms=False):
+    def _get_synonyms(self, ontology_term, include_related_synonyms=False, include_broad_synonyms=False):
         """
         Collect the synonyms of the given ontology term
         :param ontology_term: Ontology term
@@ -185,12 +211,13 @@ class OntologyTermCollector:
         synonyms = set()
         for synonym in self._get_obo_exact_synonyms(ontology_term):
             synonyms.add(synonym)
-        for synonym in self._get_obo_related_synonyms(ontology_term):
-            synonyms.add(synonym)
         for nci_synonym in self._get_nci_synonyms(ontology_term):
             synonyms.add(nci_synonym)
         for efo_alt_term in self._get_efo_alt_terms(ontology_term):
             synonyms.add(efo_alt_term)
+        if include_related_synonyms:
+            for synonym in self._get_obo_related_synonyms(ontology_term):
+                synonyms.add(synonym)
         if include_broad_synonyms:
             for synonym in self._get_obo_broad_synonyms(ontology_term):
                 synonyms.add(synonym)
