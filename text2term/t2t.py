@@ -22,7 +22,6 @@ IGNORE_TAGS = ["ignore", "Ignore", "ignore ", "Ignore "]
 UNMAPPED_TAG = "unmapped"
 
 
-# TODO missing parameters in docs
 def map_terms(source_terms, target_ontology, base_iris=(), csv_columns=(), excl_deprecated=False, max_mappings=3,
               min_score=0.3, mapper=Mapper.TFIDF, output_file='', save_graphs=False, save_mappings=False,
               source_terms_ids=(), separator=',', use_cache=False, term_type=OntologyTermType.CLASS,
@@ -35,11 +34,15 @@ def map_terms(source_terms, target_ontology, base_iris=(), csv_columns=(), excl_
     source_terms : list
         List of 'source' terms to map to ontology terms
     target_ontology : str
-        Path or URL of 'target' ontology to map the source terms to. When the chosen mapper is BioPortal or Zooma,
-        provide a comma-separated list of ontology acronyms (eg 'EFO,HPO') or write 'all' to search all ontologies
+        Filepath or URL of 'target' ontology to map the source terms to. When the chosen mapper is BioPortal or Zooma,
+        provide a comma-separated list of ontology acronyms (eg 'EFO,HPO') or write 'all' to search all ontologies.
+        When the target ontology has been previously cached, provide the ontology name as used when it was cached
     base_iris : tuple
         Map only to ontology terms whose IRIs start with one of the strings given in this tuple, for example:
         ('http://www.ebi.ac.uk/efo','http://purl.obolibrary.org/obo/HP')
+    csv_columns : tuple
+        Name of column containing the terms to map, optionally followed by another column name containing the term IDs,
+        for example: ('disease', 'disease_identifier')
     source_terms_ids : tuple
         Collection of identifiers for the given source terms
     excl_deprecated : bool
@@ -57,6 +60,14 @@ def map_terms(source_terms, target_ontology, base_iris=(), csv_columns=(), excl_
         Save vis.js graphs representing the neighborhood of each ontology term
     save_mappings : bool
         Save the generated mappings to a file (specified by `output_file`)
+    separator : str
+        Symbol used to separate columns in the input table (eg ',' or '\t' for csv or tsv, respectively)
+    use_cache : bool
+        Use a previously cached ontology
+    term_type : OntologyTermType
+        The type(s) of ontology terms to map to, which can be 'class' or 'property' or 'any'
+    incl_unmapped : bool
+        Include unmapped terms in the output data frame
 
     Returns
     ----------
@@ -80,7 +91,8 @@ def map_terms(source_terms, target_ontology, base_iris=(), csv_columns=(), excl_
     else:
         target_terms = _load_ontology(target_ontology, base_iris, excl_deprecated, use_cache, term_type)
     # Run the mapper
-    mappings_df = _do_mapping(source_terms, source_terms_ids, target_terms, mapper, max_mappings, min_score, tags, incl_unmapped)
+    mappings_df = _do_mapping(source_terms, source_terms_ids, target_terms, mapper, max_mappings, min_score, tags,
+                              incl_unmapped)
     mappings_df["Mapping Score"] = mappings_df["Mapping Score"].astype(float).round(decimals=3)
     if save_mappings:
         _save_mappings(mappings_df, output_file, min_score, mapper, target_ontology, base_iris,
@@ -95,7 +107,7 @@ def cache_ontology(ontology_url, ontology_acronym="", base_iris=()):
     if ontology_acronym == "":
         ontology_acronym = ontology_url
     ontology_terms = _load_ontology(ontology_url, base_iris, exclude_deprecated=False, term_type=OntologyTermType.ANY)
-    cache_dir = "cache/" + ontology_acronym + "/"
+    cache_dir = os.path.join("cache", ontology_acronym)
     if not os.path.exists(cache_dir):
         os.makedirs(cache_dir)
 
@@ -207,11 +219,9 @@ def _process_tags(source_terms, tags):
                 if tag.get_term() == term:
                     term_tags = tag.get_tags()
                     break
-        # TODO: Local variable 'term_tags' might be referenced before assignmen
         if isinstance(term_tags, list):
             if not any(tag in IGNORE_TAGS for tag in term_tags):
                 to_map.append(term)
-        # TODO: Local variable 'term_tags' might be referenced before assignmen
         else:
             if term_tags not in IGNORE_TAGS:
                 to_map.append(term)
