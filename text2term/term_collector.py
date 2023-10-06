@@ -35,7 +35,8 @@ class OntologyTermCollector:
                 query = iri + "*"
                 self.logger.info("...collecting terms with IRIs starting in: " + iri)
                 iris = list(default_world.search(iri=query))
-                ontology_terms = ontology_terms | self._get_ontology_terms(iris, ontology, exclude_deprecated, term_type)
+                ontology_terms = ontology_terms | self._get_ontology_terms(iris, ontology, exclude_deprecated,
+                                                                           term_type)
         else:
             ontology_signature = self._get_ontology_signature(ontology)
             ontology_terms = self._get_ontology_terms(ontology_signature, ontology, exclude_deprecated, term_type)
@@ -93,7 +94,8 @@ class OntologyTermCollector:
                         term_type = OntologyTermType.PROPERTY
                     term_details = OntologyTerm(iri, labels, definitions=definitions, synonyms=synonyms,
                                                 parents=named_parents, children=children, instances=instances,
-                                                restrictions=complex_parents, deprecated=is_deprecated, term_type=term_type)
+                                                restrictions=complex_parents, deprecated=is_deprecated,
+                                                term_type=term_type)
                     ontology_terms[iri] = term_details
                 else:
                     self.logger.debug("Excluding deprecated ontology term: %s", ontology_term.iri)
@@ -366,7 +368,7 @@ class OntologyTermCollector:
         self.logger.info("Loading ontology %s...", ontology_iri)
         start = time.time()
         owl_link = bioregistry.get_owl_download(ontology_iri)
-        if owl_link != None:
+        if owl_link is not None:
             ontology_iri = owl_link
         ontology = get_ontology(ontology_iri).load()
         end = time.time()

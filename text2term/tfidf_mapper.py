@@ -28,7 +28,8 @@ class TFIDFMapper:
                             Default set to 0, so consider all candidates
         """
         self.logger.info("Mapping %i source terms...", len(source_terms))
-        self.logger.info("...against %i ontology terms (%i labels/synonyms)", len(self.target_ontology_terms), len(self.target_labels))
+        self.logger.info("...against %i ontology terms (%i labels/synonyms)", len(self.target_ontology_terms),
+                         len(self.target_labels))
         start = time.time()
         source_terms_norm = onto_utils.normalize_list(source_terms)
         vectorizer = self._tokenize(source_terms_norm, self.target_labels)

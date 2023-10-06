@@ -1,6 +1,6 @@
 
 class TaggedTerm:
-	def __init__(self, term=None, tags=[], original_term=None, source_term_id=None):
+	def __init__(self, term=None, tags=(), original_term=None, source_term_id=None):
 		self.term = term
 		self.tags = tags
 		self.original_term = original_term

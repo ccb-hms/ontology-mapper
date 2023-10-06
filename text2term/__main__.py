@@ -9,7 +9,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='A tool for mapping free-text descriptions of (biomedical) '
                                                  'entities to controlled terms in an ontology')
     parser.add_argument("-s", "--source", required=True, type=str,
-                        help="Input file containing 'source' terms to map to ontology terms (list of terms or CSV file)")
+                        help="Input file containing 'source' terms to map to ontology terms: list of terms or CSV file")
     parser.add_argument("-t", "--target", required=True, type=str,
                         help="Path or URL of 'target' ontology to map source terms to. When the chosen mapper is "
                              "BioPortal or Zooma, provide a comma-separated list of acronyms (eg 'EFO,HPO') or write "

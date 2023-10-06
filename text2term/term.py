@@ -1,4 +1,4 @@
-"""Provides OntologyTerm and OntologyTermType classes"""
+"""Provides OntologyTerm class and OntologyTermType string enumeration"""
 
 from enum import Enum
 
