@@ -65,22 +65,22 @@ text2term.map_terms(source_terms,
                    save_mappings=False, 
                    separator=',', 
                    use_cache=False,
-                   term_type='classes',
+                   term_type=OntologyTermType.CLASS,
                    incl_unmapped=False)
 
 ```
 NOTE: As of 3.0.0, the former three functions (`map_file`, `map_terms`, `map_tagged_terms`) have been condensed into one function. Users can now change the name of any function in old code to `map_terms` and it reads the input context to maintain the functionality of each one.
 
 ### Arguments
-For `map_terms`, the first argument can be any of the following: 1) a string that specifies a path to a file containing the terms to be mapped, 2) a list of the terms to be mapped, or 3)dictionary of terms to a list of tags, or a list of TaggedTerm objects (see below). 
+For `map_terms`, the first argument can be any of the following: 1) a string that specifies a path to a file containing the terms to be mapped, 2) a list of the terms to be mapped, or 3) a dictionary where the keys are the terms to be mapped, and values can be a list of tags or a list of TaggedTerm objects (see below). 
 Currently, the tags do not affect the mapping in any way, but they are added to the output dataframe at the end of the process. The exception is the Ignore tag, which causes the term to not be mapped at all, but still be outputted in the results if the incl_unmapped argument is True (see below).
 
 All other arguments are the same, and have the same functionality:
 
 `target_ontology` : str
-    Path or URL of 'target' ontology to map the source terms to. When the chosen mapper is BioPortal or Zooma,
-    provide a comma-separated list of ontology acronyms (eg 'EFO,HPO') or write 'all' to search all ontologies
-    As of version 2.3.0, passing a recognized acronym to `target_ontology` will generate the download link automatically. This is done using the `bioregistry` python package.
+    Path or URL or acronym of 'target' ontology to map the source terms to. When the chosen mapper is BioPortal or Zooma,
+    provide a comma-separated list of ontology acronyms (eg 'EFO,HPO') or write 'all' to search all ontologies. When the target ontology has been previously cached, provide the ontology name that was used to cache it.
+    As of version 2.3.0, it is possible to specify ontology acronyms as the `target_ontology` (eg "EFO" or "CL"), which is achieved using [bioregistry](https://bioregistry.io) to retrieve URLs for those acronyms.
 
 `base_iris` : tuple
     Map only to ontology terms whose IRIs start with one of the strings given in this tuple, for example:
@@ -116,16 +116,16 @@ All other arguments are the same, and have the same functionality:
     Save the generated mappings to a file (specified by `output_file`) 
 
 `seperator` : str
-    Character that seperates the source term values if a file input is given. Ignored if the input is not a file path.
+    Character that separates the source term values if a file input is given. Ignored if the input is not a file path.
 
 `use_cache` : bool
     Use the cache for the ontology. More details are below.
 
-`term_type` : str
-    Determines whether the ontology should be parsed for its classes (ThingClass), properties (PropertyClass), or both. Possible values are ['classes', 'properties', 'both']. If it does not match one of these values, the program will throw a ValueError.
+`term_type` : term.OntologyTermType
+    Specifies whether to map to ontology classes, properties or any of the two. Possible values are ['class', 'property', 'any'].
 
 `incl_unmapped` : bool
-    Include all unmapped terms in the output. If something has been tagged Ignore (see below) or falls below the `min_score` threshold, it is included without a mapped term at the end of the output. 
+    Include all unmapped terms in the output. If something has been tagged 'Ignore' (see below) or falls below the `min_score` threshold, it is included without a mapped term at the end of the output data frame. 
 
 All default values, if they exist, can be seen above.
 
