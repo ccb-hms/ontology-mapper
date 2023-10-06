@@ -44,12 +44,12 @@ def preprocess_tagged_terms(file_path, template_path="", blocklist_path="",
 	for term in terms:
 		if _blocklist_term(processed_terms, term, blocklist, blocklist_char, tagged=True):
 			continue
-		for template, tem_tags in templates.items():
+		for template, term_tags in templates.items():
 			match = template.fullmatch(term.get_original_term())
 			if match:
 				combined_matches = ' '.join(map(str, match.groups()))
 				if combined_matches:
-					_update_tagged_term(processed_terms, term, combined_matches, tem_tags)
+					_update_tagged_term(processed_terms, term, combined_matches, term_tags)
 					break
 
 	if rem_duplicates:

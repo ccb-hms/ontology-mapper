@@ -4,6 +4,7 @@ import sys
 from t2t import map_terms, cache_ontology
 from onto_cache import cache_exists
 from mapper import Mapper
+from term import OntologyTermType
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='A tool for mapping free-text descriptions of (biomedical) '
@@ -16,7 +17,7 @@ if __name__ == "__main__":
                              "'all' to search all ontologies")
     parser.add_argument("-o", "--output", required=False, type=str, default="",
                         help="Path to desired output file for the mappings (default=current working directory)")
-    parser.add_argument("-m", "--mapper", required=False, type=str, default="tfidf",
+    parser.add_argument("-m", "--mapper", required=False, type=str, default=Mapper.TFIDF,
                         help="Method used to compare source terms with ontology terms. One of: " + str(Mapper.list()) +
                              " (default=tfidf)")
     parser.add_argument("-csv", "--csv_input", required=False, type=str, default=(),
@@ -38,7 +39,7 @@ if __name__ == "__main__":
                         help="Save vis.js graphs representing the neighborhood of each ontology term (default=False)")
     parser.add_argument("-c", "--store_in_cache", required=False, type=str, default="",
                         help="Store the target ontology into local cache under acronym")
-    parser.add_argument("-type", "--term_type", required=False, type=str, default="classes",
+    parser.add_argument("-type", "--term_type", required=False, type=str, default=OntologyTermType.CLASS,
                         help="Define whether to return ontology classes, properties, or both")
 
     arguments = parser.parse_args()
