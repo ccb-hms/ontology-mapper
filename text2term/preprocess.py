@@ -1,13 +1,12 @@
 import re
-import os
-from enum import Enum
-from .tagged_terms import TaggedTerm
+from .tagged_term import TaggedTerm
+
 
 ## Tags should be stored with their terms in the same line, delineated by ";:;" 
 ##		ex: Age when diagnosed with (.*) ;:; age,diagnosis
 ##		"Age when diagnosed with cancer" becomes: {"cancer", ["age", "diagnosis"]}
-def preprocess_tagged_terms(file_path, template_path="", blocklist_path="", \
-	                 		blocklist_char='', rem_duplicates=False, separator=";:;"):
+def preprocess_tagged_terms(file_path, template_path="", blocklist_path="",
+							blocklist_char='', rem_duplicates=False, separator=";:;"):
 	# Seperate tags from the terms, put in TaggedTerm and add to list
 	raw_terms = _get_values(file_path)
 	terms = []
@@ -58,10 +57,10 @@ def preprocess_tagged_terms(file_path, template_path="", blocklist_path="", \
 
 	return processed_terms
 
-def preprocess_terms(terms, template_path, output_file="", blocklist_path="", \
-	                 blocklist_char='', rem_duplicates=False):
+
+def preprocess_terms(terms, template_path, output_file="", blocklist_path="", blocklist_char='', rem_duplicates=False):
 	if isinstance(terms, str):
-		terms = _get_values(file_path)
+		terms = _get_values(file_path)  # TODO: Unresolved reference 'file_path'
 	# Form the templates as regular expressions
 	template_strings = []
 	if template_path != "":
@@ -96,6 +95,7 @@ def preprocess_terms(terms, template_path, output_file="", blocklist_path="", \
 			fp.write('\n'.join(processed_terms.values()))
 	return processed_terms
 
+
 ## Note: Because Python Dictionaries and Lists are passed by reference (sort of), updating the
 ##			dictionary/list here will update the dictionary in the caller
 def _blocklist_term(processed_terms, term, blocklist, blocklist_char, tagged=False):
@@ -110,19 +110,23 @@ def _blocklist_term(processed_terms, term, blocklist, blocklist_char, tagged=Fal
 			return True
 	return False
 
+
 def _update_tagged_term(processed_terms, term, new_term, tags=[]):
 	term.update_term(new_term)
 	term.add_tags(tags)
 	processed_terms.append(term)
 
+
 def _get_values(path):
 	return open(path).read().splitlines()
+
 
 def _make_regex_list(strings):
 	regexes = []
 	for string in strings:
 		regexes.append(re.compile(string))
 	return regexes
+
 
 def _remove_duplicates(terms):
 	if type(terms) is dict:
