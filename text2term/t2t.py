@@ -31,8 +31,9 @@ def map_terms(source_terms, target_ontology, base_iris=(), csv_columns=(), excl_
 
     Parameters
     ----------
-    source_terms : list
-        List of 'source' terms to map to ontology terms
+    source_terms : str or list or dict
+        Path to file containing the terms to map to. Or list of terms to map to an ontology. Or dictionary containing
+        tagged terms, where the keys are the source terms and the values are tags attached to those terms
     target_ontology : str
         Filepath or URL of 'target' ontology to map the source terms to. When the chosen mapper is BioPortal or Zooma,
         provide a comma-separated list of ontology acronyms (eg 'EFO,HPO') or write 'all' to search all ontologies.
@@ -112,7 +113,7 @@ def cache_ontology(ontology_url, ontology_acronym="", base_iris=()):
         os.makedirs(cache_dir)
 
     _serialize_ontology(ontology_terms, ontology_acronym, cache_dir)
-    _save_graphs(ontology_terms, output_file=cache_dir + ontology_acronym)
+    _save_graphs(ontology_terms, output_file=os.path.join(cache_dir, ontology_acronym))
     ontology_terms.clear()
     return onto_cache.OntologyCache(ontology_acronym)
 
@@ -149,7 +150,7 @@ def _parse_source_terms(source_terms, source_terms_ids=(), csv_columns=(), separ
 
 
 def _serialize_ontology(ontology_terms, ontology_acronym, cache_dir):
-    with open(cache_dir + ontology_acronym + "-term-details.pickle", 'wb+') as out_file:
+    with open(os.path.join(cache_dir, ontology_acronym + "-term-details.pickle"), 'wb+') as out_file:
         pickle.dump(ontology_terms, out_file)
 
 
@@ -167,14 +168,13 @@ def _load_data(input_file_path, csv_column_names, separator):
     return terms, term_ids
 
 
-def _load_ontology(ontology, iris, exclude_deprecated, use_cache=False, term_type='classes'):
+def _load_ontology(ontology, iris, exclude_deprecated, use_cache=False, term_type=OntologyTermType.CLASS):
     term_collector = OntologyTermCollector()
     if use_cache:
         pickle_file = os.path.join("cache", ontology, ontology + "-term-details.pickle")
         onto_terms_unfiltered = pickle.load(open(pickle_file, "rb"))
         onto_terms = term_collector.filter_terms(onto_terms_unfiltered, iris, exclude_deprecated, term_type)
     else:
-
         onto_terms = term_collector.get_ontology_terms(ontology, base_iris=iris, exclude_deprecated=exclude_deprecated,
                                                        term_type=term_type)
     if len(onto_terms) == 0:
