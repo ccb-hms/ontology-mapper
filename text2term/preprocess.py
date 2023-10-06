@@ -7,14 +7,14 @@ from .tagged_term import TaggedTerm
 ##		"Age when diagnosed with cancer" becomes: {"cancer", ["age", "diagnosis"]}
 def preprocess_tagged_terms(file_path, template_path="", blocklist_path="",
 							blocklist_char='', rem_duplicates=False, separator=";:;"):
-	# Seperate tags from the terms, put in TaggedTerm and add to list
+	# Separate tags from the terms, put in TaggedTerm and add to list
 	raw_terms = _get_values(file_path)
 	terms = []
 	for raw_term in raw_terms:
-		seperated = raw_term.split(separator)
+		separated = raw_term.split(separator)
 		try:
-			tags = seperated[1].split(",")
-			term = TaggedTerm(original_term=seperated[0], tags=tags)
+			tags = separated[1].split(",")
+			term = TaggedTerm(original_term=separated[0], tags=tags)
 		except IndexError:
 			term = TaggedTerm(original_term=raw_term)
 		terms.append(term)
@@ -24,10 +24,10 @@ def preprocess_tagged_terms(file_path, template_path="", blocklist_path="",
 	if template_path != "":
 		raw_templates = _get_values(template_path)
 		for raw_template in raw_templates:
-			seperated = raw_template.split(separator)
+			separated = raw_template.split(separator)
 			try:
-				tags = seperated[1].split(",")
-				regex_term = re.compile(seperated[0])
+				tags = separated[1].split(",")
+				regex_term = re.compile(separated[0])
 				templates[regex_term] = tags
 			except IndexError:
 				regex_term = re.compile(raw_template)
@@ -60,7 +60,7 @@ def preprocess_tagged_terms(file_path, template_path="", blocklist_path="",
 
 def preprocess_terms(terms, template_path, output_file="", blocklist_path="", blocklist_char='', rem_duplicates=False):
 	if isinstance(terms, str):
-		terms = _get_values(file_path)  # TODO: Unresolved reference 'file_path'
+		terms = _get_values(terms)  # if 'terms' is a string, we assume it is a filepath
 	# Form the templates as regular expressions
 	template_strings = []
 	if template_path != "":
@@ -111,7 +111,7 @@ def _blocklist_term(processed_terms, term, blocklist, blocklist_char, tagged=Fal
 	return False
 
 
-def _update_tagged_term(processed_terms, term, new_term, tags=[]):
+def _update_tagged_term(processed_terms, term, new_term, tags=()):
 	term.update_term(new_term)
 	term.add_tags(tags)
 	processed_terms.append(term)
