@@ -34,5 +34,5 @@ class TaggedTerm:
 		return self.source_term_id
 
 	def to_dict(self):
-		return {term : tags}
+		return {self.term: self.tags}
 		
