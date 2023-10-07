@@ -89,13 +89,13 @@ class OntologyTermCollector:
                     definitions = self._get_definitions(ontology_term)
                     is_deprecated = deprecated[ontology_term] == [True]
                     if self._filter_term_type(ontology_term, OntologyTermType.CLASS, False):
-                        term_type = OntologyTermType.CLASS
+                        owl_term_type = OntologyTermType.CLASS
                     elif self._filter_term_type(ontology_term, OntologyTermType.PROPERTY, False):
-                        term_type = OntologyTermType.PROPERTY
+                        owl_term_type = OntologyTermType.PROPERTY
                     term_details = OntologyTerm(iri, labels, definitions=definitions, synonyms=synonyms,
                                                 parents=named_parents, children=children, instances=instances,
                                                 restrictions=complex_parents, deprecated=is_deprecated,
-                                                term_type=term_type)
+                                                term_type=owl_term_type)
                     ontology_terms[iri] = term_details
                 else:
                     self.logger.debug("Excluding deprecated ontology term: %s", ontology_term.iri)
