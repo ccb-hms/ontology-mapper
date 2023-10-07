@@ -1,7 +1,7 @@
 import os
-import sys
 import json
 import pickle
+import logging
 import datetime
 import pandas as pd
 from text2term import onto_utils
@@ -20,6 +20,8 @@ from text2term.term_mapping import TermMapping
 
 IGNORE_TAGS = ["ignore", "Ignore", "ignore ", "Ignore "]
 UNMAPPED_TAG = "unmapped"
+
+LOGGER = onto_utils.get_logger(__name__, level=logging.INFO)
 
 
 def map_terms(source_terms, target_ontology, base_iris=(), csv_columns=(), excl_deprecated=False, max_mappings=3,
@@ -80,7 +82,8 @@ def map_terms(source_terms, target_ontology, base_iris=(), csv_columns=(), excl_
     # Create source term IDs if they are not provided
     if len(source_terms_ids) != len(source_terms):
         if len(source_terms_ids) > 0:
-            sys.stderr.write("Warning: Source Term IDs are non-zero, but will not be used.")
+            LOGGER.warning(f"The number of Source Term IDs provided ({len(source_terms_ids)}) is different than the "
+                           f"number of Source Terms ({len(source_terms)}). New Source Term IDs will be used instead.")
         source_terms_ids = onto_utils.generate_iris(len(source_terms))
     # Create the output file
     if output_file == '':
@@ -109,9 +112,9 @@ def cache_ontology(ontology_url, ontology_acronym="", base_iris=()):
         ontology_acronym = ontology_url
     ontology_terms = _load_ontology(ontology_url, base_iris, exclude_deprecated=False, term_type=OntologyTermType.ANY)
     cache_dir = os.path.join("cache", ontology_acronym)
+    LOGGER.info(f"Caching ontology {ontology_url} to: {cache_dir}")
     if not os.path.exists(cache_dir):
         os.makedirs(cache_dir)
-
     _serialize_ontology(ontology_terms, ontology_acronym, cache_dir)
     _save_graphs(ontology_terms, output_file=os.path.join(cache_dir, ontology_acronym))
     ontology_terms.clear()
@@ -172,11 +175,13 @@ def _load_ontology(ontology, iris, exclude_deprecated, use_cache=False, term_typ
     term_collector = OntologyTermCollector()
     if use_cache:
         pickle_file = os.path.join("cache", ontology, ontology + "-term-details.pickle")
+        LOGGER.info(f"Loading cached ontology from: {pickle_file}")
         onto_terms_unfiltered = pickle.load(open(pickle_file, "rb"))
         onto_terms = term_collector.filter_terms(onto_terms_unfiltered, iris, exclude_deprecated, term_type)
     else:
         onto_terms = term_collector.get_ontology_terms(ontology, base_iris=iris, exclude_deprecated=exclude_deprecated,
                                                        term_type=term_type)
+    LOGGER.info(f"Filtered ontology terms to those of type: {term_type}")
     if len(onto_terms) == 0:
         raise RuntimeError("Could not find any terms in the given ontology.")
     return onto_terms
