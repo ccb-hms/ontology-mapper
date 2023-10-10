@@ -36,11 +36,12 @@ def cache_exists(ontology_acronym=''):
 
 # Clears the cache
 def clear_cache(ontology_acronym=''):
+    cache_dir = CACHE_FOLDER
     if ontology_acronym != '':
         cache_dir = os.path.join(CACHE_FOLDER, ontology_acronym)
     # Is equivalent to: rm -r cache_dir
     try:
-        rmtree(CACHE_FOLDER)
+        rmtree(cache_dir)
         sys.stderr.write("Cache has been cleared successfully\n")
     except OSError as error:
         sys.stderr.write("Cache cannot be removed:")
