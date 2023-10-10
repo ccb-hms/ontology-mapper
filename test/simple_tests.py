@@ -2,6 +2,7 @@ import os
 import pandas as pd
 import text2term
 from term import OntologyTermType
+from mapper import Mapper
 
 pd.set_option('display.max_columns', None)
 
@@ -89,6 +90,18 @@ def run_tests():
     # Test that mapping to properties in cached ontology is the same as to ontology loaded from its URL
     properties_df_match = test_df_equals(drop_source_term_ids(df5), drop_source_term_ids(df6))
     print(f"...{properties_df_match}")
+
+    # Test mapping a list of terms to multiple ontologies using the Zooma mapper
+    print("Test mapping a list of terms to multiple ontologies using the Zooma mapper...")
+    df_zooma = text2term.map_terms(["asthma", "location", "food allergy"], target_ontology="EFO,NCIT",
+                                   mapper=Mapper.ZOOMA, term_type=OntologyTermType.ANY)
+    print(f"{df_zooma}\n")
+
+    # Test mapping a list of terms to multiple ontologies using the BioPortal Annotator mapper
+    print("Test mapping a list of terms to multiple ontologies using the BioPortal Annotator mapper...")
+    df_bioportal = text2term.map_terms(["asthma", "location", "food allergy"], target_ontology="EFO,NCIT",
+                                       mapper=Mapper.BIOPORTAL, term_type=OntologyTermType.ANY)
+    print(f"{df_bioportal}\n")
 
 
 def drop_source_term_ids(df):
