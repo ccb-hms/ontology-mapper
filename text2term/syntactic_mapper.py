@@ -1,7 +1,6 @@
 """Provides SyntacticMapper class"""
 
 import logging
-import time
 import nltk
 import rapidfuzz
 from tqdm import tqdm
@@ -26,14 +25,10 @@ class SyntacticMapper:
         :param mapper: Mapping method to be used for matching
         :param max_mappings: Maximum number of (top scoring) ontology term mappings that should be returned
         """
-        self.logger.info("Mapping %i source terms...", len(source_terms))
-        start = time.time()
         mappings = []
         for term, term_id in tqdm(zip(source_terms, source_terms_ids), total=len(source_terms)):
             matches = self._map(term, term_id, mapper, max_mappings)
             mappings.extend(matches)
-        end = time.time()
-        self.logger.info('done (mapping time: %.2fs seconds)', end - start)
         return TermMappingCollection(mappings).mappings_df()
 
     def _map(self, source_term, source_term_id, mapper, max_matches=3):

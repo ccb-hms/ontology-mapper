@@ -3,6 +3,7 @@ import json
 import pickle
 import logging
 import datetime
+import time
 import pandas as pd
 from text2term import onto_utils
 from text2term import onto_cache
@@ -95,6 +96,7 @@ def map_terms(source_terms, target_ontology, base_iris=(), csv_columns=(), excl_
     else:
         target_terms = _load_ontology(target_ontology, base_iris, excl_deprecated, use_cache, term_type)
     # Run the mapper
+    LOGGER.info(f"Mapping {len(source_terms)} source terms to {target_ontology}")
     mappings_df = _do_mapping(source_terms, source_terms_ids, target_terms, mapper, max_mappings, min_score, tags,
                               incl_unmapped)
     mappings_df["Mapping Score"] = mappings_df["Mapping Score"].astype(float).round(decimals=3)
@@ -189,6 +191,7 @@ def _load_ontology(ontology, iris, exclude_deprecated, use_cache=False, term_typ
 
 def _do_mapping(source_terms, source_term_ids, ontology_terms, mapper, max_mappings, min_score, tags, incl_unmapped):
     to_map, tags = _process_tags(source_terms, tags)
+    start = time.time()
     if mapper == Mapper.TFIDF:
         term_mapper = TFIDFMapper(ontology_terms)
         mappings_df = term_mapper.map(to_map, source_term_ids, max_mappings=max_mappings, min_score=min_score)
@@ -203,6 +206,7 @@ def _do_mapping(source_terms, source_term_ids, ontology_terms, mapper, max_mappi
         mappings_df = term_mapper.map(to_map, source_term_ids, mapper, max_mappings=max_mappings)
     else:
         raise ValueError("Unsupported mapper: " + mapper)
+    LOGGER.info("...done (mapping time: %.2fs seconds)", time.time() - start)
 
     # Add tags, process, and filter
     df = _filter_mappings(mappings_df, min_score)

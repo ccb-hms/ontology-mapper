@@ -1,7 +1,6 @@
 """Provides TFIDFMapper class"""
 
 import logging
-import time
 import sparse_dot_topn as ct
 from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
 from text2term import onto_utils
@@ -27,16 +26,10 @@ class TFIDFMapper:
         :param min_score: The lower-bound threshold for keeping a candidate term mapping, between 0-1.
                             Default set to 0, so consider all candidates
         """
-        self.logger.info("Mapping %i source terms...", len(source_terms))
-        self.logger.info("...against %i ontology terms (%i labels/synonyms)", len(self.target_ontology_terms),
-                         len(self.target_labels))
-        start = time.time()
         source_terms_norm = onto_utils.normalize_list(source_terms)
         vectorizer = self._tokenize(source_terms_norm, self.target_labels)
         results_mtx = self._sparse_dot_top(vectorizer, source_terms_norm, self.target_labels, min_score)
         results_df = self._get_mappings(results_mtx, max_mappings, source_terms, source_terms_ids, self.target_terms)
-        end = time.time()
-        self.logger.info("...done (mapping time: %.2fs seconds)", end-start)
         return results_df
 
     def _tokenize(self, source_terms, target_labels, analyzer='char_wb', n=3):
