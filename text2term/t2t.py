@@ -174,15 +174,16 @@ def _load_data(input_file_path, csv_column_names, separator):
 
 
 def _load_ontology(ontology, iris, exclude_deprecated, use_cache=False, term_type=OntologyTermType.CLASS):
-    term_collector = OntologyTermCollector()
+    term_collector = OntologyTermCollector(ontology_iri=ontology)
     if use_cache:
         pickle_file = os.path.join("cache", ontology, ontology + "-term-details.pickle")
         LOGGER.info(f"Loading cached ontology from: {pickle_file}")
         onto_terms_unfiltered = pickle.load(open(pickle_file, "rb"))
         onto_terms = term_collector.filter_terms(onto_terms_unfiltered, iris, exclude_deprecated, term_type)
     else:
-        onto_terms = term_collector.get_ontology_terms(ontology, base_iris=iris, exclude_deprecated=exclude_deprecated,
+        onto_terms = term_collector.get_ontology_terms(base_iris=iris, exclude_deprecated=exclude_deprecated,
                                                        term_type=term_type)
+    term_collector.close()
     LOGGER.info(f"Filtered ontology terms to those of type: {term_type}")
     if len(onto_terms) == 0:
         raise RuntimeError("Could not find any terms in the given ontology.")

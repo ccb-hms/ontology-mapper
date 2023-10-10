@@ -9,23 +9,25 @@ import bioregistry
 
 class OntologyTermCollector:
 
-    def __init__(self, log_level=logging.INFO):
+    def __init__(self, ontology_iri, use_reasoning=False, log_level=logging.INFO):
+        """
+        Construct an ontology term collector for the ontology at the given IRI
+        :param ontology_iri: IRI of the ontology (e.g., path of ontology document in the local file system, URL)
+        :param use_reasoning: Use a reasoner to compute inferred class hierarchy
+        """
         self.logger = onto_utils.get_logger(__name__, level=log_level)
+        self.ontology = self._load_ontology(ontology_iri)
+        if use_reasoning:
+            self._classify_ontology(self.ontology)
 
-    def get_ontology_terms(self, ontology_iri, base_iris=(), use_reasoning=False, exclude_deprecated=False,
-                           term_type=OntologyTermType.ANY):
+    def get_ontology_terms(self, base_iris=(), exclude_deprecated=False, term_type=OntologyTermType.ANY):
         """
         Collect the terms described in the ontology at the specified IRI
-        :param ontology_iri: IRI of the ontology (e.g., path of ontology document in the local file system, URL)
         :param base_iris: Limit ontology term collection to terms whose IRIs start with any IRI given in this tuple
-        :param use_reasoning: Use a reasoner to compute inferred class hierarchy
         :param exclude_deprecated: Exclude ontology terms stated as deprecated using owl:deprecated 'true'
         :param term_type: Type of term--can be 'class' or 'property' or 'any' (individuals may be added in the future)
         :return: Dictionary of ontology term IRIs and their respective details in the specified ontology
         """
-        ontology = self._load_ontology(ontology_iri)
-        if use_reasoning:
-            self._classify_ontology(ontology)
         self.logger.info("Collecting ontology term details...")
         start = time.time()
         ontology_terms = dict()
@@ -35,20 +37,14 @@ class OntologyTermCollector:
                 query = iri + "*"
                 self.logger.info("...collecting terms with IRIs starting in: " + iri)
                 iris = list(default_world.search(iri=query))
-                ontology_terms = ontology_terms | self._get_ontology_terms(iris, ontology, exclude_deprecated,
+                ontology_terms = ontology_terms | self._get_ontology_terms(iris, self.ontology, exclude_deprecated,
                                                                            term_type)
         else:
-            ontology_signature = self._get_ontology_signature(ontology)
-            ontology_terms = self._get_ontology_terms(ontology_signature, ontology, exclude_deprecated, term_type)
+            ontology_signature = self._get_ontology_signature(self.ontology)
+            ontology_terms = self._get_ontology_terms(ontology_signature, self.ontology, exclude_deprecated, term_type)
         end = time.time()
         self.logger.info("...done: collected %i ontology terms (collection time: %.2fs)", len(ontology_terms),
                          end - start)
-        # when multiple ontologies are loaded with owlready2, and they reference the same ontology term (IRI), a lookup
-        # for that IRI returns the term from the first ontology loaded —> need to unload previously loaded ontologies
-        try:
-            ontology.destroy()
-        except Exception as err:
-            self.logger.debug("Unable to destroy ontology: ", err)
         return ontology_terms
 
     def filter_terms(self, onto_terms, iris=(), excl_deprecated=False, term_type=OntologyTermType.ANY):
@@ -92,6 +88,9 @@ class OntologyTermCollector:
                         owl_term_type = OntologyTermType.CLASS
                     elif self._filter_term_type(ontology_term, OntologyTermType.PROPERTY, False):
                         owl_term_type = OntologyTermType.PROPERTY
+                    else:
+                        owl_term_type = "undetermined"
+                        self.logger.info("Term has undetermined type %s %s", iri, labels)
                     term_details = OntologyTerm(iri, labels, definitions=definitions, synonyms=synonyms,
                                                 parents=named_parents, children=children, instances=instances,
                                                 restrictions=complex_parents, deprecated=is_deprecated,
@@ -387,6 +386,14 @@ class OntologyTermCollector:
             sync_reasoner(infer_property_values=True)
         end = time.time()
         self.logger.info("...done (reasoning time: %.2fs)", end - start)
+
+    def close(self):
+        # when multiple ontologies are loaded with owlready2, and they reference the same ontology term (IRI), a lookup
+        # for that IRI returns the term from the first ontology loaded —> need to unload previously loaded ontologies
+        try:
+            self.ontology.destroy()
+        except Exception as err:
+            self.logger.debug("Unable to destroy ontology: ", err)
 
     def _log_ontology_metrics(self, ontology):
         self.logger.debug(" Ontology IRI: %s", ontology.base_iri)
