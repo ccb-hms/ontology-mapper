@@ -8,6 +8,7 @@ from text2term import OntologyTermCollector
 pd.set_option('display.max_columns', None)
 
 EFO_URL = "https://github.com/EBISPOT/efo/releases/download/v3.57.0/efo.owl"
+EFO_TERM_COLLECTOR = OntologyTermCollector(ontology_iri=EFO_URL)
 
 MAPPED_TERM_CURIE_COLUMN = "Mapped Term CURIE"
 TAGS_COLUMN = "Tags"
@@ -117,7 +118,7 @@ def test_mapping_zooma_ontologies():
                                    mapper=Mapper.ZOOMA, term_type=OntologyTermType.ANY)
     print(f"{df_zooma}\n")
     assert df_zooma.size > 0
-    assert df_zooma[MAPPED_TERM_CURIE_COLUMN].str.contains("EFO:").any()  # returns true if any of the values contains EFO
+    assert df_zooma[MAPPED_TERM_CURIE_COLUMN].str.contains("EFO:").any()
     assert df_zooma[MAPPED_TERM_CURIE_COLUMN].str.contains("NCIT:").any()
 
 
@@ -130,10 +131,6 @@ def test_mapping_bioportal_ontologies():
     assert df_bioportal.size > 0
     assert df_bioportal[MAPPED_TERM_CURIE_COLUMN].str.contains("EFO:").any()
     assert df_bioportal[MAPPED_TERM_CURIE_COLUMN].str.contains("NCIT:").any()
-
-
-# TEST ONTOLOGY TERM COLLECTOR
-EFO_TERM_COLLECTOR = OntologyTermCollector(ontology_iri=EFO_URL)
 
 
 def test_term_collector():
