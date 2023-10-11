@@ -3,18 +3,26 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to text2term's documentation!
+.. .. image:: ccb_logo.jpg
+..    :alt: CCB's Logo
+..    :scale: 50 %
+..    :align: left
+
+Text2term
 =====================================
 
 .. toctree::
    :maxdepth: 2
-   :caption: Contents:
-
+.. include:: ../../README.md
+   :parser: myst_parser.sphinx_
+.. include:: ../../README-UI.md
+   :parser: myst_parser.sphinx_
 
 
 Indices and tables
 ==================
 
 * :ref:`genindex`
-* :ref:`modindex`
 * :ref:`search`
+
+
