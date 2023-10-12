@@ -209,10 +209,17 @@ def _do_mapping(source_terms, source_term_ids, ontology_terms, mapper, max_mappi
         raise ValueError("Unsupported mapper: " + mapper)
     LOGGER.info("...done (mapping time: %.2fs seconds)", time.time() - start)
 
-    # Add tags, process, and filter
-    df = _filter_mappings(mappings_df, min_score)
+    # Filter terms by the mapping score specified
+    if mapper == Mapper.BIOPORTAL:
+        LOGGER.warning("The BioPortal mapper does not return a 'mapping score' for its mappings, so the min_score "
+                       "filter has no effect on BioPortal mappings. The mapping score is hardcoded to 1 by text2term.")
+        df = mappings_df
+    else:
+        df = _filter_mappings(mappings_df, min_score)
+    # Include in output data frame any input terms that did not meet min_score threshold
     if incl_unmapped:
         df = _add_unmapped_terms(df, tags, source_terms, source_term_ids)
+    # Add tags
     df = _add_tags_to_df(df, tags)
     return df
 
