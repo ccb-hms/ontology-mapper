@@ -18,6 +18,7 @@ class Text2TermTestSuite(unittest.TestCase):
         cls.EFO_URL = "https://github.com/EBISPOT/efo/releases/download/v3.57.0/efo.owl"
         cls.SOURCE_TERM_ID_COLUMN = "Source Term ID"
         cls.MAPPED_TERM_CURIE_COLUMN = "Mapped Term CURIE"
+        cls.MAPPING_SCORE_COLUMN = "Mapping Score"
         cls.TAGS_COLUMN = "Tags"
 
     def test_caching_ontology_from_url(self):
@@ -70,9 +71,8 @@ class Text2TermTestSuite(unittest.TestCase):
     def test_mapping_to_cached_efo_using_syntactic_mapper(self):
         # Test mapping a list of terms to cached EFO using Jaro-Winkler syntactic similarity metric
         print("Test mapping a list of terms to cached EFO using Jaro-Winkler syntactic similarity metric...")
-        df = text2term.map_terms(["asthma", "disease location", "food allergy"], "EFO", min_score=.8,
-                                 mapper=text2term.Mapper.JARO_WINKLER, excl_deprecated=True, use_cache=True,
-                                 term_type=OntologyTermType.ANY)
+        df = text2term.map_terms(["asthma", "disease location", "food allergy"], "EFO", use_cache=True,
+                                 mapper=text2term.Mapper.JARO_WINKLER, term_type=OntologyTermType.ANY)
         print(f"{df}\n")
         assert df.size > 0
 
@@ -178,6 +178,25 @@ class Text2TermTestSuite(unittest.TestCase):
         efo_term_collector = OntologyTermCollector(ontology_iri=self.EFO_URL)
         terms = efo_term_collector.get_ontology_terms(base_iris=[efo_base_iri], term_type=OntologyTermType.PROPERTY)
         assert len(terms) == expected_nr_properties_with_efo_iri
+
+    def test_mapping_with_min_score_filter(self):
+        min_score = 0.6
+        search_terms = ["asthma attack", "location"]
+
+        print("Test mapping to cached EFO using Zooma mapper and min_score filter...")
+        df_zooma = text2term.map_terms(search_terms, target_ontology="EFO,NCIT", mapper=Mapper.ZOOMA,
+                                       term_type=OntologyTermType.ANY, min_score=min_score)
+        assert (df_zooma[self.MAPPING_SCORE_COLUMN] >= min_score).all()
+
+        print("Test mapping to cached EFO using TFIDF similarity metric and min_score filter...")
+        df_tfidf = text2term.map_terms(search_terms, target_ontology="EFO", use_cache=True, mapper=Mapper.TFIDF,
+                                       term_type=OntologyTermType.ANY, min_score=min_score)
+        assert (df_tfidf[self.MAPPING_SCORE_COLUMN] >= min_score).all()
+
+        print("Test mapping to cached EFO using Levenshtein similarity metric and min_score filter...")
+        df_leven = text2term.map_terms(search_terms, target_ontology="EFO", use_cache=True, mapper=Mapper.LEVENSHTEIN,
+                                       term_type=OntologyTermType.ANY, min_score=min_score)
+        assert (df_leven[self.MAPPING_SCORE_COLUMN] >= min_score).all()
 
     def drop_source_term_ids(self, df):
         # Unless specified, source term IDs are randomly generated UUIDs. We have to drop the ID column to be able to
