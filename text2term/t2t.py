@@ -212,8 +212,8 @@ def _do_mapping(source_terms, source_term_ids, ontology_terms, mapper, max_mappi
     # Add tags, process, and filter
     df = _filter_mappings(mappings_df, min_score)
     if incl_unmapped:
-        df = _add_unmapped_terms(mappings_df, tags, source_terms, source_term_ids)
-    df = _add_tags_to_df(mappings_df, tags)
+        df = _add_unmapped_terms(df, tags, source_terms, source_term_ids)
+    df = _add_tags_to_df(df, tags)
     return df
 
 
