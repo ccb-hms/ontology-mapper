@@ -269,7 +269,10 @@ def _filter_mappings(mappings_df, min_score):
 
 
 def _add_unmapped_terms(mappings_df, tags, source_terms, source_terms_ids):
-    mapped = pd.unique(mappings_df["Source Term"])
+    if mappings_df.size == 0:
+        mapped = ()
+    else:
+        mapped = pd.unique(mappings_df["Source Term"])
     for (term, term_id) in zip(source_terms, source_terms_ids):
         if term not in mapped:
             non_mapping = TermMapping(term, term_id, "", "", 0)
