@@ -198,6 +198,16 @@ class Text2TermTestSuite(unittest.TestCase):
                                        term_type=OntologyTermType.ANY, min_score=min_score)
         assert (df_leven[self.MAPPING_SCORE_COLUMN] >= min_score).all()
 
+    def test_include_unmapped_terms(self):
+        df = text2term.map_terms(["asthma", "margarita"], target_ontology="EFO", use_cache=True, mapper=Mapper.TFIDF,
+                                 incl_unmapped=True, min_score=0.8)
+        assert df[self.TAGS_COLUMN].str.contains("unmapped").any()
+
+    def test_include_unmapped_terms_when_no_mappings_are_returned(self):
+        df = text2term.map_terms(["mojito", "margarita"], target_ontology="EFO", use_cache=True, mapper=Mapper.TFIDF,
+                                 incl_unmapped=True, min_score=0.8)
+        assert df[self.TAGS_COLUMN].str.contains("unmapped").any()
+
     def drop_source_term_ids(self, df):
         # Unless specified, source term IDs are randomly generated UUIDs. We have to drop the ID column to be able to
         # get a meaningful diff between two dataframes. Otherwise, the dataframes would always differ because of the IDs
