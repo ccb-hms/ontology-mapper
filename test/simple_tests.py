@@ -203,7 +203,7 @@ class Text2TermTestSuite(unittest.TestCase):
                                  incl_unmapped=True, min_score=0.8)
         assert df[self.TAGS_COLUMN].str.contains("unmapped").any()
 
-    def test_include_unmapped_terms_when_no_mappings_are_returned(self):
+    def test_include_unmapped_terms_when_mappings_df_is_empty(self):
         df = text2term.map_terms(["mojito", "margarita"], target_ontology="EFO", use_cache=True, mapper=Mapper.TFIDF,
                                  incl_unmapped=True, min_score=0.8)
         assert df[self.TAGS_COLUMN].str.contains("unmapped").any()
