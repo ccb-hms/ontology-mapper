@@ -6,4 +6,5 @@ from .onto_cache import clear_cache
 from .mapper import Mapper
 from .preprocess import preprocess_terms
 from .preprocess import preprocess_tagged_terms
-from .tagged_terms import TaggedTerm
+from .tagged_term import TaggedTerm
+from .term_collector import OntologyTermCollector

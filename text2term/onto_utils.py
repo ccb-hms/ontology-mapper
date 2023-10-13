@@ -1,6 +1,4 @@
 import logging
-import re
-import sys
 import pandas as pd
 import bioregistry
 import shortuuid
@@ -21,8 +19,8 @@ TEMPORAL_WORDS = {'age', 'time', 'times', 'date', 'initiation', 'cessation', 'pr
                   'later', 'trimester'}
 
 QUANTITY_WORDS = {'hourly', 'daily', 'weekly', 'monthly', 'yearly', 'frequently', 'per', 'hour', 'day', 'week', 'month',
-                  'year', 'years', 'total', 'quantity', 'amount', 'level', 'levels', 'volume', 'count', 'counts', 'percentage',
-                  'abundance', 'proportion', 'content', 'average', 'prevalence', 'mean', 'ratio'}
+                  'year', 'years', 'total', 'quantity', 'amount', 'level', 'levels', 'volume', 'count', 'counts',
+                  'percentage', 'abundance', 'proportion', 'content', 'average', 'prevalence', 'mean', 'ratio'}
 
 
 def normalize_list(token_list):

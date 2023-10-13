@@ -30,12 +30,9 @@ class BioPortalAnnotatorMapper:
         :param max_mappings: The maximum number of (top scoring) ontology term mappings that should be returned
         :param api_params: Additional BioPortal Annotator-specific parameters to include in the request
         """
-        self.logger.info("Mapping %i source terms against ontologies: %s...", len(source_terms), ontologies)
-        start = time.time()
         mappings = []
         for term, term_id in zip(source_terms, source_terms_ids):
             mappings.extend(self._map_term(term, term_id, ontologies, max_mappings, api_params))
-        self.logger.info('done (mapping time: %.2fs seconds)', time.time()-start)
         return TermMappingCollection(mappings).mappings_df()
 
     def _map_term(self, source_term, source_term_id, ontologies, max_mappings, api_params):

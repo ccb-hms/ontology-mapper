@@ -1,6 +1,8 @@
+"""Provides TaggedTerm class"""
+
 
 class TaggedTerm:
-	def __init__(self, term=None, tags=[], original_term=None, source_term_id=None):
+	def __init__(self, term=None, tags=(), original_term=None, source_term_id=None):
 		self.term = term
 		self.tags = tags
 		self.original_term = original_term
@@ -10,7 +12,7 @@ class TaggedTerm:
 		return f"<TaggedTerm term:{self.term} tags:{self.tags} original_term:{self.original_term}"
 
 	def add_tags(self, new_tags):
-		self.tags = self.tags + new_tags
+		self.tags = list(self.tags) + new_tags
 
 	def update_term(self, term):
 		self.term = term
@@ -34,5 +36,5 @@ class TaggedTerm:
 		return self.source_term_id
 
 	def to_dict(self):
-		return {term : tags}
+		return {self.term: self.tags}
 		
