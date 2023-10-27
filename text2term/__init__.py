@@ -8,3 +8,6 @@ from .preprocess import preprocess_terms
 from .preprocess import preprocess_tagged_terms
 from .tagged_term import TaggedTerm
 from .term_collector import OntologyTermCollector
+from .term_collector import filter_terms
+from .term import OntologyTermType
+from .term import OntologyTerm

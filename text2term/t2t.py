@@ -10,6 +10,7 @@ from text2term import onto_cache
 from text2term.mapper import Mapper
 from text2term.term import OntologyTermType
 from text2term.term_collector import OntologyTermCollector
+from text2term.term_collector import filter_terms
 from text2term.term_graph_generator import TermGraphGenerator
 from text2term.bioportal_mapper import BioPortalAnnotatorMapper
 from text2term.syntactic_mapper import SyntacticMapper
@@ -21,6 +22,8 @@ from text2term.term_mapping import TermMapping
 
 IGNORE_TAGS = ["ignore", "Ignore", "ignore ", "Ignore "]
 UNMAPPED_TAG = "unmapped"
+OUTPUT_COLUMNS = ["Source Term", "Source Term ID", "Mapped Term Label",
+                    "Mapped Term CURIE", "Mapped Term IRI", "Mapping Score", "Tags"]
 
 LOGGER = onto_utils.get_logger(__name__, level=logging.INFO)
 
@@ -174,16 +177,16 @@ def _load_data(input_file_path, csv_column_names, separator):
 
 
 def _load_ontology(ontology, iris, exclude_deprecated, use_cache=False, term_type=OntologyTermType.CLASS):
-    term_collector = OntologyTermCollector(ontology_iri=ontology)
     if use_cache:
         pickle_file = os.path.join("cache", ontology, ontology + "-term-details.pickle")
         LOGGER.info(f"Loading cached ontology from: {pickle_file}")
         onto_terms_unfiltered = pickle.load(open(pickle_file, "rb"))
-        onto_terms = term_collector.filter_terms(onto_terms_unfiltered, iris, exclude_deprecated, term_type)
+        onto_terms = filter_terms(onto_terms_unfiltered, iris, exclude_deprecated, term_type)
     else:
+        term_collector = OntologyTermCollector(ontology_iri=ontology)
         onto_terms = term_collector.get_ontology_terms(base_iris=iris, exclude_deprecated=exclude_deprecated,
                                                        term_type=term_type)
-    term_collector.close()
+        term_collector.close()
     LOGGER.info(f"Filtered ontology terms to those of type: {term_type}")
     if len(onto_terms) == 0:
         raise RuntimeError("Could not find any terms in the given ontology.")
@@ -270,7 +273,8 @@ def _filter_mappings(mappings_df, min_score):
 
 def _add_unmapped_terms(mappings_df, tags, source_terms, source_terms_ids):
     if mappings_df.size == 0:
-        mapped = ()
+        mapped = []
+        mappings_df = pd.DataFrame(columns=OUTPUT_COLUMNS)
     else:
         mapped = pd.unique(mappings_df["Source Term"])
     for (term, term_id) in zip(source_terms, source_terms_ids):

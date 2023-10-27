@@ -2,12 +2,11 @@ import os
 import unittest
 import pandas as pd
 import text2term
-from term import OntologyTermType
-from mapper import Mapper
+from text2term import OntologyTermType
+from text2term import Mapper
 from text2term import OntologyTermCollector
 
 pd.set_option('display.max_columns', None)
-
 
 class Text2TermTestSuite(unittest.TestCase):
 
@@ -20,6 +19,11 @@ class Text2TermTestSuite(unittest.TestCase):
         cls.MAPPED_TERM_CURIE_COLUMN = "Mapped Term CURIE"
         cls.MAPPING_SCORE_COLUMN = "Mapping Score"
         cls.TAGS_COLUMN = "Tags"
+
+    @classmethod
+    def tearDownClass(cls):
+        super(Text2TermTestSuite, cls).tearDownClass()
+        text2term.clear_cache()
 
     def test_caching_ontology_from_url(self):
         # Test caching an ontology loaded from a URL
@@ -203,7 +207,7 @@ class Text2TermTestSuite(unittest.TestCase):
                                  incl_unmapped=True, min_score=0.8)
         assert df[self.TAGS_COLUMN].str.contains("unmapped").any()
 
-    def test_include_unmapped_terms_when_no_mappings_are_returned(self):
+    def test_include_unmapped_terms_when_mappings_df_is_empty(self):
         df = text2term.map_terms(["mojito", "margarita"], target_ontology="EFO", use_cache=True, mapper=Mapper.TFIDF,
                                  incl_unmapped=True, min_score=0.8)
         assert df[self.TAGS_COLUMN].str.contains("unmapped").any()

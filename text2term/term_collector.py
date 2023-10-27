@@ -48,17 +48,7 @@ class OntologyTermCollector:
         return ontology_terms
 
     def filter_terms(self, onto_terms, iris=(), excl_deprecated=False, term_type=OntologyTermType.ANY):
-        filtered_onto_terms = {}
-        for base_iri, term in onto_terms.items():
-            if type(iris) == str:
-                begins_with_iri = (iris == ()) or base_iri.startswith(iris)
-            else:
-                begins_with_iri = (iris == ()) or any(base_iri.startswith(iri) for iri in iris)
-            is_not_deprecated = (not excl_deprecated) or (not term.deprecated)
-            include = self._filter_term_type(term, term_type, True) 
-            if begins_with_iri and is_not_deprecated and include:
-                filtered_onto_terms.update({base_iri: term})
-        return filtered_onto_terms
+        return filter_terms(onto_terms, iris, exclude_deprecated, term_type)
 
     def _get_ontology_signature(self, ontology):
         signature = list(ontology.classes())
@@ -73,7 +63,7 @@ class OntologyTermCollector:
         ontology_terms = dict()
         for ontology_term in term_list:
             # Parse if should include ontology classes, properties, or both
-            include = self._filter_term_type(ontology_term, term_type, False)
+            include = _filter_term_type(ontology_term, term_type, False)
             if include and ontology_term is not Thing and ontology_term is not Nothing:
                 if (exclude_deprecated and not deprecated[ontology_term]) or (not exclude_deprecated):
                     iri = ontology_term.iri
@@ -84,9 +74,9 @@ class OntologyTermCollector:
                     instances = self._get_instances(ontology_term, ontology)
                     definitions = self._get_definitions(ontology_term)
                     is_deprecated = deprecated[ontology_term] == [True]
-                    if self._filter_term_type(ontology_term, OntologyTermType.CLASS, False):
+                    if _filter_term_type(ontology_term, OntologyTermType.CLASS, False):
                         owl_term_type = OntologyTermType.CLASS
-                    elif self._filter_term_type(ontology_term, OntologyTermType.PROPERTY, False):
+                    elif _filter_term_type(ontology_term, OntologyTermType.PROPERTY, False):
                         owl_term_type = OntologyTermType.PROPERTY
                     else:
                         owl_term_type = "undetermined"
@@ -99,22 +89,6 @@ class OntologyTermCollector:
                 else:
                     self.logger.debug("Excluding deprecated ontology term: %s", ontology_term.iri)
         return ontology_terms
-
-    def _filter_term_type(self, ontology_term, term_type, cached):
-        if term_type == OntologyTermType.CLASS:
-            if cached:
-                return ontology_term.term_type == OntologyTermType.CLASS
-            else:
-                return isinstance(ontology_term, ThingClass)
-        elif term_type == OntologyTermType.PROPERTY:
-            if cached:
-                return ontology_term.term_type == OntologyTermType.PROPERTY
-            else:
-                return isinstance(ontology_term, PropertyClass)
-        elif term_type == OntologyTermType.ANY:
-            return True 
-        else:
-            raise ValueError("Invalid term-type option. Acceptable term types are: 'class' or 'property' or 'any'")
 
     def _get_parents(self, ontology_term):
         parents = dict()  # named/atomic superclasses except owl:Thing
@@ -401,3 +375,32 @@ class OntologyTermCollector:
         self.logger.debug(" Object property count: %i", len(list(ontology.object_properties())))
         self.logger.debug(" Data property count: %i", len(list(ontology.data_properties())))
         self.logger.debug(" Annotation property count: %i", len(list(ontology.annotation_properties())))
+
+def filter_terms(onto_terms, iris=(), excl_deprecated=False, term_type=OntologyTermType.ANY):
+    filtered_onto_terms = {}
+    for base_iri, term in onto_terms.items():
+        if type(iris) == str:
+            begins_with_iri = (iris == ()) or base_iri.startswith(iris)
+        else:
+            begins_with_iri = (iris == ()) or any(base_iri.startswith(iri) for iri in iris)
+        is_not_deprecated = (not excl_deprecated) or (not term.deprecated)
+        include = _filter_term_type(term, term_type, True) 
+        if begins_with_iri and is_not_deprecated and include:
+            filtered_onto_terms.update({base_iri: term})
+    return filtered_onto_terms
+
+def _filter_term_type(ontology_term, term_type, cached):
+    if term_type == OntologyTermType.CLASS:
+        if cached:
+            return ontology_term.term_type == OntologyTermType.CLASS
+        else:
+            return isinstance(ontology_term, ThingClass)
+    elif term_type == OntologyTermType.PROPERTY:
+        if cached:
+            return ontology_term.term_type == OntologyTermType.PROPERTY
+        else:
+            return isinstance(ontology_term, PropertyClass)
+    elif term_type == OntologyTermType.ANY:
+        return True 
+    else:
+        raise ValueError("Invalid term-type option. Acceptable term types are: 'class' or 'property' or 'any'")
