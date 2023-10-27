@@ -55,6 +55,9 @@ class TermMapping:
             self.MAPPING_SCORE: self.mapping_score
         }
 
+    def get_col_names(self):
+        return [SRC_TERM, SRC_TERM_ID, TGT_TERM_LBL, TGT_TERM_CURIE, TGT_TERM_IRI, MAPPING_SCORE]
+
     def __eq__(self, other):
         if isinstance(other, TermMapping):
             return self.source_term == other.source_term and self.mapped_term_iri == other.mapped_term_iri
