@@ -31,6 +31,11 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
         pip install flake8 pytest
+    - name: Check package location
+      run: |
+        pip show pandas
+    - name: Install text2term
+      run: |
         pip install -e .
     - name: Lint with flake8
       run: |
