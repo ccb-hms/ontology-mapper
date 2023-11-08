@@ -36,6 +36,7 @@ jobs:
         pip show pandas
     - name: Install text2term
       run: |
+        python --version
         pip install -e .
     - name: Lint with flake8
       run: |
