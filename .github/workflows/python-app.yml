@@ -34,9 +34,9 @@ jobs:
     - name: Check package location
       run: |
         pip show pandas
+        pip install pandas
     - name: Install text2term
       run: |
-        python --version
         pip install -e .
     - name: Lint with flake8
       run: |
