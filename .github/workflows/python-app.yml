@@ -22,7 +22,7 @@ jobs:
     - name: Set up Python 3.10
       uses: actions/setup-python@v3
       with:
-        python-version: "3.9"
+        python-version: "3.10"
     - name: show python path
       run: |
         python -c "import sys; print('\n'.join(sys.path))"
@@ -34,9 +34,9 @@ jobs:
     - name: Check package location
       run: |
         pip show pandas
-    - name: Install text2term
-      run: |
-        pip install -e .
+    # - name: Install text2term
+    #   run: |
+    #     pip install -e .
     - name: Lint with flake8
       run: |
         # stop the build if there are Python syntax errors or undefined names
