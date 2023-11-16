@@ -111,7 +111,7 @@ def _blocklist_term(processed_terms, term, blocklist, blocklist_char, tagged=Fal
 	return False
 
 
-def _update_tagged_term(processed_terms, term, new_term, tags=()):
+def _update_tagged_term(processed_terms, term, new_term, tags=[]):
 	term.update_term(new_term)
 	term.add_tags(tags)
 	processed_terms.append(term)
