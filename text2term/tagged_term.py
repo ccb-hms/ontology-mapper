@@ -12,7 +12,7 @@ class TaggedTerm:
 		return f"<TaggedTerm term:{self.term} tags:{self.tags} original_term:{self.original_term}"
 
 	def add_tags(self, new_tags):
-		self.tags = list(self.tags) + new_tags
+		self.tags = list(self.tags) + list(new_tags)
 
 	def update_term(self, term):
 		self.term = term
