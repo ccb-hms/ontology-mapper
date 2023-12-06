@@ -180,8 +180,9 @@ def _load_ontology(ontology, iris, exclude_deprecated, use_cache=False, term_typ
     if use_cache:
         pickle_file = os.path.join("cache", ontology, ontology + "-term-details.pickle")
         LOGGER.info(f"Loading cached ontology from: {pickle_file}")
-        onto_terms_unfiltered = pickle.load(open(pickle_file, "rb"))
-        onto_terms = filter_terms(onto_terms_unfiltered, iris, exclude_deprecated, term_type)
+        with open(pickle_file, "rb") as cached_ontology_pickle:
+            onto_terms_unfiltered = pickle.load(cached_ontology_pickle)
+            onto_terms = filter_terms(onto_terms_unfiltered, iris, exclude_deprecated, term_type)
     else:
         term_collector = OntologyTermCollector(ontology_iri=ontology)
         onto_terms = term_collector.get_ontology_terms(base_iris=iris, exclude_deprecated=exclude_deprecated,
