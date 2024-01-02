@@ -3,8 +3,8 @@ import sys
 import text2term
 import owlready2
 import pandas as pd
-from .term import OntologyTermType
-from .mapper import Mapper
+from text2term.term import OntologyTermType
+from text2term.mapper import Mapper
 from shutil import rmtree
 
 CACHE_FOLDER = "cache"
