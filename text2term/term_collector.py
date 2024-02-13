@@ -48,7 +48,7 @@ class OntologyTermCollector:
         return ontology_terms
 
     def filter_terms(self, onto_terms, iris=(), excl_deprecated=False, term_type=OntologyTermType.ANY):
-        return filter_terms(onto_terms, iris, exclude_deprecated, term_type)
+        return filter_terms(onto_terms, iris, excl_deprecated, term_type)
 
     def _get_ontology_signature(self, ontology):
         signature = list(ontology.classes())
