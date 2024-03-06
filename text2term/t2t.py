@@ -265,12 +265,10 @@ def _add_tags_to_df(df, tags):
 
 
 def _filter_mappings(mappings_df, min_score):
-    new_df = pd.DataFrame(columns=mappings_df.columns)
-    for index, row in mappings_df.iterrows():
-        if row['Mapping Score'] >= min_score:
-            new_df.loc[len(new_df.index)] = row
+    if mappings_df.empty:
+        return mappings_df
+    new_df = mappings_df.loc[mappings_df["Mapping Score"] >= min_score]
     return new_df
-
 
 def _add_unmapped_terms(mappings_df, tags, source_terms, source_terms_ids):
     if mappings_df.size == 0:
