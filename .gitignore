@@ -86,7 +86,7 @@ ipython_config.py
 
 # For PyPi upload
 make-pypi.sh
-pypi_auth.txt
+.pypirc
 
 # Cache should not be uploaded
 cache/
