@@ -8,6 +8,7 @@ from text2term import OntologyTermCollector
 
 pd.set_option('display.max_columns', None)
 
+
 class Text2TermTestSuite(unittest.TestCase):
 
     @classmethod
@@ -51,6 +52,7 @@ class Text2TermTestSuite(unittest.TestCase):
         assert len(caches) == nr_ontologies_in_registry
 
     def test_mapping_to_cached_ontology(self):
+        self.ensure_cache_exists("EFO", self.EFO_URL)
         # Test mapping a list of terms to EFO loaded from cache
         print("Test mapping a list of terms to EFO loaded from cache...")
         mappings_efo_cache = text2term.map_terms(["asthma", "disease location", "food allergy"], target_ontology="EFO",
@@ -72,23 +74,25 @@ class Text2TermTestSuite(unittest.TestCase):
         print(f"...{mappings_match}")
         assert mappings_match is True
 
-    def test_mapping_to_cached_efo_using_syntactic_mapper(self):
+    def test_mapping_to_cached_ontology_using_syntactic_mapper(self):
+        self.ensure_cache_exists("EFO", self.EFO_URL)
         # Test mapping a list of terms to cached EFO using Jaro-Winkler syntactic similarity metric
-        print("Test mapping a list of terms to cached EFO using Jaro-Winkler syntactic similarity metric...")
+        print("Test mapping a list of terms to cached ontology using Jaro-Winkler syntactic similarity metric...")
         df = text2term.map_terms(["asthma", "disease location", "food allergy"], "EFO", use_cache=True,
                                  mapper=text2term.Mapper.JARO_WINKLER, term_type=OntologyTermType.ANY)
         print(f"{df}\n")
         assert df.size > 0
 
-    def test_mapping_to_efo_using_ontology_acronym(self):
-        # Test mapping a list of terms to EFO by specifying the ontology acronym, which gets resolved by bioregistry
+    def test_mapping_using_ontology_acronym(self):
+        # Test mapping a list of terms by specifying the target ontology acronym, which gets resolved by bioregistry
         print(
-            "Test mapping a list of terms to EFO by specifying the ontology acronym, which gets resolved by bioregistry")
-        df2 = text2term.map_terms(["contains", "asthma"], "EFO", term_type=OntologyTermType.CLASS)
+            "Test mapping a list of terms by specifying the ontology acronym, which gets resolved by bioregistry")
+        df2 = text2term.map_terms(["contains", "asthma"], "MONDO")
         print(f"{df2}\n")
         assert df2.size > 0
 
     def test_mapping_tagged_terms(self):
+        self.ensure_cache_exists("EFO", self.EFO_URL)
         # Test mapping a dictionary of tagged terms to cached EFO, and include unmapped terms in the output
         print("Test mapping a dictionary of tagged terms to cached EFO, and include unmapped terms in the output...")
         df3 = text2term.map_terms(
@@ -100,6 +104,7 @@ class Text2TermTestSuite(unittest.TestCase):
         assert df3[self.TAGS_COLUMN].str.contains("measurement").any()
 
     def test_preprocessing_from_file(self):
+        self.ensure_cache_exists("EFO", self.EFO_URL)
         # Test processing tagged terms where the tags are provided in a file
         print("Test processing tagged terms where the tags are provided in a file...")
         tagged_terms = text2term.preprocess_tagged_terms("simple_preprocess.txt")
@@ -119,8 +124,7 @@ class Text2TermTestSuite(unittest.TestCase):
 
         # Test mapping a list of properties to EFO loaded from cache and restrict search to properties
         print("Test mapping a list of properties to EFO loaded from cache and restrict search to properties...")
-        if not text2term.cache_exists("EFO"):
-            text2term.cache_ontology(ontology_url=self.EFO_URL, ontology_acronym="EFO")
+        self.ensure_cache_exists("EFO", self.EFO_URL)
         df6 = text2term.map_terms(source_terms=["contains", "location"], target_ontology="EFO", use_cache=True,
                                   term_type=OntologyTermType.PROPERTY)
         print(f"{df6}\n")
@@ -184,6 +188,7 @@ class Text2TermTestSuite(unittest.TestCase):
         assert len(terms) == expected_nr_properties_with_efo_iri
 
     def test_mapping_with_min_score_filter(self):
+        self.ensure_cache_exists("EFO", self.EFO_URL)
         min_score = 0.6
         search_terms = ["asthma attack", "location"]
 
@@ -203,11 +208,13 @@ class Text2TermTestSuite(unittest.TestCase):
         assert (df_leven[self.MAPPING_SCORE_COLUMN] >= min_score).all()
 
     def test_include_unmapped_terms(self):
+        self.ensure_cache_exists("EFO", self.EFO_URL)
         df = text2term.map_terms(["asthma", "margarita"], target_ontology="EFO", use_cache=True, mapper=Mapper.TFIDF,
                                  incl_unmapped=True, min_score=0.8)
         assert df[self.TAGS_COLUMN].str.contains("unmapped").any()
 
     def test_include_unmapped_terms_when_mappings_df_is_empty(self):
+        self.ensure_cache_exists("EFO", self.EFO_URL)
         df = text2term.map_terms(["mojito", "margarita"], target_ontology="EFO", use_cache=True, mapper=Mapper.TFIDF,
                                  incl_unmapped=True, min_score=0.8)
         assert df[self.TAGS_COLUMN].str.contains("unmapped").any()
@@ -221,6 +228,10 @@ class Text2TermTestSuite(unittest.TestCase):
         # Use pandas::assert_frame_equal function to determine if two data frames are equal
         pd.testing.assert_frame_equal(df, expected_df, check_names=False, check_like=True)
         return True
+
+    def ensure_cache_exists(self, ontology_name, ontology_url):
+        if not text2term.cache_exists(ontology_name):
+            text2term.cache_ontology(ontology_url=ontology_url, ontology_acronym=ontology_name)
 
 
 if __name__ == '__main__':
