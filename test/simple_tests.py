@@ -86,8 +86,8 @@ class Text2TermTestSuite(unittest.TestCase):
     def test_mapping_using_ontology_acronym(self):
         # Test mapping a list of terms by specifying the target ontology acronym, which gets resolved by bioregistry
         print(
-            "Test mapping a list of terms by specifying the ontology acronym, which gets resolved by bioregistry")
-        df2 = text2term.map_terms(["contains", "asthma"], "MONDO")
+            "Test mapping a list of terms to EFO by specifying the ontology acronym, which gets resolved by bioregistry")
+        df2 = text2term.map_terms(["contains", "asthma"], "MONDO", term_type=OntologyTermType.CLASS)
         print(f"{df2}\n")
         assert df2.size > 0
 
