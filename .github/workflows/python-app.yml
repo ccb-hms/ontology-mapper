@@ -24,17 +24,11 @@ jobs:
       with:
         python-version: "3.10"
         cache: 'pip'
-    - name: show python path
-      run: |
-        python -c "import sys; print('\n'.join(sys.path))"
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
         pip install flake8 pytest wheel
-    - name: Check package location
-      run: |
-        pip show pandas
     - name: Install text2term
       run: |
         pip install -e .
