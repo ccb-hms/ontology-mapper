@@ -1,16 +1,16 @@
 # This workflow will install Python dependencies, run tests and lint with a single version of Python
 # For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-python
 
-name: Python application
+name: Upload Test PyPI
+run-name: Upload ${{ github.event.release.tag_name }} to Test PyPI
 
 on:
-  push:
-    branches: [ "development" ]
-  pull_request:
-    branches: [ "main" ]
+  release:
+    types: [published]
 
 permissions:
-  contents: read
+  contents: write
+  id-token: write
 
 jobs:
   build:
@@ -23,17 +23,12 @@ jobs:
       uses: actions/setup-python@v3
       with:
         python-version: "3.10"
-    - name: show python path
-      run: |
-        python -c "import sys; print('\n'.join(sys.path))"
+        cache: 'pip'
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
-        pip install flake8 pytest
-    - name: Check package location
-      run: |
-        pip show pandas
+        pip install flake8 twine sdist wheel build
     - name: Install text2term
       run: |
         pip install -e .
@@ -43,7 +38,10 @@ jobs:
         flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
         # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
-    - name: Test with pytest
+    - name: Build dist/
       run: |
-        cd test
-        python -m unittest simple_tests
+        python -m build --sdist --wheel --no-isolation --outdir dist/ .
+    - name: Upload to pypi
+      uses: pypa/gh-action-pypi-publish@release/v1
+      with:
+        repository-url: https://test.pypi.org/legacy/
