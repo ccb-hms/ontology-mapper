@@ -17,7 +17,7 @@ if __name__ == "__main__":
                              "'all' to search all ontologies")
     parser.add_argument("-o", "--output", required=False, type=str, default="",
                         help="Path to desired output file for the mappings (default=current working directory)")
-    parser.add_argument("-m", "--mapper", required=False, type=str, default=Mapper.TFIDF,
+    parser.add_argument("-m", "--mapper", required=False, type=str, default="tfidf",
                         help="Method used to compare source terms with ontology terms. One of: " + str(Mapper.list()) +
                              " (default=tfidf)")
     parser.add_argument("-csv", "--csv_input", required=False, type=str, default=(),
@@ -39,8 +39,10 @@ if __name__ == "__main__":
                         help="Save vis.js graphs representing the neighborhood of each ontology term (default=False)")
     parser.add_argument("-c", "--store_in_cache", required=False, type=str, default="",
                         help="Store the target ontology into local cache under acronym")
-    parser.add_argument("-type", "--term_type", required=False, type=str, default=OntologyTermType.CLASS,
+    parser.add_argument("-type", "--term_type", required=False, type=str, default="class",
                         help="Define whether to return ontology classes, properties, or both")
+    parser.add_argument('-u', "--incl_unmapped", required=False, default=False, action="store_true",
+                        help="Include all unmapped terms in the output")
 
     arguments = parser.parse_args()
     if not os.path.exists(arguments.source):
@@ -62,4 +64,4 @@ if __name__ == "__main__":
               excl_deprecated=arguments.excl_deprecated, mapper=mapper, max_mappings=arguments.top_mappings,
               min_score=arguments.min_score, base_iris=iris, save_graphs=arguments.save_term_graphs,
               save_mappings=True, separator=arguments.separator, use_cache=cache_exists(target),
-              term_type=arguments.term_type)
+              term_type=arguments.term_type, incl_unmapped=arguments.incl_unmapped)
