@@ -11,7 +11,7 @@ BASE_IRI = "http://ccb.hms.harvard.edu/t2t/"
 STOP_WORDS = {'in', 'the', 'any', 'all', 'for', 'and', 'or', 'dx', 'on', 'fh', 'tx', 'only', 'qnorm', 'w', 'iqb', 's',
               'ds', 'rd', 'rdgwas', 'ICD', 'excluded', 'excluding', 'unspecified', 'certain', 'also', 'undefined',
               'ordinary', 'least', 'squares', 'FINNGEN', 'elsewhere', 'more', 'excluded', 'classified', 'classifeid',
-              'unspcified', 'unspesified', 'specified', 'acquired', 'combined', 'unspeficied', 'elsewhere', 'not', 'by',
+              'unspcified', 'unspesified', 'specified', 'acquired', 'combined', 'unspeficied', 'elsewhere', 'by',
               'strict', 'wide', 'definition', 'definitions', 'confirmed', 'chapter', 'chapters', 'controls',
               'characterized', 'main', 'diagnosis', 'hospital', 'admissions', 'other', 'resulting', 'from'}
 
