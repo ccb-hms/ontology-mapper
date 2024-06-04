@@ -123,7 +123,7 @@ The function returns a pandas `DataFrame` containing the generated ontology mapp
 <details>
   <summary><b><font size="+1">Argument Details</font></b></summary>
 
-`source_terms`**_&mdash;Strings to be mapped to an ontology_**, which can be specified as a:
+`source_terms`&mdash;Strings to be mapped to an ontology, which can be specified as a:
 1. list of strings
 2. string containing a file path
 3. dictionary of terms and associated tags, where each key is a term and the value is a list of tags
@@ -132,39 +132,39 @@ The function returns a pandas `DataFrame` containing the generated ontology mapp
    - If a term is tagged with "Ignore", text2term will not map it
    - Unmapped terms can still be included in the output if `incl_unmapped` is True
 
-`target_ontology`:str&mdash;Path, URL or name of 'target' ontology to map the source terms to
+`target_ontology`&mdash;Path, URL or name of 'target' ontology to map the source terms to
 : Ontology names can be given as values to `target_ontology` (eg "EFO" or "CL")--text2term uses [bioregistry](https://bioregistry.io) to get URLs for such names.
 : When using BioPortal or Zooma, this should be a comma-separated list of ontology acronyms (eg 'EFO,HPO') or **'all'** to search all ontologies.
 : When the target ontology has been cached, this should be the ontology name given when it was first cached.
 
-`base_iris`:_tuple_&mdash;Map only to ontology terms whose IRIs start with one of the strings given in this tuple
+`base_iris`&mdash;Map only to ontology terms whose IRIs start with one of the strings given in this tuple
 
-`excl_deprecated`:_bool_&mdash;Exclude ontology terms stated as deprecated via `owl:deprecated true`
+`excl_deprecated`&mdash;Exclude ontology terms stated as deprecated via `owl:deprecated true`
 
-`source_terms_ids`:_tuple_&mdash;Collection of identifiers for the given source terms
+`source_terms_ids`&mdash;Collection of identifiers for the given source terms
 
-`csv_column`:_tuple_&mdash;Specify the name of the column containing the terms to map, when the input file is a table. Optionally provide a second column name, containing the respective term identifiers
+`csv_column`&mdash;Specify the name of the column containing the terms to map, when the input file is a table. Optionally provide a second column name, containing the respective term identifiers
 
-`separator`:_str_&mdash;Character that separates columns when input is a table (eg '\t' for TSV) 
+`separator`&mdash;Character that separates columns when input is a table (eg '\t' for TSV) 
 
-`mapper`:mapper.Mapper&mdash;Method used to compare source terms with ontology terms
+`mapper`&mdash;Method used to compare source terms with ontology terms
     : One of levenshtein, jaro, jarowinkler, jaccard, fuzzy, tfidf, zooma, bioportal
 
-`max_mappings`:_int_&mdash;Maximum number of top-ranked mappings returned per source term
+`max_mappings`&mdash;Maximum number of top-ranked mappings returned per source term
 
-`min_score`:_float_&mdash;Minimum similarity score [0,1] for the mappings (1=exact match)
+`min_score`&mdash;Minimum similarity score [0,1] for the mappings (1=exact match)
 
-`save_mappings`:_bool_&mdash;Save the generated mappings to a file (specified by `output_file`) 
+`save_mappings`&mdash;Save the generated mappings to a file (specified by `output_file`) 
 
-`output_file`:_str_&mdash;Path to desired output file for the mappings dataframe
+`output_file`&mdash;Path to desired output file for the mappings dataframe
 
-`save_graphs`:_bool_&mdash;Save vis.js graphs representing the neighborhood of each ontology term
+`save_graphs`&mdash;Save vis.js graphs representing the neighborhood of each ontology term
 
-`use_cache`:_bool_&mdash;Use the cache for the ontology
+`use_cache`&mdash;Use the cache for the ontology
 
-`term_type`:_term.OntologyTermType_&mdash;Specifies whether to map to ontology classes, properties or any of the two. Possible values are ['class', 'property', 'any']
+`term_type`&mdash;Specifies whether to map to ontology classes, properties or any of the two. Possible values are ['class', 'property', 'any']
 
-`incl_unmapped`:_bool_&mdash;Include unmapped terms in the output. If a term has been tagged 'Ignore' or has less than the `min_score`, it is included in the output data frame
+`incl_unmapped`&mdash;Include unmapped terms in the output. If a term has been tagged 'Ignore' or has less than the `min_score`, it is included in the output data frame
 
 </details>
 
