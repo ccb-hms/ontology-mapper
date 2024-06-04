@@ -17,7 +17,7 @@ class TFIDFMapper:
         self.target_ontology_terms = target_ontology_terms
         self.target_labels, self.target_terms = self._get_target_labels_terms(target_ontology_terms)
 
-    def map(self, source_terms, source_terms_ids, max_mappings=3, min_score=0.3):
+    def map(self, source_terms, source_terms_ids, max_mappings=3, min_score=0.3, ngram_length=3):
         """
         Main mapping function. Default settings return only the top candidate for every source string.
         :param source_terms: List of source terms to be mapped with ontology terms
@@ -25,9 +25,10 @@ class TFIDFMapper:
         :param max_mappings: The maximum number of (top scoring) ontology term mappings that should be returned
         :param min_score: The lower-bound threshold for keeping a candidate term mapping, between 0-1.
                             Default set to 0, so consider all candidates
+        :param ngram_length: The gram length n for the string tokenizer
         """
         source_terms_norm = onto_utils.normalize_list(source_terms)
-        vectorizer = self._tokenize(source_terms_norm, self.target_labels)
+        vectorizer = self._tokenize(source_terms_norm, self.target_labels, n=ngram_length)
         results_mtx = self._sparse_dot_top(vectorizer, source_terms_norm, self.target_labels, min_score)
         results_df = self._get_mappings(results_mtx, max_mappings, source_terms, source_terms_ids, self.target_terms)
         return results_df
@@ -80,9 +81,15 @@ class TFIDFMapper:
         target_labels, target_terms = [], []
         for term in ontology_terms.values():
             for label in term.labels:
-                target_labels.append(label)
-                target_terms.append(term)
+                if not isinstance(label, str):
+                    self.logger.debug(f"ontology term label {label} is not a string")
+                else:
+                    target_labels.append(label)
+                    target_terms.append(term)
             for synonym in term.synonyms:
-                target_labels.append(synonym)
-                target_terms.append(term)
+                if not isinstance(synonym, str):
+                    self.logger.debug(f"ontology term synonym {synonym} is not a string")
+                else:
+                    target_labels.append(synonym)
+                    target_terms.append(term)
         return target_labels, target_terms

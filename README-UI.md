@@ -9,7 +9,7 @@ The following information pertains to the text2term UI, which is written [here](
 -   npm >= 8.0.0
 -   Python >= 3.9.0
 -   pip >= 21.0.0
--   text2term >= 1.1.0
+-   text2term >= 4.1.2
 
 **\*** These are the versions I have that work; while I know Python 3.9 or higher is necessary, the others may not strictly require the listed versions.
 

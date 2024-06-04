@@ -23,7 +23,7 @@ from text2term.term_mapping import TermMapping
 IGNORE_TAGS = ["ignore", "Ignore", "ignore ", "Ignore "]
 UNMAPPED_TAG = "unmapped"
 OUTPUT_COLUMNS = ["Source Term", "Source Term ID", "Mapped Term Label",
-                    "Mapped Term CURIE", "Mapped Term IRI", "Mapping Score", "Tags"]
+                  "Mapped Term CURIE", "Mapped Term IRI", "Mapping Score", "Tags"]
 
 LOGGER = onto_utils.get_logger(__name__, level=logging.INFO)
 
@@ -217,15 +217,26 @@ def _do_mapping(source_terms, source_term_ids, ontology_terms, mapper, max_mappi
     if mapper == Mapper.BIOPORTAL:
         LOGGER.warning("The BioPortal mapper does not return a 'mapping score' for its mappings, so the min_score "
                        "filter has no effect on BioPortal mappings. The mapping score is hardcoded to 1 by text2term.")
-        df = mappings_df
     else:
-        df = _filter_mappings(mappings_df, min_score)
+        LOGGER.debug("Filtering mappings by their score...")
+        start_filter = time.time()
+        mappings_df = _filter_mappings(mappings_df, min_score)
+        LOGGER.debug("...done (filtering time: %.2fs seconds)", time.time() - start_filter)
+
     # Include in output data frame any input terms that did not meet min_score threshold
     if incl_unmapped:
-        df = _add_unmapped_terms(df, tags, source_terms, source_term_ids)
+        LOGGER.debug("Adding unmapped terms...")
+        start_unmapped = time.time()
+        mappings_df = _add_unmapped_terms(mappings_df, tags, source_terms, source_term_ids)
+        LOGGER.debug("...done (adding unmapped time: %.2fs seconds)", time.time() - start_unmapped)
+
     # Add tags
-    df = _add_tags_to_df(df, tags)
-    return df
+    if not mappings_df.empty:
+        LOGGER.debug("Adding tags...")
+        start_tagging = time.time()
+        mappings_df = _add_tags_to_df(mappings_df, tags)
+        LOGGER.debug("...done (adding tags time: %.2fs seconds)", time.time() - start_tagging)
+    return mappings_df
 
 
 # Takes in the tags and source terms and processes them accordingly
@@ -269,6 +280,7 @@ def _filter_mappings(mappings_df, min_score):
         return mappings_df
     new_df = mappings_df.loc[mappings_df["Mapping Score"] >= min_score]
     return new_df
+
 
 def _add_unmapped_terms(mappings_df, tags, source_terms, source_terms_ids):
     if mappings_df.size == 0:
