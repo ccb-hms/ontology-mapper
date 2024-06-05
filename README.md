@@ -9,9 +9,6 @@ pip install text2term
 ```
 ## Basic Examples
 
-<details>
-  <summary><b>Examples of Programmatic Mapping</b></summary>
-
 ### Examples of Programmatic Mapping
 text2term supports mapping strings specified in multiple input formats. In the first example, we map strings in a list to an ontology specified by its URL:
 
@@ -40,10 +37,6 @@ dfd = text2term.map_terms(source_terms={"asthma":"disease", "acute bronchitis":[
                           target_ontology="http://purl.obolibrary.org/obo/mondo.owl")
 ```
 
-</details>
-
-<details>
-  <summary><b>Examples of Programmatic Caching</b></summary>
 
 ### Examples of Programmatic Caching
 text2term supports caching an ontology for repeated use. Here we cache an ontology and give it a name:
@@ -63,11 +56,7 @@ More succinctly, we can use the returned `OntologyCache` object `mondo` as such:
 ```python
 dfo = mondo.map_terms(source_terms=["asthma", "acute bronchitis"])
 ```
-</details>
 
-
-<details>
-  <summary><b>Examples of Command Line Interface Use</b></summary>
 
 ### Examples of Command Line Interface Use
 To show a help message describing all arguments type into a terminal:
@@ -117,8 +106,6 @@ Now the ontology is cached and we can refer to it as the target ontology using t
 python text2term -s test/unstruct_terms.txt -t MONDO
 ```
 
-</details>
-
 
 ## Programmatic Usage
 After installing and importing to a Python environment, the main function is `map_terms`:
@@ -141,9 +128,6 @@ text2term.map_terms(source_terms,
                    incl_unmapped=False)
 ```
 The function returns a pandas `DataFrame` containing the generated ontology mappings.
-
-<details>
-  <summary><b>Argument Details</b></summary>
 
 ### Argument Details
 
@@ -188,10 +172,6 @@ When using the BioPortal or Zooma interfaces, the value for `target_ontology` sh
 
 `incl_unmapped`&mdash;Include unmapped terms in the output. If a term has been tagged 'Ignore' or has less than the `min_score`, it is included in the output data frame
 
-</details>
-
-<details>
-  <summary><b>Ontology Caching</b></summary>
 
 ### Ontology Caching
 text2term supports caching ontologies for faster or repeated mapping to the same ontology. An ontology can be cached using the function:
@@ -217,14 +197,12 @@ text2term.clear_cache(ontology_acronym='')
 If no arguments are specified, the entire cache will be cleared. Otherwise, only the ontology with the given acronym will be cleared.
 Finally, `cache_exists(ontology_acronym='')` is a simple function that returns `True` if the given acronym exists in the cache, and `False` otherwise.
 
-**_Notes:_**
-- The `cache_ontology` function returns an object that can be used to directly call the `map_terms` function, as well as `clear_cache` and `cache_exists`. These have the same arguments, except `ontology_target` is no longer specified and there is no `use_cache` option, since it is always True.
-- While ontology URLs can be repeatedly used, acronyms must be distinct in a given environment.
+> [!NOTE]
+> The `cache_ontology` function returns an object that can be used to directly call the `map_terms` function, as well as `clear_cache` and `cache_exists`. These have the same arguments, except `ontology_target` is no longer specified and there is no `use_cache` option, since it is always True. 
 
-</details>
+> [!CAUTION]
+> While ontology URLs can be repeatedly used, acronyms must be distinct in a given environment.
 
-<details>
-  <summary><b>Input Preprocessing</b></summary>
 
 ### Input Preprocessing
 text2term includes regular expression-based preprocessing functionality for input terms. There are functions that take the input terms and a collection of (user-defined) regular expressions, then match each term to each regular expression to simplify the input term.
@@ -252,7 +230,6 @@ When the input to text2term is a table, any rows that contain `NA` values in the
 
 If an ignore tag `"ignore"` or `"Ignore"` is added to a term, that term will not be mapped to any terms in the ontology. It will only be included in the output if the `incl_unmapped` argument is True. The following values are regarded as ignore tags: `"ignore", "Ignore".
 
-</details>
 
 ## Command Line Interface Usage
 
@@ -269,8 +246,6 @@ To display a help message with descriptions of tool arguments do:
 
 `-t TARGET` Path or URL of 'target' ontology to map source terms to. When the chosen mapper is BioPortal or Zooma, provide a comma-separated list of acronyms (eg 'EFO,HPO') or write `'all'` to search all ontologies
 
-<details>
-  <summary><b>Optional Arguments</b></summary>
 
 ### Optional Arguments
 
@@ -297,8 +272,6 @@ To display a help message with descriptions of tool arguments do:
 `-type TERM_TYPE` Specify whether to map to ontology classes, properties, or both
 
 `-u` Include all unmapped terms in the output
-
-</details>
 
 
 ## Supported Mappers 
