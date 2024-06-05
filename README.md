@@ -10,8 +10,9 @@ pip install text2term
 ## Basic Examples
 
 <details>
-  <summary style="font-size: larger"><b><u>Examples of Programmatic Use</u></b></summary>
+  <summary><u>Examples of Programmatic Use</u></summary>
 
+### Examples of Programmatic Use
 text2term supports mapping strings specified in different input formats:
 
 ```python
@@ -46,8 +47,9 @@ dfo = mondo.map_terms(source_terms=["asthma", "acute bronchitis"])
 
 
 <details>
-  <summary style="font-size: large"><b><u>Examples of Command Line Interface Use</u></b></summary>
+  <summary><u><b>Examples of Command Line Interface Use</b></u></summary>
 
+### Examples of Command Line Interface Use
 To show a help message describing all arguments type into a terminal:
 ```shell
 python text2term --help
@@ -121,7 +123,9 @@ text2term.map_terms(source_terms,
 The function returns a pandas `DataFrame` containing the generated ontology mappings.
 
 <details>
-  <summary><h4><b>Argument Details</b></h4></summary>
+  <summary><b>Argument Details</b></summary>
+
+### Argument Details
 
 `source_terms`&mdash;Strings to be mapped to an ontology, which can be specified as a:
 1. list of strings
@@ -169,8 +173,9 @@ The function returns a pandas `DataFrame` containing the generated ontology mapp
 </details>
 
 <details>
-  <summary><h4><b>Ontology Caching</b></h4></summary>
+  <summary><b>Ontology Caching</b></summary>
 
+### Ontology Caching
 text2term supports caching ontologies for faster or repeated mapping to the same ontology. An ontology can be cached using the function:
 
 ```python
@@ -201,8 +206,9 @@ Finally, `cache_exists(ontology_acronym='')` is a simple function that returns `
 </details>
 
 <details>
-  <summary><h4>Input Preprocessing</h4></summary>
+  <summary><b>Input Preprocessing</b></summary>
 
+### Input Preprocessing
 text2term includes regular expression-based preprocessing functionality for input terms. There are functions that take the input terms and a collection of (user-defined) regular expressions, then match each term to each regular expression to simplify the input term.
 
 ```python
@@ -240,13 +246,15 @@ To display a help message with descriptions of tool arguments do:
 
 `python text2term -h` or `python text2term --help`
 
-### Required arguments
+### Required Arguments
 `-s SOURCE` Input file containing 'source' terms to map to ontology terms (list of terms or CSV file).
 
 `-t TARGET` Path or URL of 'target' ontology to map source terms to. When the chosen mapper is BioPortal or Zooma, provide a comma-separated list of acronyms (eg 'EFO,HPO') or write `'all'` to search all ontologies.
 
 <details>
-  <summary style="font-size: larger"><b>Optional arguments</b></summary>
+  <summary><b>Optional Arguments</b></summary>
+
+### Optional Arguments
 
 `-o OUTPUT` Path to desired output file for the mappings.
 
