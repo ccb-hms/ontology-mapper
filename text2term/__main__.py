@@ -4,7 +4,6 @@ import sys
 from t2t import map_terms, cache_ontology
 from onto_cache import cache_exists
 from mapper import Mapper
-from term import OntologyTermType
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='A tool for mapping free-text descriptions of (biomedical) '
@@ -25,7 +24,7 @@ if __name__ == "__main__":
                              "that contains the terms to map, optionally followed by the name of the column that "
                              "contains identifiers for the terms (eg 'my_terms,my_term_ids')")
     parser.add_argument("-sep", "--separator", required=False, type=str, default=',',
-                        help="Specifies the cell separator to be used when reading a non-comma-separated tabular file")
+                        help="Specifies the cell separator to be used when reading a table")
     parser.add_argument("-top", "--top_mappings", required=False, type=int, default=3,
                         help="Maximum number of top-ranked mappings returned per source term (default=3)")
     parser.add_argument("-min", "--min_score", required=False, type=float, default=0.5,
@@ -38,9 +37,9 @@ if __name__ == "__main__":
     parser.add_argument("-g", "--save_term_graphs", required=False, default=False, action="store_true",
                         help="Save vis.js graphs representing the neighborhood of each ontology term (default=False)")
     parser.add_argument("-c", "--store_in_cache", required=False, type=str, default="",
-                        help="Store the target ontology into local cache under acronym")
+                        help="Cache the target ontology using the name given here")
     parser.add_argument("-type", "--term_type", required=False, type=str, default="class",
-                        help="Define whether to return ontology classes, properties, or both")
+                        help="Define whether to map to ontology classes, properties, or both")
     parser.add_argument('-u', "--incl_unmapped", required=False, default=False, action="store_true",
                         help="Include all unmapped terms in the output")
 
