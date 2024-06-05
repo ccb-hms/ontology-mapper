@@ -1,0 +1,76 @@
+# This workflow will install Python dependencies, run tests and lint with a single version of Python
+# For more information see: https://help.github.com/actions/language-and-framework-guides/using-python-with-github-actions
+
+name: Mapper Test
+
+on:
+    push:
+        branches: [task5-workflow]
+    pull_request:
+        branches: [task5-workflow]
+
+jobs:
+    run_mapper:
+        runs-on: ubuntu-latest
+        name: Run Tests
+        steps:
+            - uses: actions/checkout@v2
+              name: Checkout out mapper repository
+            - uses: actions/checkout@v2
+              name: Checkout test repository
+              with:
+                  path: tests
+                  repository: "ccb-hms/ontology-mapper-tests"
+                  token: ${{ secrets.MAPPER_TESTING }}
+                  fetch-depth: 0 # otherwise, there would be errors pushing refs to the destination repository.
+            - name: Set up Python 3.9
+              uses: actions/setup-python@v2
+              with:
+                  python-version: 3.9
+            - name: Install dependencies
+              run: |
+                  python -m pip install --upgrade pip
+                  pip install flake8 pytest
+                  if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+            - name: Run mapper on UK Biobank source terms
+              run: |
+                  python3 text2term.py -s $source_path -t $target_path -min 0 -o "./tests/mapper-outputs/ukb-efo/${GITHUB_SHA}.csv"
+              env:
+                  source_path: ./tests/data/ukb-efo/terms.txt
+                  # https://github.com/EBISPOT/efo/releases/tag/v2019-03-18
+                  # 2019-03-18 EFO 2.106, as referenced by:
+                  # https://github.com/EBISPOT/EFO-UKB-mappings/blob/master/ISMB_Mapping_UK_Biobank_to_EFO.pdf
+                  # page 2, footnote 9
+                  target_path: ./tests/data/ukb-efo/efo-v2019-03-18.owl
+            - name: Setup summary spreadsheet row
+              run: |
+                  if grep -q "," <<< "${{ github.event.head_commit.message }}"
+                  then
+                    MSG='"${{ github.event.head_commit.message }}"'
+                  else
+                    MSG='${{ github.event.head_commit.message }}'
+                  fi
+                  echo -n "${GITHUB_REF},${GITHUB_SHA},${MSG},ukb-efo/${GITHUB_SHA}.csv," >> $summary_path
+              working-directory: tests
+              env:
+                  summary_path: summary.csv
+            - name: Run coverage__one_error script
+              run: |
+                  python3 $script_path
+              working-directory: tests/compare-scripts
+              env:
+                  script_path: coverage_one_error.py
+            - name: Commit changes to tests repo
+              run: |
+                  git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
+                  git config --local user.name "github-actions[bot]"
+                  git add mapper-outputs/*
+                  git add summary.csv
+                  git commit -m "Add files"
+              working-directory: tests
+            - name: Push changes
+              uses: ad-m/github-push-action@master
+              with:
+                  repository: "ccb-hms/ontology-mapper-tests"
+                  github_token: ${{ secrets.MAPPER_TESTING }}
+                  directory: "tests"
