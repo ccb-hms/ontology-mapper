@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 from text2term.config import VERSION
 
-description = 'A tool for mapping free-text descriptions of (biomedical) entities to controlled terms in ontologies'
+description = 'a tool for mapping free-text descriptions of entities to ontology terms'
 long_description = open('README.md').read()
 
 with open('requirements.txt') as f:
@@ -24,9 +24,13 @@ setup(
         'Development Status :: 4 - Beta',
         'License :: OSI Approved :: MIT License',
         'Operating System :: OS Independent',
+        'Environment :: Console',
         'Programming Language :: Python',
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.9',
+        'Programming Language :: Python :: 3.10',
+        'Programming Language :: Python :: 3.11',
+        'Programming Language :: Python :: 3.12',
         'Topic :: Scientific/Engineering'
     ],
     python_requires=">=3.9",
