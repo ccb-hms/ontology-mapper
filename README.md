@@ -10,7 +10,7 @@ pip install text2term
 ## Basic Examples
 
 <details>
-  <summary><b><font size="+1">Examples of Programmatic Use</font></b></summary>
+  <summary style="font-size: large"><u>Examples of Programmatic Use</u></summary>
 
 text2term supports mapping strings specified in different input formats:
 
@@ -46,7 +46,7 @@ dfo = mondo.map_terms(source_terms=["asthma", "acute bronchitis"])
 
 
 <details>
-  <summary><b><font size="+1">Examples of Command Line Interface Use</font></b></summary>
+  <summary style="font-size: large"><b>Examples of Command Line Interface Use</b></summary>
 
 To show a help message describing all arguments type into a terminal:
 ```shell
@@ -201,7 +201,7 @@ Finally, `cache_exists(ontology_acronym='')` is a simple function that returns `
 </details>
 
 <details>
-  <summary><b><font size="+1">Input Preprocessing</font></b></summary>
+  <summary><h3>Input Preprocessing</h3></summary>
 
 text2term includes regular expression-based preprocessing functionality for input terms. There are functions that take the input terms and a collection of (user-defined) regular expressions, then match each term to each regular expression to simplify the input term.
 
@@ -230,7 +230,7 @@ If an ignore tag `"ignore"` or `"Ignore"` is added to a term, that term will not
 
 </details>
 
-## Command Line Usage
+## Command Line Interface Usage
 
 After installing, execute the tool from a command line as follows:
 
@@ -246,7 +246,7 @@ To display a help message with descriptions of tool arguments do:
 `-t TARGET` Path or URL of 'target' ontology to map source terms to. When the chosen mapper is BioPortal or Zooma, provide a comma-separated list of acronyms (eg 'EFO,HPO') or write `'all'` to search all ontologies.
 
 <details>
-  <summary><b><font size="+1">Optional arguments</font></b></summary>
+  <summary style="font-size: large"><b>Optional arguments</b></summary>
 
 `-o OUTPUT` Path to desired output file for the mappings.
 
