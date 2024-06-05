@@ -10,7 +10,7 @@ pip install text2term
 ## Basic Examples
 
 <details>
-  <summary style="font-size: large"><u>Examples of Programmatic Use</u></summary>
+  <summary style="font-size: larger"><b><u>Examples of Programmatic Use</u></b></summary>
 
 text2term supports mapping strings specified in different input formats:
 
@@ -46,7 +46,7 @@ dfo = mondo.map_terms(source_terms=["asthma", "acute bronchitis"])
 
 
 <details>
-  <summary style="font-size: large"><b>Examples of Command Line Interface Use</b></summary>
+  <summary style="font-size: large"><b><u>Examples of Command Line Interface Use</u></b></summary>
 
 To show a help message describing all arguments type into a terminal:
 ```shell
@@ -121,7 +121,7 @@ text2term.map_terms(source_terms,
 The function returns a pandas `DataFrame` containing the generated ontology mappings.
 
 <details>
-  <summary><b><font size="+1">Argument Details</font></b></summary>
+  <summary><h4><b>Argument Details</b></h4></summary>
 
 `source_terms`&mdash;Strings to be mapped to an ontology, which can be specified as a:
 1. list of strings
@@ -169,7 +169,7 @@ The function returns a pandas `DataFrame` containing the generated ontology mapp
 </details>
 
 <details>
-  <summary><b><font size="+1">Ontology Caching</font></b></summary>
+  <summary><h4><b>Ontology Caching</b></h4></summary>
 
 text2term supports caching ontologies for faster or repeated mapping to the same ontology. An ontology can be cached using the function:
 
@@ -201,7 +201,7 @@ Finally, `cache_exists(ontology_acronym='')` is a simple function that returns `
 </details>
 
 <details>
-  <summary><h3>Input Preprocessing</h3></summary>
+  <summary><h4>Input Preprocessing</h4></summary>
 
 text2term includes regular expression-based preprocessing functionality for input terms. There are functions that take the input terms and a collection of (user-defined) regular expressions, then match each term to each regular expression to simplify the input term.
 
@@ -246,7 +246,7 @@ To display a help message with descriptions of tool arguments do:
 `-t TARGET` Path or URL of 'target' ontology to map source terms to. When the chosen mapper is BioPortal or Zooma, provide a comma-separated list of acronyms (eg 'EFO,HPO') or write `'all'` to search all ontologies.
 
 <details>
-  <summary style="font-size: large"><b>Optional arguments</b></summary>
+  <summary style="font-size: larger"><b>Optional arguments</b></summary>
 
 `-o OUTPUT` Path to desired output file for the mappings.
 
