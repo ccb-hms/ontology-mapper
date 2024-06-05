@@ -265,34 +265,34 @@ To display a help message with descriptions of tool arguments do:
 `python text2term -h` or `python text2term --help`
 
 ### Required Arguments
-`-s SOURCE` Input file containing 'source' terms to map to ontology terms (list of terms or CSV file).
+`-s SOURCE` Input file containing 'source' terms to map to ontology terms (list of terms or CSV file)
 
-`-t TARGET` Path or URL of 'target' ontology to map source terms to. When the chosen mapper is BioPortal or Zooma, provide a comma-separated list of acronyms (eg 'EFO,HPO') or write `'all'` to search all ontologies.
+`-t TARGET` Path or URL of 'target' ontology to map source terms to. When the chosen mapper is BioPortal or Zooma, provide a comma-separated list of acronyms (eg 'EFO,HPO') or write `'all'` to search all ontologies
 
 <details>
   <summary><b>Optional Arguments</b></summary>
 
 ### Optional Arguments
 
-`-o OUTPUT` Path to desired output file for the mappings.
+`-o OUTPUT` Path to desired output file for the mappings
 
-`-m MAPPER` Method used to compare source terms with ontology terms. One of: *levenshtein, jaro, jarowinkler, jaccard, indel, fuzzy, tfidf, zooma, bioportal*.
+`-m MAPPER` Method used to compare source terms with ontology terms. One of: *levenshtein, jaro, jarowinkler, jaccard, indel, fuzzy, tfidf, zooma, bioportal*
 
-`-csv CSV_INPUT` Indicates a CSV format input—follow with the name of the column containing terms to map, optionally followed by the name of the column containing identifiers for the terms (eg 'my terms,my term ids').
+`-csv CSV_INPUT` Indicates a CSV format input—follow with the name of the column containing terms to map, optionally followed by the name of the column containing identifiers for the terms (eg 'my terms,my term ids')
 
 `-sep SEPARATOR` Specifies the cell separator to be used when reading a table
 
-`-top TOP_MAPPINGS` Maximum number of top-ranked mappings returned per source term.
+`-top TOP_MAPPINGS` Maximum number of top-ranked mappings returned per source term
 
-`-min MIN_SCORE` Minimum similarity score [0,1] for the mappings (1=exact match).
+`-min MIN_SCORE` Minimum similarity score [0,1] for the mappings (1=exact match)
 
-`-iris BASE_IRIS` Map only to ontology terms whose IRIs start with a value given in this comma-separated list (eg 'http://www.ebi.ac.uk/efo,http://purl.obolibrary.org/obo/HP)').
+`-iris BASE_IRIS` Map only to ontology terms whose IRIs start with a value given in this comma-separated list (eg 'http://www.ebi.ac.uk/efo,http://purl.obolibrary.org/obo/HP)')
 
-`-d` Exclude ontology terms stated as deprecated via `owl:deprecated true`.
+`-d` Exclude ontology terms stated as deprecated via `owl:deprecated true`
 
-`-g` Save [vis.js](https://visjs.org) graphs representing the neighborhood of each ontology term.
+`-g` Save [vis.js](https://visjs.org) graphs representing the neighborhood of each ontology term
 
-`-c STORE_IN_CACHE` Cache the target ontology using the name given here.
+`-c STORE_IN_CACHE` Cache the target ontology using the name given here
 
 `-type TERM_TYPE` Specify whether to map to ontology classes, properties, or both
 
