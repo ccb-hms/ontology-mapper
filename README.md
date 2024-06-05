@@ -46,13 +46,13 @@ dfd = text2term.map_terms(source_terms={"asthma":"disease", "acute bronchitis":[
   <summary><b>Examples of Programmatic Caching</b></summary>
 
 ### Examples of Programmatic Caching
-text2term supports caching an ontology for repeated use. Here we cache an ontology and give it a name for later use:
+text2term supports caching an ontology for repeated use. Here we cache an ontology and give it a name:
 ```python
 mondo = text2term.cache_ontology(ontology_url="http://purl.obolibrary.org/obo/mondo.owl", 
                                  ontology_acronym="MONDO")
 ```
 
-Now we can map strings to the cached ontology by specifying as `target_ontology` the name chosen above and the flag `use_cache=True`
+The given name acts as a reference. Now we can map strings to the cached ontology by specifying as `target_ontology` the name specified above and the flag `use_cache=True`
 
 ```python
 dfc = text2term.map_terms(source_terms=["asthma", "acute bronchitis"], 
@@ -156,10 +156,7 @@ The function returns a pandas `DataFrame` containing the generated ontology mapp
    - If a term is tagged with "Ignore", text2term will not map it
    - Unmapped terms can still be included in the output if `incl_unmapped` is True
 
-`target_ontology`&mdash;Path, URL or name of 'target' ontology to map the source terms to
-
-> [!TIP]
-> Ontology names can be given as values to `target_ontology` e.g. "EFO" or "CL"--text2term uses [bioregistry](https://bioregistry.io) to get URLs for such names. Similarly, when the target ontology has been cached, enter the name used upon caching.
+`target_ontology`&mdash;Path, URL or name of 'target' ontology to map the source terms to. Ontology names can be given as values to `target_ontology` e.g. "EFO" or "CL"--text2term uses [bioregistry](https://bioregistry.io) to get URLs for such names. Similarly, when the target ontology has been cached, enter the name used upon caching.
 
 When using BioPortal or Zooma, this should be a comma-separated list of ontology acronyms (eg 'EFO,HPO') or **'all'** to search all ontologies.
 
@@ -187,7 +184,7 @@ When using BioPortal or Zooma, this should be a comma-separated list of ontology
 
 `use_cache`&mdash;Use the cache for the ontology
 
-`term_type`&mdash;Specifies whether to map to ontology classes, properties or both. Possible values are `class, property, any`
+`term_type`&mdash;Specifies whether to map to ontology classes, properties or both. One of `class, property, any`
 
 `incl_unmapped`&mdash;Include unmapped terms in the output. If a term has been tagged 'Ignore' or has less than the `min_score`, it is included in the output data frame
 
@@ -220,11 +217,9 @@ text2term.clear_cache(ontology_acronym='')
 If no arguments are specified, the entire cache will be cleared. Otherwise, only the ontology with the given acronym will be cleared.
 Finally, `cache_exists(ontology_acronym='')` is a simple function that returns `True` if the given acronym exists in the cache, and `False` otherwise.
 
-> [!TIP]
-> The `cache_ontology` function returns an object that can be used to directly call the `map_terms` function, as well as `clear_cache` and `cache_exists`. These have the same arguments, except `ontology_target` is no longer specified and there is no `use_cache` option, since it is always True.
-
-> [!NOTE]
-> While ontology URLs can be repeatedly used, acronyms must be distinct in a given environment.
+**_Notes:_**
+- The `cache_ontology` function returns an object that can be used to directly call the `map_terms` function, as well as `clear_cache` and `cache_exists`. These have the same arguments, except `ontology_target` is no longer specified and there is no `use_cache` option, since it is always True.
+- While ontology URLs can be repeatedly used, acronyms must be distinct in a given environment.
 
 </details>
 
