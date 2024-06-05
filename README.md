@@ -1,5 +1,17 @@
-# *text2term* ontology mapper
-A tool for mapping free-text descriptions of (biomedical) entities to controlled terms in ontologies. 
+<div align="center">
+   <h1>text2term</h1>
+   <h5>A tool for mapping free-text descriptions of (biomedical) entities to controlled terms in ontologies.</h5>
+
+   <a href="https://pypi.org/project/text2term">
+        <img alt="PyPI" src="https://img.shields.io/pypi/v/text2term" />
+   </a>
+   <a href="https://github.com/ccb-hms/ontology-mapper/blob/main/LICENSE">
+        <img alt="PyPI - License" src="https://img.shields.io/pypi/l/text2term" />
+   </a>
+   <a href="https://github.com/ccb-hms/ontology-mapper/actions/workflows/github_test.yml">
+        <img alt="Tests" src="https://github.com/ccb-hms/ontology-mapper/actions/workflows/github_test.yml/badge.svg" />
+   </a>
+</div>
 
 ## Installation
 Install package using **pip**:
