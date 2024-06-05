@@ -7,49 +7,121 @@ Install package using **pip**:
 ```
 pip install text2term
 ```
-## Examples
-### Programmatic
-```python
-import text2term
-import pandas
+## Basic Examples
 
-df1 = text2term.map_terms("test/unstruct_terms.txt", "http://purl.obolibrary.org/obo/mondo.owl")
-df2 = text2term.map_terms(["asthma", "acute bronchitis"], "http://purl.obolibrary.org/obo/mondo.owl")
-df3 = text2term.map_terms({"asthma":"disease", "acute bronchitis":["disease", "lungs"]}, "http://purl.obolibrary.org/obo/mondo.owl")
-```
-Below is an example of caching, assuming the same imports as above:
+<details>
+  <summary><b>Examples of Programmatic Mapping</b></summary>
+
+### Examples of Programmatic Mapping
+text2term supports mapping strings specified in multiple input formats. In the first example, we map strings in a list to an ontology specified by its URL:
+
 ```python
-text2term.cache_ontology("http://purl.obolibrary.org/obo/mondo.owl", "MONDO")
-df1 = text2term.map_terms("test/unstruct_terms.txt", "MONDO", use_cache=True)
-df2 = text2term.map_terms(["asthma", "acute bronchitis"], "MONDO", use_cache=True)
-text2term.clear_cache("MONDO")
+import text2term 
+dfl = text2term.map_terms(source_terms=["asthma", "acute bronchitis"], 
+                          target_ontology="http://purl.obolibrary.org/obo/mondo.owl")
 ```
 
-### Command Line
-The basic use of the tool requires a `source` file containing a list of terms to map to the given `target` ontology:  
-`python text2term -s test/unstruct_terms.txt -t http://purl.obolibrary.org/obo/mondo.owl`
+There is also support for file-based input, for example a file containing a list of strings:
+```python
+dff = text2term.map_terms(source_terms="test/unstruct_terms.txt", 
+                          target_ontology="http://purl.obolibrary.org/obo/mondo.owl")
+```
 
-Specify an output file where the mappings should be saved using `-o`:  
-`python text2term -s test/unstruct_terms.txt -t mondo.owl -o /Documents/my-mappings.csv`
+or a table where we can specify the column of terms to map and the table value separator:
+```python
+dff = text2term.map_terms(source_terms="test/some_table.tsv", 
+                          csv_columns=('diseases','optional_ids'), separator="\t",
+                          target_ontology="http://purl.obolibrary.org/obo/mondo.owl")
+```
 
+Finally it is possible map strings in a dictionary with associated tags that are preserved in the output:
+```python
+dfd = text2term.map_terms(source_terms={"asthma":"disease", "acute bronchitis":["disease", "lung"]}, 
+                          target_ontology="http://purl.obolibrary.org/obo/mondo.owl")
+```
+
+</details>
+
+<details>
+  <summary><b>Examples of Programmatic Caching</b></summary>
+
+### Examples of Programmatic Caching
+text2term supports caching an ontology for repeated use. Here we cache an ontology and give it a name:
+```python
+mondo = text2term.cache_ontology(ontology_url="http://purl.obolibrary.org/obo/mondo.owl", 
+                                 ontology_acronym="MONDO")
+```
+
+The given name acts as a reference. Now we can map strings to the cached ontology by specifying as `target_ontology` the name specified above and the flag `use_cache=True`
+
+```python
+dfc = text2term.map_terms(source_terms=["asthma", "acute bronchitis"], 
+                          target_ontology="MONDO", use_cache=True)
+```
+
+More succinctly, we can use the returned `OntologyCache` object `mondo` as such:
+```python
+dfo = mondo.map_terms(source_terms=["asthma", "acute bronchitis"])
+```
+</details>
+
+
+<details>
+  <summary><b>Examples of Command Line Interface Use</b></summary>
+
+### Examples of Command Line Interface Use
+To show a help message describing all arguments type into a terminal:
+```shell
+python text2term --help
+```
+
+The basic use of text2term requires a `source` file containing the terms to map to a given `target` ontology:  
+```shell
+python text2term -s test/unstruct_terms.txt -t http://purl.obolibrary.org/obo/mondo.owl
+```
+
+---
+Map to a local ontology and specify an output file where the mappings should be saved using `-o`:  
+```shell
+python text2term -s test/unstruct_terms.txt -t test/mondo.owl -o test/mymappings.csv
+```
+
+---
 Set the minimum acceptable similarity score for mapping each given term to an ontology term using `-min`:  
-`python text2term -s test/unstruct_terms.txt -t mondo.owl -min 0.8`  
+```shell
+python text2term -s test/unstruct_terms.txt -t test/mondo.owl -min 0.8
+```
 The mapped terms returned will have been determined to be 0.8 similar to their source terms in a 0-1 scale.  
 
+---
 Exclude deprecated ontology terms (declared as such via *owl:deprecated true*) using `-d`:  
-`python text2term -s test/unstruct_terms.txt -t mondo.owl -d`
+```shell
+python text2term -s test/unstruct_terms.txt -t test/mondo.owl -d
+```
 
+---
 Limit search to only terms whose IRIs start with any IRI given in a list specified using `-iris`:  
-`python text2term.py -s test/unstruct_terms.txt -t mondo.owl -iris http://purl.obolibrary.org/obo/mondo.owl,http://purl.obolibrary.org/obo/HP`  
-Here, because EFO reuses terms from other ontologies such as HP and GO, the HP terms would be included but the GO terms would be excluded.
+```shell
+python text2term.py -s test/unstruct_terms.txt -t test/mondo.owl -iris http://purl.obolibrary.org/obo/mondo,http://identifiers.org/hgnc
+```
+While MONDO uses terms from other ontologies such as CHEBI and Uberon, the tool only considers terms whose IRIs start either with "http://purl.obolibrary.org/obo/mondo" or "http://identifiers.org/hgnc".
 
-Use the cache on the command line, first by flagging it, then in the future using the acronym:
-`python text2term -s test/unstruct_terms.txt -t http://purl.obolibrary.org/obo/mondo.owl -c MONDO`
-Then, after running this, the following command is equivalent:
-`python text2term -s test/unstruct_terms.txt -t MONDO`
+---
+Cache an ontology for repeated use by running the tool while instructing it to cache the ontology via `-c <name>`:
+```shell
+python text2term -s test/unstruct_terms.txt -t http://purl.obolibrary.org/obo/mondo.owl -c MONDO
+```
+
+Now the ontology is cached and we can refer to it as the target ontology using the name given beforehand: 
+```shell
+python text2term -s test/unstruct_terms.txt -t MONDO
+```
+
+</details>
+
 
 ## Programmatic Usage
-The tool can be executed in Python with the `map_terms` function:
+After installing and importing to a Python environment, the main function is `map_terms`:
 
 ```python
 text2term.map_terms(source_terms, 
@@ -67,174 +139,185 @@ text2term.map_terms(source_terms,
                    use_cache=False,
                    term_type=OntologyTermType.CLASS,
                    incl_unmapped=False)
-
 ```
-NOTE: As of 3.0.0, the former three functions (`map_file`, `map_terms`, `map_tagged_terms`) have been condensed into one function. Users can now change the name of any function in old code to `map_terms` and it reads the input context to maintain the functionality of each one.
+The function returns a pandas `DataFrame` containing the generated ontology mappings.
 
-### Arguments
-For `map_terms`, the first argument can be any of the following: 1) a string that specifies a path to a file containing the terms to be mapped, 2) a list of the terms to be mapped, or 3) a dictionary where the keys are the terms to be mapped, and values can be a list of tags or a list of TaggedTerm objects (see below). 
-Currently, the tags do not affect the mapping in any way, but they are added to the output dataframe at the end of the process. The exception is the Ignore tag, which causes the term to not be mapped at all, but still be outputted in the results if the incl_unmapped argument is True (see below).
+<details>
+  <summary><b>Argument Details</b></summary>
 
-All other arguments are the same, and have the same functionality:
+### Argument Details
 
-`target_ontology` : str
-    Path or URL or acronym of 'target' ontology to map the source terms to. When the chosen mapper is BioPortal or Zooma,
-    provide a comma-separated list of ontology acronyms (eg 'EFO,HPO') or write 'all' to search all ontologies. When the target ontology has been previously cached, provide the ontology name that was used to cache it.
-    As of version 2.3.0, it is possible to specify ontology acronyms as the `target_ontology` (eg "EFO" or "CL"), which is achieved using [bioregistry](https://bioregistry.io) to retrieve URLs for those acronyms.
+`source_terms`&mdash;Strings to be mapped to an ontology, which can be specified as a:
+1. list of strings
+2. string containing a file path
+3. dictionary of terms and associated tags, where each key is a term and the value is a list of tags
+4. list of `TaggedTerm` objects
+   - Tags do not affect the mapping, they are simply added to the output dataframe 
+   - If a term is tagged with "Ignore", text2term will not map it
+   - Unmapped terms can still be included in the output if `incl_unmapped` is True
 
-`base_iris` : tuple
-    Map only to ontology terms whose IRIs start with one of the strings given in this tuple, for example:
-    ('http://www.ebi.ac.uk/efo','http://purl.obolibrary.org/obo/HP')
+`target_ontology`&mdash;Path, URL or name of 'target' ontology to map the source terms to. Ontology names can be given as values to `target_ontology` e.g. "EFO" or "CL"&mdash;text2term uses [bioregistry](https://bioregistry.io) to get URLs for such names. Similarly, when the target ontology has been cached, enter the name used upon caching.
 
-`csv_column` : tuple 
-    Allows the user to specify a column to map if a csv is passed in as the input file. Ignored if the input is not a file path.
+When using the BioPortal or Zooma interfaces, the value for `target_ontology` should be a comma-separated list of ontology acronyms (eg 'EFO,HPO') or **'all'** to search all ontologies.
 
-`source_terms_ids` : tuple
-    Collection of identifiers for the given source terms
-    WARNING: While this is still available for the tagged term function, it is worth noting that dictionaries do not necessarily preserve order, so it is not recommended. If using the TaggedTerm object, the source terms can be attached there to guarantee order.
+`base_iris`&mdash;Map only to ontology terms whose IRIs start with one of the strings given in this tuple
 
-`excl_deprecated` : bool
-    Exclude ontology terms stated as deprecated via `owl:deprecated true`
+`excl_deprecated`&mdash;Exclude ontology terms stated as deprecated via `owl:deprecated true`
 
-`mapper` : mapper.Mapper
-    Method used to compare source terms with ontology terms. One of: levenshtein, jaro, jarowinkler, jaccard, fuzzy, tfidf, zooma, bioportal
-    These can be initialized by invoking mapper.Mapper e.g. `mapper.Mapper.TFIDF`
+`source_terms_ids`&mdash;Collection of identifiers for the given source terms
 
-`max_mappings` : int
-    Maximum number of top-ranked mappings returned per source term
+`csv_column`&mdash;Specify the name of the column containing the terms to map, when the input file is a table. Optionally provide a second column name, containing the respective term identifiers
 
-`min_score` : float
-    Minimum similarity score [0,1] for the mappings (1=exact match)
+`separator`&mdash;Character that separates columns when input is a table (eg '\t' for TSV) 
 
-`output_file` : str
-    Path to desired output file for the mappings
+`mapper`&mdash;Method used to compare source terms with ontology terms. One of `levenshtein, jaro, jarowinkler, jaccard, fuzzy, tfidf, zooma, bioportal` (see [Supported Mappers](#supported-mappers))
 
-`save_graphs` : bool
-    Save vis.js graphs representing the neighborhood of each ontology term
+`max_mappings`&mdash;Maximum number of top-ranked mappings returned per source term
 
-`save_mappings` : bool
-    Save the generated mappings to a file (specified by `output_file`) 
+`min_score`&mdash;Minimum similarity score [0,1] for the mappings (1=exact match)
 
-`seperator` : str
-    Character that separates the source term values if a file input is given. Ignored if the input is not a file path.
+`save_mappings`&mdash;Save the generated mappings to a file (specified by `output_file`) 
 
-`use_cache` : bool
-    Use the cache for the ontology. More details are below.
+`output_file`&mdash;Path to desired output file for the mappings dataframe
 
-`term_type` : term.OntologyTermType
-    Specifies whether to map to ontology classes, properties or any of the two. Possible values are ['class', 'property', 'any'].
+`save_graphs`&mdash;Save vis.js graphs representing the neighborhood of each ontology term
 
-`incl_unmapped` : bool
-    Include all unmapped terms in the output. If something has been tagged 'Ignore' (see below) or falls below the `min_score` threshold, it is included without a mapped term at the end of the output data frame. 
+`use_cache`&mdash;Use the cache for the ontology
 
-All default values, if they exist, can be seen above.
+`term_type`&mdash;Specifies whether to map to ontology classes, properties or both. One of `class, property, any`
 
-### Return Value
-Both functions return the same value:
+`incl_unmapped`&mdash;Include unmapped terms in the output. If a term has been tagged 'Ignore' or has less than the `min_score`, it is included in the output data frame
 
-`df` : Data frame containing the generated ontology mappings
+</details>
+
+<details>
+  <summary><b>Ontology Caching</b></summary>
 
 ### Ontology Caching
-As of version 1.1.0, users can cache ontologies that they want to use regularly or quickly. Programmatically, there are two steps to using the cache: creating the cache, then accessing it. First, the user can cache ontologies using either of two functions:
+text2term supports caching ontologies for faster or repeated mapping to the same ontology. An ontology can be cached using the function:
 
 ```python
 cache_ontology(ontology_url, ontology_acronym="", base_iris=())
 ```
+This caches a single ontology from a URL or file path, and takes an optional acronym that will be used to reference the cached ontology later. If no acronym is given, the URL is used as the name.
 
+It is also possible to cache multiple ontologies, whose names and URLs are specified in a table formatted as such `acronym,version,url`. An example is provided in [resources/ontologies.csv](https://github.com/ccb-hms/ontology-mapper/blob/main/text2term/resources/ontologies.csv):
 ```python
 cache_ontology_set(ontology_registry_path)
 ```
 
-The first of these will cache a single ontology from a URL or file path, with it being referenced by an acronym that will be used to reference it later. If no acronym is given, it will use the URL as the cache name. An example can be found above.
-The second function allows the user to cache several ontologies at once by referencing a CSV file of the format:
-`acronym,version,url`. An example is provided in `resources/ontologies.csv`
+Once an ontology has been cached by either function, it is stored in a cache folder locally, and thus can be referenced even in different Python instances. Users can leverage the cache by using the assigned acronym as the value for the `target_ontology` argument, and setting the `use_cache` argument to `True`.
 
-Once an ontology has been cached by either function, it is stored in a cache folder locally, and thus can be referenced even in different Python instances.
-As of version 2.3.0, the `cache_ontology` function also returns an object that can be used to call any of the `map` functions, as well as `clear_cache` and `cache_exists`. These have the same arguments, except `ontology_target` is not specified and there is no `use_cache` option, as it is always True.
+To clear the ontology cache, the following function can be used:
 
-NOTE: Due to how ontologies are processed in memory, `cache_ontology_set` must be used to cache multiple ontologies in a single Python instance. If `cache_ontology` is used multiple times in one instance, the behavior is undefined and may cause visible or invisible errors.
+```python
+text2term.clear_cache(ontology_acronym='')
+```
 
-After an ontology is cached, the user can access the cache by using the assigned acronym in the place of `target_ontology` and setting the `use_cache` flag to `True`.
-To clear the cache, one can call:
-`clear_cache(ontology_acronym='')`
 If no arguments are specified, the entire cache will be cleared. Otherwise, only the ontology with the given acronym will be cleared.
-Finally, `cache_exists(ontology_acronym='')` is a simple function that returns `True` if the given acronym exists in the cache, and `False` otherwise. It is worth noting that while ontology URLs can repeat, acronyms must be distinct in a given environment.
+Finally, `cache_exists(ontology_acronym='')` is a simple function that returns `True` if the given acronym exists in the cache, and `False` otherwise.
+
+**_Notes:_**
+- The `cache_ontology` function returns an object that can be used to directly call the `map_terms` function, as well as `clear_cache` and `cache_exists`. These have the same arguments, except `ontology_target` is no longer specified and there is no `use_cache` option, since it is always True.
+- While ontology URLs can be repeatedly used, acronyms must be distinct in a given environment.
+
+</details>
+
+<details>
+  <summary><b>Input Preprocessing</b></summary>
 
 ### Input Preprocessing
-As of version 1.2.0, text2term includes regex-based preprocessing functionality for input terms. Specifically, these functions take the input terms and a collection of (user-defined) regular expressions, then match each term to each regular expression to simplify the input term.
+text2term includes regular expression-based preprocessing functionality for input terms. There are functions that take the input terms and a collection of (user-defined) regular expressions, then match each term to each regular expression to simplify the input term.
 
-Like the "map" functions above, the two functions differ on whether the input is a file or a list of strings:
 ```python
-preprocess_terms(terms, template_path, output_file='', blocklist_path='', blocklist_char='', rem_duplicates=False)
+preprocess_terms(terms, template_path, output_file='', blocklist_path='', 
+                 blocklist_char='', rem_duplicates=False)
 ``` 
+This returns a dictionary where the keys are the original terms and the values are the preprocessed terms.
+
 ```python
-preprocess_tagged_terms(file_path, template_path='', blocklist_path='', blocklist_char='', rem_duplicates=False, separator=';:;')
+preprocess_tagged_terms(file_path, template_path='', blocklist_path='', 
+                        blocklist_char='', rem_duplicates=False, separator=';:;')
 ```
 
-In all cases, the regex templates and blocklist must be stored in a newline-separated file. If an output file is specified, the preprocessed strings are written to that file and the list of preprocessed strings is returned.
+This returns a list of `TaggedTerm` objects.
 
-The blocklist functionality allows the user to specify another regex file. If any terms match any regex in blocklist, they are removed from the terms, or, if a blocklist character is specified, replaced with that character for placeholding. 
-NOTE: As of version 2.1.0, the arguments were changed to "blocklist" from "blacklist". Backwards compatibility is currently supported, but will likely be discontinued at the next major release.
+The regex templates file `template_path` and the blocklist `blocklist_path` must each be a newline-separated file. If an output file is specified, the preprocessed strings are written to that file.
 
-The Remove Duplicates `rem_duplicates` functionality will remove all duplicate terms after processing, if set to `True`. 
-WARNING: Removing duplicates at any point does not guarantee which original term is kept. This is particularly important if original terms have different tags, so user caution is advised.
+The blocklist functionality allows specifying another file with regular expressions that, when terms match any such regex in the blocklist, they are removed from the list of terms to map. Alternatively, if a blocklist character is specified, the input is replaced with that character. 
 
-The function `preprocess_terms()` returns a dictionary where the keys are the original terms and the values are the preprocessed terms.
-The `preprocess_tagged_terms()` function returns a list of TaggedTerm items with the following function contracts:
-```python
-def __init__(self, term=None, tags=[], original_term=None, source_term_id=None)
-def add_tags(self, new_tags)
-def update_term(self, term)
-def update_source_term_id(self, source_term_id)
-def get_original_term(self)
-def get_term(self)
-def get_tags(self)
-def get_source_term_id(self)
-```
-As mentioned in the mapping section above, this can then be passed directly to `map_terms`, allowing for easy programmatic usage. Note that this allows multiple of the same preprocessed term with different tags. 
+The `rem_duplicates` option removes all duplicate terms after processing, if set to `True`.
 
-**Note on NA values in input**: As of v2.0.3, when the input to text2term is a table file, any rows that contain `NA` values in the specified term column, or in the term ID column (if provided), will be ignored.
+When the input to text2term is a table, any rows that contain `NA` values in the specified term column, or in the term ID column (if provided), will be ignored.
 
-### Tag Usage
-As of 3.0.0, some tags have additional functionality that is added when attached to a term:
+If an ignore tag `"ignore"` or `"Ignore"` is added to a term, that term will not be mapped to any terms in the ontology. It will only be included in the output if the `incl_unmapped` argument is True. The following values are regarded as ignore tags: `"ignore", "Ignore".
 
-IGNORE:
-    If an ignore tag is added to a term, that term will not be mapped to any terms in the ontology. It will only be included in the output if the `incl_unmapped` argument is True. Here are the following values that count as ignore tags:
-```python
-    IGNORE_TAGS = ["ignore", "Ignore", "ignore ", "Ignore "]
-```
+</details>
 
-## Command Line Usage
+## Command Line Interface Usage
 
-After installation, execute the tool from a command line as follows:
+After installing, execute the tool from a command line as follows:
 
-`python text2term -s SOURCE -t TARGET [-o OUTPUT] [-m MAPPER] [-csv CSV_INPUT] [-top TOP_MAPPINGS] [-min MIN_SCORE] [-iris BASE_IRIS] [-d EXCL_DEPRECATED] [-g SAVE_TERM_GRAPHS]`
+`python text2term [-h] -s SOURCE -t TARGET [-o OUTPUT] [-m MAPPER] [-csv CSV_INPUT] [-sep SEPARATOR] [-top TOP_MAPPINGS] [-min MIN_SCORE] [-iris BASE_IRIS] [-d] [-g] [-c STORE_IN_CACHE] [-type TERM_TYPE] [-u]`
 
 To display a help message with descriptions of tool arguments do:
 
 `python text2term -h` or `python text2term --help`
 
-### Required arguments
-`-s SOURCE` Input file containing 'source' terms to map to ontology terms (list of terms or CSV file).
+### Required Arguments
+`-s SOURCE` Input file containing 'source' terms to map to ontology terms (list of terms or CSV file)
 
-`-t TARGET` Path or URL of 'target' ontology to map source terms to. When the chosen mapper is BioPortal or Zooma, provide a comma-separated list of acronyms (eg 'EFO,HPO') or write `'all'` to search all ontologies.
+`-t TARGET` Path or URL of 'target' ontology to map source terms to. When the chosen mapper is BioPortal or Zooma, provide a comma-separated list of acronyms (eg 'EFO,HPO') or write `'all'` to search all ontologies
 
-### Optional arguments
+<details>
+  <summary><b>Optional Arguments</b></summary>
 
-`-o OUTPUT` Path to desired output file for the mappings.
+### Optional Arguments
 
-`-m MAPPER` Method used to compare source terms with ontology terms. One of: *levenshtein, jaro, jarowinkler, jaccard, indel, fuzzy, tfidf, zooma, bioportal*.
+`-o OUTPUT` Path to desired output file for the mappings
 
-`-csv CSV_INPUT` Indicates a CSV format input—follow with the name of the column containing terms to map, optionally followed by the name of the column containing identifiers for the terms (eg 'my terms,my term ids').
+`-m MAPPER` Method used to compare source terms with ontology terms. One of: *levenshtein, jaro, jarowinkler, jaccard, indel, fuzzy, tfidf, zooma, bioportal*
 
-`-top TOP_MAPPINGS` Maximum number of top-ranked mappings returned per source term.
+`-csv CSV_INPUT` Indicates a CSV format input—follow with the name of the column containing terms to map, optionally followed by the name of the column containing identifiers for the terms (eg 'my terms,my term ids')
 
-`-min MIN_SCORE` Minimum similarity score [0,1] for the mappings (1=exact match).
+`-sep SEPARATOR` Specifies the cell separator to be used when reading a table
 
-`-iris BASE_IRIS` Map only to ontology terms whose IRIs start with a value given in this comma-separated list (eg 'http://www.ebi.ac.uk/efo,http://purl.obolibrary.org/obo/HP)').
+`-top TOP_MAPPINGS` Maximum number of top-ranked mappings returned per source term
 
-`-d EXCL_DEPRECATED` Exclude ontology terms stated as deprecated via `owl:deprecated true`.
+`-min MIN_SCORE` Minimum similarity score [0,1] for the mappings (1=exact match)
 
-`-g SAVE_TERM_GRAPHS` Save [vis.js](https://visjs.org) graphs representing the neighborhood of each ontology term.
+`-iris BASE_IRIS` Map only to ontology terms whose IRIs start with a value given in this comma-separated list (eg 'http://www.ebi.ac.uk/efo,http://purl.obolibrary.org/obo/HP)')
 
-`-c STORE_IN_CACHE` Using this flag followed by the acronym the ontology should be stored as, the program will same the target ontology to the cache. After that, referencing the acronym in `target` will reference the cache. Examples are above.
+`-d` Exclude ontology terms stated as deprecated via `owl:deprecated true`
+
+`-g` Save [vis.js](https://visjs.org) graphs representing the neighborhood of each ontology term
+
+`-c STORE_IN_CACHE` Cache the target ontology using the name given here
+
+`-type TERM_TYPE` Specify whether to map to ontology classes, properties, or both
+
+`-u` Include all unmapped terms in the output
+
+</details>
+
+
+## Supported Mappers 
+
+The mapping score of each mapping indicates how similar an input term is to an ontology term (via its labels or synonyms). The mapping scores generated by text2term are the result of applying one of the following _mappers_:
+
+**TF-IDF-based mapper**&mdash;[TF-IDF](https://en.wikipedia.org/wiki/Tf–idf) is a statistical measure often used in information retrieval that measures how important a word is to a document in a corpus of documents. We first generate TF-IDF-based vectors of the source terms and of labels and synonyms of ontology terms. Then we compute the [cosine similarity](https://en.wikipedia.org/wiki/Cosine_similarity) between vectors to determine how similar a source term is to a target term (label or synonym).
+
+**Syntactic distance-based mappers**&mdash;text2term provides support for commonly used and popular syntactic (edit) distance metrics: Levenshtein, Jaro, Jaro-Winkler, Jaccard, and Indel. We use the [nltk](https://pypi.org/project/nltk/) package to compute Jaccard distances and [rapidfuzz](https://pypi.org/project/rapidfuzz/) to compute all others.  
+
+**BioPortal Web API-based mapper**&mdash;uses an interface to the [BioPortal Annotator](https://bioportal.bioontology.org/annotator) that we built to allow mapping terms in bulk to ontologies in the [BioPortal](https://bioportal.bioontology.org) repository.
+
+> [!WARNING]
+> There are no scores associated with BioPortal annotations, so the score of all mappings is always 1
+
+**Zooma Web API-based mapper**&mdash;uses a [Zooma](https://www.ebi.ac.uk/spot/zooma/) interface that we built to allow mapping terms in bulk to ontologies in the [Ontology Lookup Service (OLS)](https://www.ebi.ac.uk/ols4) repository. 
+
+> [!IMPORTANT]
+> When using the BioPortal or Zooma interfaces, make sure to specify the target ontology name(s) as they appear in BioPortal or OLS, respectively
+
+> [!NOTE]
+> Syntactic distance-based mappers and Web API-based mappers perform slowly (much slower than the TF-IDF mapper). The former because they do pairwise comparisons between each input string and each ontology term label/synonym. In the Web API-based approaches there are networking and API load overheads
