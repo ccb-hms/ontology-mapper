@@ -1,6 +1,6 @@
 <div align="center">
    <h1>text2term</h1>
-   <h5>A tool for mapping free-text descriptions of (biomedical) entities to controlled terms in ontologies.</h5>
+   <h4>A tool for mapping free-text descriptions of (biomedical) entities to controlled terms in ontologies</h4>
 
    <a href="https://pypi.org/project/text2term">
         <img alt="PyPI" src="https://img.shields.io/pypi/v/text2term" />
