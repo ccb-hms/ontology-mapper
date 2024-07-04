@@ -11,6 +11,9 @@
    <a href="https://github.com/ccb-hms/ontology-mapper/actions/workflows/github_test.yml">
         <img alt="Tests" src="https://github.com/ccb-hms/ontology-mapper/actions/workflows/github_test.yml/badge.svg" />
    </a>
+   <a href="https://doi.org/10.48550/arXiv.2407.02626">
+        <img alt="arXiv preprint" src="https://img.shields.io/badge/DOI-arXiv:2407.02626-orange" />
+   </a>
 </div>
 
 ## Installation
