@@ -79,7 +79,7 @@ class SyntacticMapper:
         Calculates the normalized Levenshtein distance between s1 and s2.
         :return similarity between s1 and s2 as a float between 0 and 1
         """
-        similarity = rapidfuzz.string_metric.normalized_levenshtein(s1, s2)/100
+        similarity = rapidfuzz.distance.Levenshtein.normalized_similarity(s1, s2)
         return similarity
 
     def compare_jaro(self, s1, s2):
@@ -87,7 +87,7 @@ class SyntacticMapper:
         Calculates the Jaro similarity between s1 and s2.
         :return similarity between s1 and s2 as a float between 0 and 1
         """
-        similarity = rapidfuzz.string_metric.jaro_similarity(s1, s2)/100
+        similarity = rapidfuzz.distance.Jaro.normalized_similarity(s1, s2)
         return similarity
 
     def compare_jarowinkler(self, s1, s2):
@@ -95,16 +95,15 @@ class SyntacticMapper:
         Calculates the Jaro-Winkler similarity between s1 and s2.
         :return similarity between s1 and s2 as a float between 0 and 1
         """
-        similarity = rapidfuzz.string_metric.jaro_winkler_similarity(s1, s2)/100
+        similarity = rapidfuzz.distance.Jaro.normalized_similarity(s1, s2)
         return similarity
 
     def compare_indel(self, s1, s2):
         """
         Calculates the normalized Indel distance between s1 and s2.
-        See: https://maxbachmann.github.io/RapidFuzz/Usage/fuzz.html#ratio
         :return similarity between s1 and s2 as a float between 0 and 1
         """
-        similarity = rapidfuzz.fuzz.ratio(s1, s2)/100
+        similarity = rapidfuzz.distance.Indel.normalized_similarity(s1, s2)
         return similarity
 
     def compare_fuzzy_ratio(self, s1, s2):
