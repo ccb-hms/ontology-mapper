@@ -1,21 +1,25 @@
 <div align="center">
    <h1>text2term</h1>
-   <h4>A tool for mapping free-text descriptions of (biomedical) entities to controlled terms in ontologies</h4>
+   <h4>A tool for mapping free-text descriptions of (biomedical) entities to ontology terms</h4>
 
-   <a href="https://pypi.org/project/text2term">
+   <a href="https://pypi.org/project/text2term" target="_blank">
         <img alt="PyPI" src="https://img.shields.io/pypi/v/text2term" />
    </a>
-   <a href="https://github.com/ccb-hms/ontology-mapper/blob/main/LICENSE">
+   <a href="https://github.com/ccb-hms/ontology-mapper/blob/main/LICENSE" target="_blank">
         <img alt="PyPI - License" src="https://img.shields.io/pypi/l/text2term" />
    </a>
-   <a href="https://github.com/ccb-hms/ontology-mapper/actions/workflows/github_test.yml">
+   <a href="https://github.com/ccb-hms/ontology-mapper/actions/workflows/github_test.yml" target="_blank">
         <img alt="Tests" src="https://github.com/ccb-hms/ontology-mapper/actions/workflows/github_test.yml/badge.svg" />
    </a>
-   <a href="https://doi.org/10.48550/arXiv.2407.02626">
+   <a href="https://doi.org/10.48550/arXiv.2407.02626" target="_blank">
         <img alt="arXiv preprint" src="https://img.shields.io/badge/DOI-arXiv:2407.02626-orange" />
    </a>
-   <img alt="PyPI Installs" src="https://img.shields.io/pypi/dm/text2term?label=pypi%20installs&color=D3CB40">
-   <img alt="Total Downloads" src="https://img.shields.io/pepy/dt/text2term?label=downloads&color=D10000">
+   <a href="https://shields.io/badges/py-pi-downloads" target="_blank">
+      <img alt="PyPI Installs" src="https://img.shields.io/pypi/dm/text2term?label=pypi%20installs&color=D3CB40">
+   </a>
+   <a href="https://shields.io/badges/pepy-total-downlods" target="_blank">
+      <img alt="Total Downloads" src="https://img.shields.io/pepy/dt/text2term?label=downloads&color=D10000">
+   </a>
 </div>
 
 ## Installation
