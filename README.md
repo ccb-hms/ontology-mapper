@@ -14,6 +14,8 @@
    <a href="https://doi.org/10.48550/arXiv.2407.02626">
         <img alt="arXiv preprint" src="https://img.shields.io/badge/DOI-arXiv:2407.02626-orange" />
    </a>
+   <img alt="PyPI Installs" src="https://img.shields.io/pypi/dm/text2term?label=pypi%20installs&color=D3CB40">
+   <img alt="Total Downloads" src="https://img.shields.io/pepy/dt/text2term?label=downloads&color=D10000">
 </div>
 
 ## Installation
