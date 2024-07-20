@@ -7,7 +7,7 @@ from mapper import Mapper
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='A tool for mapping free-text descriptions of (biomedical) '
-                                                 'entities to controlled terms in an ontology')
+                                                 'entities to ontology terms')
     parser.add_argument("-s", "--source", required=True, type=str,
                         help="Input file containing 'source' terms to map to ontology terms: list of terms or CSV file")
     parser.add_argument("-t", "--target", required=True, type=str,
@@ -42,6 +42,8 @@ if __name__ == "__main__":
                         help="Define whether to map to ontology classes, properties, or both")
     parser.add_argument('-u', "--incl_unmapped", required=False, default=False, action="store_true",
                         help="Include all unmapped terms in the output")
+    parser.add_argument('-bp', "--bioportal_apikey", required=False, type=str, default="",
+                        help="BioPortal API Key to use along with the BioPortal mapper option")
 
     arguments = parser.parse_args()
     if not os.path.exists(arguments.source):
@@ -63,4 +65,5 @@ if __name__ == "__main__":
               excl_deprecated=arguments.excl_deprecated, mapper=mapper, max_mappings=arguments.top_mappings,
               min_score=arguments.min_score, base_iris=iris, save_graphs=arguments.save_term_graphs,
               save_mappings=True, separator=arguments.separator, use_cache=cache_exists(target),
-              term_type=arguments.term_type, incl_unmapped=arguments.incl_unmapped)
+              term_type=arguments.term_type, incl_unmapped=arguments.incl_unmapped,
+              bioportal_apikey=arguments.bioportal_apikey)

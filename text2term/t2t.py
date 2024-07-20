@@ -31,7 +31,7 @@ LOGGER = onto_utils.get_logger(__name__, level=logging.INFO)
 def map_terms(source_terms, target_ontology, base_iris=(), csv_columns=(), excl_deprecated=False, max_mappings=3,
               min_score=0.3, mapper=Mapper.TFIDF, output_file='', save_graphs=False, save_mappings=False,
               source_terms_ids=(), separator=',', use_cache=False, term_type=OntologyTermType.CLASS,
-              incl_unmapped=False):
+              incl_unmapped=False, bioportal_apikey=""):
     """
     Maps the terms in the given list to the specified target ontology.
 
@@ -75,6 +75,8 @@ def map_terms(source_terms, target_ontology, base_iris=(), csv_columns=(), excl_
         The type(s) of ontology terms to map to, which can be 'class' or 'property' or 'any'
     incl_unmapped : bool
         Include unmapped terms in the output data frame
+    bioportal_apikey : str
+        BioPortal API Key to use along with the BioPortal mapper option
 
     Returns
     ----------
@@ -101,8 +103,9 @@ def map_terms(source_terms, target_ontology, base_iris=(), csv_columns=(), excl_
     # Run the mapper
     LOGGER.info(f"Mapping {len(source_terms)} source terms to {target_ontology}")
     mappings_df = _do_mapping(source_terms, source_terms_ids, target_terms, mapper, max_mappings, min_score, tags,
-                              incl_unmapped)
-    mappings_df["Mapping Score"] = mappings_df["Mapping Score"].astype(float).round(decimals=3)
+                              incl_unmapped, bioportal_apikey)
+    if not mappings_df.empty:
+        mappings_df["Mapping Score"] = mappings_df["Mapping Score"].astype(float).round(decimals=3)
     if save_mappings:
         _save_mappings(mappings_df, output_file, min_score, mapper, target_ontology, base_iris,
                        excl_deprecated, max_mappings, term_type, source_terms, incl_unmapped)
@@ -194,7 +197,8 @@ def _load_ontology(ontology, iris, exclude_deprecated, use_cache=False, term_typ
     return onto_terms
 
 
-def _do_mapping(source_terms, source_term_ids, ontology_terms, mapper, max_mappings, min_score, tags, incl_unmapped):
+def _do_mapping(source_terms, source_term_ids, ontology_terms, mapper, max_mappings, min_score, tags, incl_unmapped,
+                bioportal_apikey):
     to_map, tags = _process_tags(source_terms, tags)
     start = time.time()
     if mapper == Mapper.TFIDF:
@@ -204,7 +208,10 @@ def _do_mapping(source_terms, source_term_ids, ontology_terms, mapper, max_mappi
         term_mapper = ZoomaMapper()
         mappings_df = term_mapper.map(to_map, source_term_ids, ontologies=ontology_terms, max_mappings=max_mappings)
     elif mapper == Mapper.BIOPORTAL:
-        term_mapper = BioPortalAnnotatorMapper("8f0cbe43-2906-431a-9572-8600d3f4266e")
+        if bioportal_apikey == "":
+            LOGGER.error("A BioPortal API Key must be specified via the parameter `bioportal_apikey`")
+            return pd.DataFrame()
+        term_mapper = BioPortalAnnotatorMapper(bioportal_apikey)
         mappings_df = term_mapper.map(to_map, source_term_ids, ontologies=ontology_terms, max_mappings=max_mappings)
     elif mapper in {Mapper.LEVENSHTEIN, Mapper.JARO, Mapper.JARO_WINKLER, Mapper.INDEL, Mapper.FUZZY, Mapper.JACCARD}:
         term_mapper = SyntacticMapper(ontology_terms)
