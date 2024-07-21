@@ -145,11 +145,19 @@ class Text2TermTestSuite(unittest.TestCase):
         assert df_zooma[self.MAPPED_TERM_CURIE_COLUMN].str.contains("EFO:").any()
         assert df_zooma[self.MAPPED_TERM_CURIE_COLUMN].str.contains("NCIT:").any()
 
+    def test_mapping_bioportal_ontologies_no_apikey(self):
+        # Test mapping a list of terms to multiple ontologies using the BioPortal Annotator mapper without API Key
+        print("Test mapping a list of terms to multiple ontologies using the BioPortal Annotator mapper...")
+        df_bioportal = text2term.map_terms(["asthma", "location", "food allergy"], target_ontology="EFO,NCIT",
+                                           mapper=Mapper.BIOPORTAL, term_type=OntologyTermType.ANY)
+        assert df_bioportal.empty is True
+
     def test_mapping_bioportal_ontologies(self):
         # Test mapping a list of terms to multiple ontologies using the BioPortal Annotator mapper
         print("Test mapping a list of terms to multiple ontologies using the BioPortal Annotator mapper...")
         df_bioportal = text2term.map_terms(["asthma", "location", "food allergy"], target_ontology="EFO,NCIT",
-                                           mapper=Mapper.BIOPORTAL, term_type=OntologyTermType.ANY)
+                                           mapper=Mapper.BIOPORTAL, term_type=OntologyTermType.ANY,
+                                           bioportal_apikey="8f0cbe43-2906-431a-9572-8600d3f4266e")
         print(f"{df_bioportal}\n")
         assert df_bioportal.size > 0
         assert df_bioportal[self.MAPPED_TERM_CURIE_COLUMN].str.contains("EFO:").any()
@@ -206,6 +214,13 @@ class Text2TermTestSuite(unittest.TestCase):
         df_leven = text2term.map_terms(search_terms, target_ontology="EFO", use_cache=True, mapper=Mapper.LEVENSHTEIN,
                                        term_type=OntologyTermType.ANY, min_score=min_score)
         assert (df_leven[self.MAPPING_SCORE_COLUMN] >= min_score).all()
+
+    def test_mapping_with_min_score_filter_empty_results(self):
+        self.ensure_cache_exists("EFO", self.EFO_URL)
+        print("Test mapping to EFO using TFIDF similarity metric and min_score filter that results in no mappings...")
+        df_tfidf = text2term.map_terms(["carbon monoxide"], target_ontology="EFO", use_cache=True, mapper=Mapper.TFIDF,
+                                       term_type=OntologyTermType.ANY, min_score=0.99)
+        assert df_tfidf.empty is True
 
     def test_include_unmapped_terms(self):
         self.ensure_cache_exists("EFO", self.EFO_URL)

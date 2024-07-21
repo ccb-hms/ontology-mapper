@@ -19,7 +19,7 @@ setup(
     long_description=long_description,
     long_description_content_type='text/markdown',
     author='Center for Computational Biomedicine, Harvard Medical School',
-    author_email='rafael_goncalves@hms.harvard.edu',
+    author_email='rsgoncalves@gmx.com',
     classifiers=[
         'Development Status :: 4 - Beta',
         'License :: OSI Approved :: MIT License',
