@@ -139,7 +139,7 @@ text2term.map_terms(source_terms,               # strings to map or pointer to f
                     min_score=0.3,              # minimum mapping score  
                     base_iris=(),               # map to terms with given base IRIs 
                     excl_deprecated=False,      # exclude ontology deprecated terms
-                    term_type="class",          # ontology term type(s) to map to
+                    term_type='class',          # ontology term type(s) to map to
                     save_graphs=False,          # save vis.js file with term graphs
                     save_mappings=False,        # save mappings to file or mot
                     output_file='',             # filepath of output mappings file
@@ -201,13 +201,13 @@ When using the BioPortal or Zooma interfaces, the value for `target_ontology` sh
 text2term supports caching ontologies for faster or repeated mapping to the same ontology. An ontology can be cached using the function:
 
 ```python
-cache_ontology(ontology_url, ontology_acronym="", base_iris=())
+text2term.cache_ontology(ontology_url, ontology_acronym="", base_iris=())
 ```
 This caches a single ontology from a URL or file path, and takes an optional acronym that will be used to reference the cached ontology later. If no acronym is given, the URL is used as the name.
 
 It is also possible to cache multiple ontologies, whose names and URLs are specified in a table formatted as such `acronym,version,url`. An example is provided in [resources/ontologies.csv](https://github.com/ccb-hms/ontology-mapper/blob/main/text2term/resources/ontologies.csv):
 ```python
-cache_ontology_set(ontology_registry_path)
+text2term.cache_ontology_set(ontology_registry_path)
 ```
 
 Once an ontology has been cached by either function, it is stored in a cache folder locally, and thus can be referenced even in different Python instances. Users can leverage the cache by using the assigned acronym as the value for the `target_ontology` argument, and setting the `use_cache` argument to `True`.
@@ -229,17 +229,17 @@ Finally, `cache_exists(ontology_acronym='')` is a simple function that returns `
 
 
 ### Input Preprocessing
-text2term includes regular expression-based preprocessing functionality for input terms. There are functions that take the input terms and a collection of (user-defined) regular expressions, then match each term to each regular expression to simplify the input term.
+text2term includes a module `preprocess.py` that supports regular expression-based preprocessing functionality for input terms. There are functions that take the input terms and a collection of (user-defined) regular expressions, then match each term to each regular expression to simplify the input term.
 
 ```python
-preprocess_terms(terms, template_path, output_file='', blocklist_path='', 
-                 blocklist_char='', rem_duplicates=False)
+preprocess.preprocess_terms(terms, template_path, output_file='', blocklist_path='', 
+                            blocklist_char='', rem_duplicates=False)
 ``` 
 This returns a dictionary where the keys are the original terms and the values are the preprocessed terms.
 
 ```python
-preprocess_tagged_terms(file_path, template_path='', blocklist_path='', 
-                        blocklist_char='', rem_duplicates=False, separator=';:;')
+preprocess.preprocess_tagged_terms(file_path, template_path='', blocklist_path='', 
+                                   blocklist_char='', rem_duplicates=False, separator=';:;')
 ```
 
 This returns a list of `TaggedTerm` objects.
