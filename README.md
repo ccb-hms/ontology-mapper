@@ -129,24 +129,25 @@ python text2term -s test/unstruct_terms.txt -t MONDO
 
 
 ## Programmatic Usage
-After installing and importing to a Python environment, the main function is `map_terms`:
+After installing and importing to a Python environment, the main function is `map_terms()`:
 
 ```python
-text2term.map_terms(source_terms, 
-                   target_ontology='http://some.ontology/v1.owl',
-                   base_iris=(),
-                   csv_columns=(), 
-                   excl_deprecated=False, 
-                   max_mappings=3, 
-                   mapper=Mapper.TFIDF,
-                   min_score=0.3, 
-                   output_file='', 
-                   save_graphs=False, 
-                   save_mappings=False, 
-                   separator=',', 
-                   use_cache=False,
-                   term_type=OntologyTermType.CLASS,
-                   incl_unmapped=False)
+text2term.map_terms(source_terms,               # strings to map or pointer to file 
+                    target_ontology='mondo',    # ontology to map to (URL or name)
+                    max_mappings=3,             # maximum mappings per string
+                    mapper=Mapper.TFIDF,        # mapping method to be used
+                    min_score=0.3,              # minimum mapping score  
+                    base_iris=(),               # map to terms with given base IRIs 
+                    excl_deprecated=False,      # exclude ontology deprecated terms
+                    term_type="class",          # ontology term type(s) to map to
+                    save_graphs=False,          # save vis.js file with term graphs
+                    save_mappings=False,        # save mappings to file or mot
+                    output_file='',             # filepath of output mappings file
+                    csv_columns=(),             # table columns with strings and IDs
+                    separator=',',              # column separator of input table 
+                    use_cache=False,            # use a locally cached ontology
+                    incl_unmapped=False,        # include unmapped strings in output
+                    bioportal_apikey='')        # API key to use the BioPortal mapper 
 ```
 The function returns a pandas `DataFrame` containing the generated ontology mappings.
 
@@ -192,6 +193,8 @@ When using the BioPortal or Zooma interfaces, the value for `target_ontology` sh
 `term_type`&mdash;Specifies whether to map to ontology classes, properties or both. One of `class, property, any`
 
 `incl_unmapped`&mdash;Include unmapped terms in the output. If a term has been tagged 'Ignore' or has less than the `min_score`, it is included in the output data frame
+
+`bioportal_apikey`&mdash;BioPortal API Key to use along with the BioPortal mapper option
 
 
 ### Ontology Caching
@@ -256,7 +259,7 @@ If an ignore tag `"ignore"` or `"Ignore"` is added to a term, that term will not
 
 After installing, execute the tool from a command line as follows:
 
-`python text2term [-h] -s SOURCE -t TARGET [-o OUTPUT] [-m MAPPER] [-csv CSV_INPUT] [-sep SEPARATOR] [-top TOP_MAPPINGS] [-min MIN_SCORE] [-iris BASE_IRIS] [-d] [-g] [-c STORE_IN_CACHE] [-type TERM_TYPE] [-u]`
+`python text2term [-h] -s SOURCE -t TARGET [-o OUTPUT] [-m MAPPER] [-csv CSV_INPUT] [-sep SEPARATOR] [-top TOP_MAPPINGS] [-min MIN_SCORE] [-iris BASE_IRIS] [-d] [-g] [-c STORE_IN_CACHE] [-type TERM_TYPE] [-u] [-bp BIOPORTAL_APIKEY]`
 
 To display a help message with descriptions of tool arguments do:
 
@@ -294,6 +297,7 @@ To display a help message with descriptions of tool arguments do:
 
 `-u` Include all unmapped terms in the output
 
+`-bp` BioPortal API Key to use along with the BioPortal mapper option
 
 ## Supported Mappers 
 
